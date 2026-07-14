@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -39,6 +38,11 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+
+    /* Prevent scrolling when overlay is active */
+    body.modal-open {
+      overflow: hidden;
     }
 
     ::-webkit-scrollbar {
@@ -1044,7 +1048,7 @@
       </div>
 
       <!-- Backup Profile settings -->
-      <div class="settings-group">
+      <div class="settings-group" style="margin-bottom: 30px;">
         <div class="settings-title" id="lbl-backup-title">Экспорт и Бэкап профиля</div>
         <div style="display: flex; gap: 8px;">
           <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт</button>
@@ -1055,6 +1059,14 @@
           <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
         </div>
       </div>
+
+      <!-- Hidden Minimalist TG Link Button at the absolute bottom -->
+      <div class="w-full text-center py-2 opacity-30 hover:opacity-100 transition-opacity duration-300">
+        <button id="tg-author-btn" class="text-[10px] text-zinc-500 hover:text-zinc-300 underline bg-transparent border-0 outline-none cursor-pointer tracking-wide uppercase">
+          ru - "ТГК автора" / en - "author tg.channel"
+        </button>
+      </div>
+
     </div>
 
   </main>
@@ -1108,6 +1120,69 @@
       </div>
 
       <div class="detail-tags" id="detail-tags-container"></div>
+    </div>
+  </div>
+
+  <!-- STYLISH FIRST LAUNCH NSFW & LICENSE USER AGREEMENT OVERLAY -->
+  <div id="eula-overlay" class="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-[2000] flex flex-col justify-between p-6 overflow-y-auto hidden">
+    <div class="max-w-md mx-auto w-full my-auto space-y-6">
+      
+      <!-- Premium Language Switcher inside Overlay -->
+      <div class="flex gap-4 justify-center">
+        <button id="eula-lang-ru" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">Русский 🇷🇺</button>
+        <button id="eula-lang-en" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">English 🇺🇸</button>
+      </div>
+
+      <!-- NSFW Caution Icon -->
+      <div class="text-center space-y-2">
+        <span class="text-5xl block animate-bounce">⚠️</span>
+        <h2 class="text-xl font-extrabold text-red-500 tracking-tight" id="eula-main-title">ВНИМАНИЕ / ATTENTION</h2>
+        <p class="text-xs text-zinc-500" id="eula-sub-title">18+ NSFW Content Protection & Terms</p>
+      </div>
+
+      <!-- Interactive terms list container -->
+      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-lg p-4 h-64 overflow-y-auto text-xs text-zinc-400 leading-relaxed space-y-3" id="eula-terms-box">
+        <!-- Will be filled in runtime -->
+      </div>
+
+      <!-- Interactive Checkbox state -->
+      <label class="flex items-start gap-3 cursor-pointer select-none py-1">
+        <input type="checkbox" id="eula-checkbox" class="mt-1 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-950">
+        <span class="text-xs text-zinc-400 leading-snug" id="lbl-eula-checkbox-text">
+          Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.
+        </span>
+      </label>
+
+      <!-- Action Confirmation Trigger -->
+      <button id="eula-confirm-btn" class="w-full py-3 px-4 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+        Подтвердить и Продолжить
+      </button>
+    </div>
+  </div>
+
+  <!-- MINIMALIST PREMIUM AUTHOR TG PROMPT MODAL -->
+  <div id="tg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1500] hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📢</span>
+        <h3 class="text-base font-bold text-blue-400" id="tg-modal-title">Телеграм канал автора</h3>
+      </div>
+      <p class="text-xs text-zinc-400 leading-relaxed" id="tg-modal-desc">
+        Подписывайтесь на официальный канал автора, чтобы следить за разработкой, получать важные обновления и первыми тестировать новые фичи!
+      </p>
+      
+      <!-- Link visual copy block -->
+      <div class="bg-zinc-950 border border-zinc-800 p-3 rounded-lg flex items-center justify-between gap-3">
+        <a href="https://t.me/VelVetus_Chromus" target="_blank" class="text-xs font-semibold text-blue-400 hover:underline break-all">t.me/VelVetus_Chromus</a>
+        <button id="tg-copy-btn" class="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white transition font-bold whitespace-nowrap">
+          Копировать
+        </button>
+      </div>
+
+      <!-- Close interactive elements -->
+      <button id="tg-modal-close" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-bold transition">
+        Закрыть
+      </button>
     </div>
   </div>
 
@@ -1226,7 +1301,15 @@
         layoutMasonry: "Мозаика",
         layoutStory: "Истории",
         backupExport: "Экспорт",
-        backupImport: "Импорт"
+        backupImport: "Импорт",
+        authorTg: "ТГК автора",
+        tgTitle: "Телеграм канал автора",
+        tgDesc: "Подписывайтесь на официальный канал автора, чтобы следить за разработкой, получать важные обновления и первыми тестировать новые фичи!",
+        tgCopied: "Ссылка успешно скопирована!",
+        eulaTitle: "Предупреждение о контенте",
+        eulaCheckbox: "Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.",
+        eulaConfirm: "Подтвердить и Продолжить",
+        eulaText: "ВНИМАНИЕ: Это приложение содержит материалы сексуального характера и NSFW-контент (18+), предназначенный исключительно для взрослой аудитории.\n\nПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ:\n1. Используя данное приложение, вы подтверждаете, что вам исполнилось полных 18 лет (или вы достигли возраста совершеннолетия в вашей стране).\n2. Вы соглашаетесь с тем, что в ленте будут отображаться откровенные иллюстрации, анимации и видеоролики.\n3. Вы обязуетесь не демонстрировать данный контент лицам, не достигшим совершеннолетия.\n4. Разработчики не несут ответственности за контент, предоставляемый сторонним API-сервером e621.net. Вся информация и медиафайлы загружаются напрямую с внешних источников.\n5. Если в вашей юрисдикции просмотр подобного контента запрещен законом, вы обязаны немедленно прекратить использование приложения."
       },
       en: {
         gallery: "Gallery",
@@ -1310,7 +1393,15 @@
         layoutMasonry: "Masonry",
         layoutStory: "Stories",
         backupExport: "Export",
-        backupImport: "Import"
+        backupImport: "Import",
+        authorTg: "author tg.channel",
+        tgTitle: "Author's Telegram Channel",
+        tgDesc: "Subscribe to the author's official Telegram channel to track development progress, receive key updates, and test new experimental features!",
+        tgCopied: "Link successfully copied to clipboard!",
+        eulaTitle: "Content Warning",
+        eulaCheckbox: "I verify that I am 18 years of age or older, and I fully accept the terms of this User Agreement.",
+        eulaConfirm: "Confirm & Continue",
+        eulaText: "WARNING: This application contains highly explicit NSFW (Not Safe For Work) content (18+) intended strictly for an adult audience.\n\nUSER AGREEMENT:\n1. By utilizing this application, you verify that you are at least 18 years of age (or of legal adult age in your jurisdiction).\n2. You acknowledge and accept that explicit illustrations, animations, and videos will be displayed.\n3. You agree not to display or share this content with minors.\n4. The developers do not host or control the content provided by the external e621.net API server. All images and media are retrieved directly from third-party sources.\n5. If viewing adult content is prohibited by law in your local jurisdiction, you must close this app immediately."
       }
     };
 
@@ -1462,6 +1553,9 @@
         radiusSelect.options[1].text = state.language === 'ru' ? 'Стандартное (8px)' : 'Standard (8px)';
         radiusSelect.options[2].text = state.language === 'ru' ? 'Экстремальное (16px)' : 'Extreme (16px)';
       }
+
+      // Localize Author TG Button text
+      document.getElementById('tg-author-btn').textContent = `ru - "ТГК автора" / en - "${t('authorTg')}"`;
 
       // Re-trigger dynamic state components to update their active labels
       updateAuthUI();
@@ -3070,6 +3164,144 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2000);
     }
 
+    // --- STREAMING_CHUNK: Integrating Author Telegram Modal & First launch NSFW protector ---
+    
+    // Copy To Clipboard fallback (safest for IFrames)
+    function copyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      // Prevent scrolling on focus
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast(t('tgCopied') || "Ссылка скопирована!");
+        } else {
+          showToast("Failed to copy link");
+        }
+      } catch (err) {
+        showToast("Error during copy operation");
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // Author Telegram Button Interactions
+    const tgAuthorBtn = document.getElementById('tg-author-btn');
+    const tgModal = document.getElementById('tg-modal');
+    const tgModalClose = document.getElementById('tg-modal-close');
+    const tgCopyBtn = document.getElementById('tg-copy-btn');
+
+    tgAuthorBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Translate elements in the Telegram modal
+      document.getElementById('tg-modal-title').textContent = t('tgTitle');
+      document.getElementById('tg-modal-desc').textContent = t('tgDesc');
+      document.getElementById('tg-modal-close').textContent = state.language === 'ru' ? 'Закрыть' : 'Close';
+      tgCopyBtn.textContent = state.language === 'ru' ? 'Копировать' : 'Copy';
+      
+      tgModal.classList.remove('hidden');
+    });
+
+    tgModalClose.addEventListener('click', () => {
+      tgModal.classList.add('hidden');
+    });
+
+    tgCopyBtn.addEventListener('click', () => {
+      copyToClipboard('https://t.me/VelVetus_Chromus');
+    });
+
+    tgModal.addEventListener('click', (e) => {
+      if (e.target === tgModal) {
+        tgModal.classList.add('hidden');
+      }
+    });
+
+    // Content Warning (EULA) Overlay State Management
+    const eulaOverlay = document.getElementById('eula-overlay');
+    const eulaCheckbox = document.getElementById('eula-checkbox');
+    const eulaConfirmBtn = document.getElementById('eula-confirm-btn');
+    let eulaLang = state.language || 'ru';
+
+    function checkFirstLaunchEULA() {
+      const accepted = localStorage.getItem('p_e621_eula_accepted');
+      if (accepted !== 'true') {
+        document.body.classList.add('modal-open');
+        eulaOverlay.classList.remove('hidden');
+        renderEULALanguage(eulaLang);
+      } else {
+        loadGallery();
+      }
+    }
+
+    function renderEULALanguage(lang) {
+      eulaLang = lang;
+      
+      // Update interactive styling on lang switcher inside EULA
+      const ruBtn = document.getElementById('eula-lang-ru');
+      const enBtn = document.getElementById('eula-lang-en');
+
+      if (lang === 'ru') {
+        ruBtn.className = "px-4 py-2 rounded bg-blue-600 text-white text-sm font-bold border border-blue-500 transition";
+        enBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        
+        document.getElementById('eula-main-title').textContent = "ВНИМАНИЕ";
+        document.getElementById('lbl-eula-checkbox-text').textContent = translations.ru.eulaCheckbox;
+        eulaConfirmBtn.textContent = translations.ru.eulaConfirm;
+        
+        // Render rich multiline formatted text
+        document.getElementById('eula-terms-box').innerHTML = translations.ru.eulaText
+          .split('\n\n')
+          .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+      } else {
+        enBtn.className = "px-4 py-2 rounded bg-blue-600 text-white text-sm font-bold border border-blue-500 transition";
+        ruBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        
+        document.getElementById('eula-main-title').textContent = "WARNING";
+        document.getElementById('lbl-eula-checkbox-text').textContent = translations.en.eulaCheckbox;
+        eulaConfirmBtn.textContent = translations.en.eulaConfirm;
+
+        document.getElementById('eula-terms-box').innerHTML = translations.en.eulaText
+          .split('\n\n')
+          .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+      }
+    }
+
+    document.getElementById('eula-lang-ru').addEventListener('click', () => {
+      renderEULALanguage('ru');
+    });
+
+    document.getElementById('eula-lang-en').addEventListener('click', () => {
+      renderEULALanguage('en');
+    });
+
+    eulaCheckbox.addEventListener('change', (e) => {
+      eulaConfirmBtn.disabled = !e.target.checked;
+    });
+
+    eulaConfirmBtn.addEventListener('click', () => {
+      if (eulaCheckbox.checked) {
+        // Save acceptance status and chosen language
+        localStorage.setItem('p_e621_eula_accepted', 'true');
+        state.language = eulaLang;
+        localStorage.setItem('p_e621_lang', eulaLang);
+        
+        // Hide and unlock body scroll
+        document.body.classList.remove('modal-open');
+        eulaOverlay.classList.add('hidden');
+        
+        // Re-localize application nodes & start initial feed load
+        translateUI();
+        loadGallery(true);
+      }
+    });
+
     // Window Loaded Initiators
     window.onload = function() {
       applyCustomStyles();
@@ -3089,7 +3321,8 @@
         cloudSyncInput.value = state.syncKey;
       }
 
-      loadGallery();
+      // Check user license block status (EULA) before launching core feed
+      checkFirstLaunchEULA();
     };
   </script>
 </body>
