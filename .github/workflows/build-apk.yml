@@ -51,14 +51,12 @@ jobs:
         echo "=== Removing existing android folder to avoid conflicts ==="
         rm -rf android
     
-    # --- ИНИЦИАЛИЗАЦИЯ ПРОЕКТА ---
     - name: Initialize and Build Android Project
       run: |
         npx cap init "Chromium E621" "com.chromium.e621.client" --web-dir=www
         npx cap add android
         
-    # --- ГЕНЕРИРУЕМ ИКОНКИ (ВАЖНО: ДО СИНХРОНИЗАЦИИ) ---
-    - name: Generate App Icons
+    - name: Generate App Icons (No White Background)
       run: |
         echo "=== Checking for icon source ==="
         if [ ! -f "icon-512.png" ]; then
@@ -77,22 +75,22 @@ jobs:
           echo "✅ icon-512.png found in root"
         fi
         
-        echo "=== Generating icons via Capacitor Assets ==="
-        npx capacitor-assets generate --android
+        echo "=== Installing sharp for image processing ==="
+        npm install sharp --force
+        
+        echo "=== Generating icons WITHOUT white background ==="
+        npx capacitor-assets generate --android --iconBackgroundColor transparent
 
-    # --- СИНХРОНИЗАЦИЯ (ТЕПЕРЬ ЗДЕСЬ, ПОСЛЕ ГЕНЕРАЦИИ ИКОНОК) ---
     - name: Sync Capacitor
       run: |
         npx cap sync android
     
-    # --- СБОРКА НЕПОДПИСАННОГО APK ---
     - name: Build Release APK
       run: |
         cd android
         chmod +x gradlew
         ./gradlew assembleRelease --stacktrace
 
-    # --- ПОДПИСАНИЕ APK ---
     - name: Sign Release APK Manually
       env:
         KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -111,7 +109,6 @@ jobs:
         echo "=== Проверка подписи ==="
         /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify chromium-e621-app.apk
     
-    # --- ЗАГРУЗКА APK В АРТЕФАКТЫ ---
     - name: Upload Signed APK
       uses: actions/upload-artifact@v4
       with:
