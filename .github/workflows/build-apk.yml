@@ -83,17 +83,19 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleRelease --stacktrace
     
-    # Автоматическое подписание релиза нашим Keystore
+# Автоматическое подписание релиза нашим Keystore
     - name: Sign Release APK
       uses: r0adkll/sign-android-release@v1
       id: sign_app
+      # Передаем версию через переменную окружения для самого экшена:
+      env:
+        ANDROID_BUILD_TOOLS_VERSION: '34.0.0'
       with:
         releaseDirectory: android/app/build/outputs/apk/release
         signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         alias: ${{ secrets.ANDROID_KEY_ALIAS }}
         keyStorePassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
         keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        buildToolsVersion: '34.0.0'
     
     # Загрузка готового, подписанного APK в артефакты
     - name: Upload Signed APK
