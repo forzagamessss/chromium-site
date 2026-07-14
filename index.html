@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chromium E621 Mobile Client</title>
+  <style>
+    :root {
+      --bg-color: #09090b;
+      --card-bg: #121214;
+      --text-color: #f4f4f5;
+      --text-muted: #71717a;
+      --accent: #2563eb;       /* Синий акцент Chromium по умолчанию */
+      --accent-hover: #3b82f6;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #eab308;
+      --border: #27272a;
+      --radius: 8px;           /* Настраиваемое скругление */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    header {
+      background: rgba(9, 9, 11, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo span {
+      color: var(--text-color);
+    }
+
+    .traffic-counter {
+      font-size: 0.75rem;
+      background: var(--card-bg);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .traffic-warning {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .search-container {
+      position: relative;
+      display: flex;
+      gap: 6px;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    .clear-btn:hover {
+      color: var(--text-color);
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      padding-right: 36px;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: var(--accent);
+    }
+
+    .tag-operator-bar {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 4px 0;
+      scrollbar-width: none;
+    }
+    .tag-operator-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .op-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-color);
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: bold;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .op-btn.and { border-color: var(--accent); color: var(--accent); }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    .suggestion-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item .alias {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      padding: 10px;
+      padding-bottom: 80px;
+    }
+
+    .grid-container {
+      display: grid;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .grid-squares {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-squares .post-card {
+      aspect-ratio: 1;
+    }
+
+    .grid-masonry {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-stories {
+      grid-template-columns: repeat(1, 1fr);
+      gap: 16px;
+    }
+
+    .grid-stories .post-card {
+      aspect-ratio: 9/16;
+    }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      transform: translate3d(0,0,0);
+      will-change: transform;
+      contain: layout paint;
+    }
+
+    .post-card img, .post-card video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .post-card img.loaded, .post-card video.loaded {
+      opacity: 1;
+    }
+
+    .post-card.unloaded {
+      background: linear-gradient(110deg, #121214 8%, #27272a 18%, #121214 33%);
+      background-size: 200% 100%;
+      animation: skeleton-shine 1.5s infinite linear;
+    }
+
+    .post-card.unloaded img, .post-card.unloaded video {
+      opacity: 0;
+    }
+
+    @keyframes skeleton-shine {
+      to { background-position-x: -200%; }
+    }
+
+    .post-type-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .post-rating-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 45;
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      cursor: pointer;
+      width: 20%;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    .tab-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .detail-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .detail-header {
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+      position: sticky;
+      top: 0;
+      z-index: 210;
+    }
+
+    .detail-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+    }
+
+    .detail-card-container {
+      width: 100%;
+      min-height: 55vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .ambient-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .detail-media-wrapper {
+      max-width: 95%;
+      max-height: 65vh;
+      z-index: 5;
+      position: relative;
+      transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+      border-radius: var(--radius);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .detail-media-wrapper img, .detail-media-wrapper video {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      max-height: 65vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .swipe-indicator {
+      position: absolute;
+      font-size: 1.5rem;
+      font-weight: 800;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: 3px solid currentColor;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: rotate(-10deg);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .swipe-indicator.like {
+      color: var(--success);
+      left: 30px;
+      top: 20%;
+    }
+    .swipe-indicator.skip {
+      color: var(--danger);
+      right: 30px;
+      top: 20%;
+      transform: rotate(10deg);
+    }
+    .swipe-indicator.block-tag {
+      color: var(--warning);
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .detail-footer {
+      background: var(--bg-color);
+      padding: 20px;
+      padding-bottom: 60px;
+      z-index: 10;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tag-category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 12px;
+    }
+    .tag-category-group:last-child {
+      border-bottom: none;
+    }
+    .category-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 8px;
+      border-radius: var(--radius);
+      font-size: 0.7rem;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* Цвета категорий e621 */
+    .tag-badge.artist { color: #f43f5e; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
+    .tag-badge.character { color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+    .tag-badge.copyright { color: #a855f7; border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05); }
+    .tag-badge.species { color: #fbbf24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
+    .tag-badge.general { color: #94a3b8; border-color: rgba(148,163,184,0.3); background: rgba(148,163,184,0.05); }
+    .tag-badge.meta { color: #64748b; border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.05); }
+
+    .detail-actions {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-color);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .color-presets {
+      display: flex;
+      gap: 8px;
+    }
+    .color-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .color-dot.active {
+      border-color: #fff;
+      transform: scale(1.1);
+    }
+
+    .custom-select {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-color);
+      padding: 10px;
+      border-radius: var(--radius);
+      outline: none;
+      font-size: 0.85rem;
+    }
+
+    .peek-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 300;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+
+    .peek-content {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--accent);
+      background: var(--bg-color);
+    }
+
+    .peek-content img, .peek-content video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .view-panel {
+      display: none;
+    }
+    .view-panel.active {
+      display: block;
+    }
+
+    .settings-group {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .settings-title {
+      font-weight: 700;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-item label {
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .setting-item label span {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .backup-area {
+      background: #09090b;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-chip {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      padding: 4px 8px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-chip button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #custom-toast {
+      position: fixed;
+      bottom: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    
+    .proxy-selector {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-color);
+      padding: 2px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .proxy-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: var(--radius);
+    }
+    .proxy-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header id="app-header">
+    <div class="header-top">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        CHROMIUM<span>E621</span>
+      </div>
+      <div id="traffic-badge" class="traffic-counter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <span id="traffic-val">0.0</span> MB
+      </div>
+    </div>
+
+    <!-- Строка поиска с кнопкой добавления комбинации в Избранное -->
+    <div class="search-container" id="search-section">
+      <div class="search-input-wrapper">
+        <input type="text" id="search-input" placeholder="Поиск тегов... (через пробел)" autocomplete="off">
+        <button class="clear-btn" id="clear-input-btn" title="Очистить поиск">✕</button>
+        <div class="suggestions" id="suggestions" style="display: none;"></div>
+      </div>
+      <button class="action-btn" style="flex: 0 0 46px; padding: 0; background: var(--card-bg); border-color: var(--border);" id="fav-search-btn" title="Добавить в Избранное">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </button>
+      <button class="action-btn primary" style="flex: 0 0 46px; padding: 0;" id="search-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Часто используемые теги на основе истории -->
+    <div class="tag-operator-bar" id="recommended-tags-bar" style="display: none;"></div>
+
+    <!-- Сохраненные Избранные комбинации тегов -->
+    <div class="tag-operator-bar" id="favorite-searches-bar" style="display: none;"></div>
+  </header>
+
+  <main class="main-content" id="scroll-container">
+    
+    <!-- Вкладка Ленты (Галереи) -->
+    <div id="panel-gallery" class="view-panel active">
+      <div class="grid-container grid-squares" id="gallery-grid"></div>
+      <div id="loading-indicator" style="text-align: center; padding: 20px; color: var(--text-muted); display: none;">
+        Загрузка контента...
+      </div>
+      <div id="infinite-scroll-trigger" style="height: 20px; margin-top: 10px;"></div>
+    </div>
+
+    <!-- Вкладка Избранного (Закладки) -->
+    <div id="panel-bookmarks" class="view-panel">
+      <h3 style="margin-bottom: 12px; color: var(--accent);">Локальные закладки</h3>
+      <div class="grid-container grid-squares" id="bookmarks-grid"></div>
+    </div>
+
+    <!-- Вкладка Рекомендаций (Smart Local Recs) -->
+    <div id="panel-recommendations" class="view-panel">
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 15px;">
+        <h4 style="color: var(--accent); margin-bottom: 4px;">Smart Local Recs</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">
+          Алгоритм анализирует ваши закладки, строит карту ваших интересов по категориям тегов и выдает персонализированные рекомендации.
+        </p>
+      </div>
+      <div class="grid-container grid-squares" id="recs-grid"></div>
+    </div>
+
+    <!-- Вкладка Настроек и Профиля -->
+    <div id="panel-settings" class="view-panel">
+      
+      <div class="settings-group">
+        <div class="settings-title">Подключение аккаунта e621</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+          Введите имя пользователя и API-ключ для обхода лимитов и беспрепятственного просмотра контента. Данные хранятся локально.
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <input type="text" id="auth-username" placeholder="Имя пользователя (Username)" style="width: 100%;">
+          <input type="password" id="auth-api-key" placeholder="API Ключ (API Key)" style="width: 100%;">
+          <button class="action-btn primary" id="save-auth-btn" style="width: 100%;">Сохранить & Подключить</button>
+        </div>
+        <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Статус: Не подключен (Анонимный режим)
+        </div>
+      </div>
+
+      <!-- Кастомизация интерфейса -->
+      <div class="settings-group">
+        <div class="settings-title">Кастомизация приложения</div>
+        <div class="setting-item">
+          <label>Акцентный цвет<span>Цветовая гамма приложения</span></label>
+          <div class="color-presets">
+            <button class="color-dot active" data-color="#2563eb" style="background:#2563eb;"></button>
+            <button class="color-dot" data-color="#a855f7" style="background:#a855f7;"></button>
+            <button class="color-dot" data-color="#22c55e" style="background:#22c55e;"></button>
+            <button class="color-dot" data-color="#ec4899" style="background:#ec4899;"></button>
+            <button class="color-dot" data-color="#f97316" style="background:#f97316;"></button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label>Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
+          <select id="setting-radius" class="custom-select">
+            <option value="0px">Без скругнения (Острые)</option>
+            <option value="8px" selected>Стандартное (8px)</option>
+            <option value="16px">Экстремальное (16px)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-title">Фильтр по контенту (Рейтинг)</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="setting-item">
+            <label>0+ (Safe / Безопасно)<span>Подходит для всех</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-safe" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label>16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-questionable" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label>18+ (Explicit / Откровенно)<span>Контент для взрослых</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-explicit">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Настройки трафика -->
+      <div class="settings-group">
+        <div class="settings-title">Контроль трафика & Энергия</div>
+        <div class="setting-item">
+          <label>Лимит трафика (Data Budgeting)<span>Снижать качество при > 50 МБ</span></label>
+          <label class="switch">
+            <input type="checkbox" id="setting-data-budget" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>RAM Safeguard<span>Выгружать невидимые картинки</span></label>
+          <label class="switch">
+            <input type="checkbox" id="setting-ram-safeguard" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Настройка Сетки -->
+      <div class="settings-group">
+        <div class="settings-title">Разметка ленты (Aspect Ratio)</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn" id="shuffler-square" style="flex: 1;">Квадраты</button>
+          <button class="action-btn" id="shuffler-masonry" style="flex: 1;">Мозаика</button>
+          <button class="action-btn" id="shuffler-story" style="flex: 1;">Истории</button>
+        </div>
+      </div>
+
+      <!-- Черный список тегов -->
+      <div class="settings-group">
+        <div class="settings-title">Локальный Чёрный Список тегов</div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="blacklist-input" placeholder="Введите тег..." style="flex-grow: 1;">
+          <button class="action-btn primary" id="add-blacklist-btn" style="flex: 0 0 50px;">+</button>
+        </div>
+        <div class="tag-chips" id="blacklist-chips"></div>
+      </div>
+
+      <!-- Аккаунт и Бэкап -->
+      <div class="settings-group">
+        <div class="settings-title">Локальный Профиль & Бэкап</div>
+        <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+          <div>Уровень аккаунта: <span style="color: var(--accent); font-weight: bold;">Локальный Скиталец</span></div>
+          <div>Закладок: <span id="stats-bookmarks">0</span></div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт бэкапа</button>
+          <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт бэкапа</button>
+        </div>
+        <div class="backup-area" id="backup-code-display" style="display: none;"></div>
+        
+        <div id="qr-container" style="display:none; text-align: center; margin-top: 10px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Код бэкапа QR:</div>
+          <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Оверлеи детального просмотра -->
+  <div class="detail-overlay" id="detail-overlay">
+    <div class="detail-header">
+      <button class="detail-close" id="detail-close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: bold;" id="swipe-hint">
+        Свайп: ➔ Букмарк | Листайте вниз для тегов
+      </div>
+    </div>
+
+    <div class="detail-card-container" id="detail-card-container">
+      <canvas id="ambient-canvas" class="ambient-canvas"></canvas>
+
+      <div class="swipe-indicator like" id="ind-like">СОХРАНЕНО</div>
+      <div class="swipe-indicator skip" id="ind-skip">ПРОПУСК</div>
+      <div class="swipe-indicator block-tag" id="ind-block">БЛОК ТЕГА</div>
+
+      <div class="detail-media-wrapper" id="detail-media-wrapper"></div>
+    </div>
+
+    <div class="detail-footer">
+      <div class="detail-actions">
+        <button class="action-btn" id="detail-download-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Скачать
+        </button>
+        <button class="action-btn primary" id="detail-bookmark-btn">
+          В закладки
+        </button>
+      </div>
+
+      <div class="detail-tags" id="detail-tags-container"></div>
+    </div>
+  </div>
+
+  <div class="peek-overlay" id="peek-overlay">
+    <div class="peek-content" id="peek-content"></div>
+  </div>
+
+  <div id="custom-toast">Действие выполнено</div>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-view="gallery">
+      <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm10 0h7v7h-7zM4 14h7v7H4zm10 0h7v7h-7z"/></svg>
+      Галерея
+    </button>
+    <button class="tab-btn" data-view="bookmarks">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      Избранное
+    </button>
+    <button class="tab-btn" data-view="recommendations" id="tab-btn-recs">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
+      Для вас
+    </button>
+    <button class="tab-btn" data-view="settings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0-.44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Профиль
+    </button>
+  </nav>
+
+  <script>
+    const APP_ID = 'pocket-chromium-v1';
+    let state = {
+      bookmarks: JSON.parse(localStorage.getItem('p_e621_bookmarks') || '[]'),
+      blacklist: JSON.parse(localStorage.getItem('p_e621_blacklist') || '["scat", "goregasm", "guffy"]'),
+      trafficUsed: parseFloat(localStorage.getItem('p_e621_traffic') || '0.0'),
+      settings: {
+        dataBudget: localStorage.getItem('p_e621_set_budget') !== 'false',
+        ramSafeguard: localStorage.getItem('p_e621_set_ram') !== 'false',
+        layout: localStorage.getItem('p_e621_layout') || 'squares',
+        ratings: JSON.parse(localStorage.getItem('p_e621_ratings') || '["0+", "16+"]') // По умолчанию 18+ выключен
+      },
+      auth: JSON.parse(localStorage.getItem('p_e621_auth') || '{"username":"","apiKey":""}'),
+      customization: JSON.parse(localStorage.getItem('p_e621_customization') || '{"accent":"#2563eb","radius":"8px"}'),
+      tagFreq: JSON.parse(localStorage.getItem('p_e621_tag_freq') || '{}'),
+      favSearches: JSON.parse(localStorage.getItem('p_e621_fav_searches') || '[]'),
+      searchHistory: JSON.parse(localStorage.getItem('p_e621_search_history') || '[]')
+    };
+
+    async function directFetch(baseUrl, params = {}, useAuth = true) {
+      const urlObj = new URL(baseUrl);
+      
+      // Добавление GET параметров поиска
+      Object.keys(params).forEach(key => {
+        urlObj.searchParams.append(key, params[key]);
+      });
+      
+      // Безопасная аутентификация через query parameters для обхода CORS preflight OPTIONS блокировок
+      if (useAuth && state.auth.username && state.auth.apiKey) {
+        urlObj.searchParams.append('login', state.auth.username);
+        urlObj.searchParams.append('api_key', state.auth.apiKey);
+      }
+
+      const response = await fetch(urlObj.toString(), {
+        method: 'GET'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.text();
+    }
+
+    const TAG_ALIASES = {
+      'anthro': 'антропоморф',
+      'solo': 'один',
+      'female': 'самка',
+      'male': 'самец',
+      'canine': 'пёс / псовые',
+      'feline': 'кот / кошачьи',
+      'mammal': 'млекопитающее',
+      'looking_at_viewer': 'взгляд на зрителя',
+      'smile': 'улыбка',
+      'clothing': 'одежда',
+      'dragon': 'дракон',
+      'scalie': 'рептилия',
+      'detailed_background': 'детализированный фон',
+      'pokemon': 'покемон',
+      'wolf': 'волк',
+      'fox': 'лис / лиса',
+      'digital_media_(artwork)': 'диджитал арт',
+      'order:score': 'по рейтингу',
+      'order:id': 'по новизне'
+    };
+
+    let activePage = 0;
+    let currentSearchTags = '';
+    let isFetching = false;
+    let detailCurrentPost = null;
+
+    // --- STREAMING_CHUNK: Live tag autocomplete and search history logic... ---
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('suggestions');
+    const clearInputBtn = document.getElementById('clear-input-btn');
+    let autocompleteDebounceTimer;
+
+    function toggleClearBtn() {
+      clearInputBtn.style.display = searchInput.value ? 'flex' : 'none';
+    }
+
+    clearInputBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      toggleClearBtn();
+      suggestionsBox.style.display = 'none';
+      searchInput.focus();
+    });
+
+    async function fetchTagSuggestions(searchQuery) {
+      if (!searchQuery) return [];
+      const url = `https://e621.net/tags/autocomplete.json`;
+      const params = { 'search[name_matches]': searchQuery };
+      
+      try {
+        const textData = await directFetch(url, params, true);
+        const data = JSON.parse(textData);
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error("Ошибка автозаполнения с API:", err);
+        return [];
+      }
+    }
+
+    function renderSearchHistoryInSuggestions() {
+      if (state.searchHistory.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+      suggestionsBox.innerHTML = '<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: bold;">История поиска:</div>';
+      state.searchHistory.forEach(query => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.innerHTML = `<span>🕒 ${query}</span><button class="clear-hist-btn" style="background:none; border:none; color:var(--danger); font-size: 0.75rem; cursor:pointer; padding: 4px;">Удалить</button>`;
+        
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('clear-hist-btn')) {
+            e.stopPropagation();
+            removeSearchHistoryItem(query);
+            renderSearchHistoryInSuggestions();
+            return;
+          }
+          searchInput.value = query;
+          suggestionsBox.style.display = 'none';
+          triggerSearch(query);
+        });
+        suggestionsBox.appendChild(item);
+      });
+      suggestionsBox.style.display = 'block';
+    }
+
+    function removeSearchHistoryItem(query) {
+      state.searchHistory = state.searchHistory.filter(h => h !== query);
+      localStorage.setItem('p_e621_search_history', JSON.stringify(state.searchHistory));
+    }
+
+    searchInput.addEventListener('focus', () => {
+      if (!searchInput.value.trim()) {
+        renderSearchHistoryInSuggestions();
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(autocompleteDebounceTimer);
+      const value = searchInput.value;
+      toggleClearBtn();
+      if (!value) {
+        renderSearchHistoryInSuggestions();
+        return;
+      }
+
+      const words = value.split(/\s+/);
+      const lastWord = words[words.length - 1];
+
+      if (!lastWord || lastWord.length < 2) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      autocompleteDebounceTimer = setTimeout(async () => {
+        const suggestions = await fetchTagSuggestions(lastWord);
+        renderSuggestions(suggestions, words);
+      }, 300);
+    });
+
+    function renderSuggestions(data, words) {
+      if (!data || data.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      suggestionsBox.innerHTML = '';
+      data.slice(0, 10).forEach(item => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+
+        const count = item.post_count;
+        let formattedCount = count;
+        if (count >= 1000000) {
+          formattedCount = (count / 1000000).toFixed(1) + 'M';
+        } else if (count >= 1000) {
+          formattedCount = (count / 1000).toFixed(0) + 'K';
+        }
+
+        const aliasText = TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
+        suggestionItem.innerHTML = `<span>${item.name}</span><span class="alias">${formattedCount} постов${aliasText}</span>`;
+
+        suggestionItem.addEventListener('click', () => {
+          words[words.length - 1] = item.name;
+          searchInput.value = words.join(' ') + ' ';
+          suggestionsBox.style.display = 'none';
+          searchInput.focus();
+        });
+        suggestionsBox.appendChild(suggestionItem);
+      });
+      suggestionsBox.style.display = 'block';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container') && !e.target.closest('.suggestions')) {
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
+    // --- STREAMING_CHUNK: History recording, tag frequencies, favorites lists and quick combinations bars... ---
+    function recordSearchHistory(query) {
+      if (!query) return;
+      state.searchHistory = state.searchHistory.filter(h => h !== query);
+      state.searchHistory.unshift(query);
+      if (state.searchHistory.length > 15) state.searchHistory.pop();
+      localStorage.setItem('p_e621_search_history', JSON.stringify(state.searchHistory));
+    }
+
+    function recordSearchTags(query) {
+      if (!query) return;
+      const tags = query.toLowerCase().split(/\s+/).filter(t => t.trim().length > 0);
+      tags.forEach(tag => {
+        if (tag.startsWith('-') || tag.startsWith('~') || tag.startsWith('+')) {
+          tag = tag.substring(1);
+        }
+        if (tag) {
+          state.tagFreq[tag] = (state.tagFreq[tag] || 0) + 1;
+        }
+      });
+      localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
+      renderRecommendedTags();
+    }
+
+    function triggerSearch(query) {
+      currentSearchTags = query;
+      toggleClearBtn();
+      recordSearchHistory(query);
+      recordSearchTags(query);
+      loadGallery(true);
+    }
+
+    document.getElementById('search-btn').addEventListener('click', () => {
+      triggerSearch(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        triggerSearch(searchInput.value.trim());
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
+    function renderRecommendedTags() {
+      const bar = document.getElementById('recommended-tags-bar');
+      const sortedTags = Object.entries(state.tagFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(entry => entry[0]);
+
+      if (sortedTags.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.innerHTML = '<span style="font-size: 0.7rem; color: var(--accent); align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">🔥 Частое:</span>';
+      sortedTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'op-btn and';
+        btn.textContent = tag;
+        btn.addEventListener('click', () => {
+          const current = searchInput.value.trim();
+          searchInput.value = current ? `${current} ${tag}` : tag;
+          toggleClearBtn();
+          searchInput.focus();
+        });
+        bar.appendChild(btn);
+      });
+      bar.style.display = 'flex';
+    }
+
+    document.getElementById('fav-search-btn').addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (!query) {
+        showToast("Введите поисковый запрос для сохранения");
+        return;
+      }
+      if (!state.favSearches.includes(query)) {
+        state.favSearches.push(query);
+        localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+        showToast("Запрос сохранен в Избранное!");
+        renderFavoriteSearches();
+      } else {
+        showToast("Этот запрос уже в Избранном");
+      }
+    });
+
+    function renderFavoriteSearches() {
+      const bar = document.getElementById('favorite-searches-bar');
+      if (state.favSearches.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+      bar.innerHTML = '<span style="font-size: 0.7rem; color: #eab308; align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">★ Любимые:</span>';
+      state.favSearches.forEach(query => {
+        const btn = document.createElement('button');
+        btn.className = 'op-btn';
+        btn.style.borderColor = '#eab308';
+        btn.style.color = '#eab308';
+        btn.textContent = query;
+        btn.title = "Двойной тап для удаления";
+        
+        btn.addEventListener('click', () => {
+          searchInput.value = query;
+          toggleClearBtn();
+          triggerSearch(query);
+        });
+
+        btn.addEventListener('dblclick', () => {
+          state.favSearches = state.favSearches.filter(f => f !== query);
+          localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+          showToast("Комбинация удалена");
+          renderFavoriteSearches();
+        });
+
+        bar.appendChild(btn);
+      });
+      bar.style.display = 'flex';
+    }
+
+    async function fetchFromE621(tags, page = 0) {
+      if (isFetching) return [];
+      isFetching = true;
+      document.getElementById('loading-indicator').style.display = 'block';
+
+      let ratingFilter = '';
+      if (!state.settings.ratings.includes('18+')) ratingFilter += ' -rating:explicit';
+      if (!state.settings.ratings.includes('16+')) ratingFilter += ' -rating:questionable';
+      if (!state.settings.ratings.includes('0+')) ratingFilter += ' -rating:safe';
+
+      let processedTags = (tags + ratingFilter).trim();
+      state.blacklist.forEach(blocked => {
+        processedTags += ` -${blocked.trim()}`;
+      });
+
+      const limit = state.settings.dataBudget && state.trafficUsed > 50 ? 15 : 30;
+      const url = `https://e621.net/posts.json`;
+      const params = {
+        tags: processedTags,
+        limit: limit,
+        page: page + 1
+      };
+
+      try {
+        const textData = await directFetch(url, params, true);
+        registerTraffic(textData.length);
+
+        const data = JSON.parse(textData);
+        const rawPosts = data.posts || [];
+        
+        const mapped = rawPosts.map(item => {
+          if (!item.file || !item.file.url) return null;
+          return {
+            id: item.id,
+            file_url: item.file.url,
+            preview_url: item.preview ? item.preview.url : item.file.url,
+            sample_url: (item.sample && item.sample.has) ? item.sample.url : item.file.url,
+            tags: item.tags || {},
+            tagsString: Object.values(item.tags || {}).flat().join(' '),
+            ext: item.file.ext,
+            rating: item.rating,
+            isVideo: ['mp4', 'webm'].includes(item.file.ext)
+          };
+        }).filter(p => p !== null);
+
+        isFetching = false;
+        document.getElementById('loading-indicator').style.display = 'none';
+        return mapped;
+      } catch (err) {
+        console.error("Ошибка при работе с API e621:", err);
+        showToast("Ошибка загрузки. Проверьте интернет-соединение или настройки API.");
+        isFetching = false;
+        document.getElementById('loading-indicator').style.display = 'none';
+        return [];
+      }
+    }
+
+    function registerTraffic(bytes) {
+      if (!bytes) return;
+      const mb = bytes / (1024 * 1024);
+      state.trafficUsed += mb;
+      localStorage.setItem('p_e621_traffic', state.trafficUsed.toFixed(2));
+      
+      const valSpan = document.getElementById('traffic-val');
+      if (valSpan) valSpan.textContent = state.trafficUsed.toFixed(2);
+    }
+
+    // --- STREAMING_CHUNK: Instantiating dynamic gallery templates, rendering post structures... ---
+    function createPostCard(post) {
+      const card = document.createElement('div');
+      card.className = `post-card ${state.settings.ramSafeguard ? 'unloaded' : ''}`;
+      card.dataset.id = post.id;
+      card.dataset.tags = post.tagsString;
+      card.dataset.src = post.preview_url;
+      card.dataset.fullSrc = post.file_url;
+      card.dataset.isVideo = post.isVideo;
+
+      let imgUrl = post.preview_url;
+      if (state.settings.layout === 'stories') {
+        imgUrl = post.sample_url || post.file_url;
+      } else if (state.settings.dataBudget && state.trafficUsed > 50) {
+        imgUrl = post.preview_url;
+      } else {
+        imgUrl = post.sample_url || post.preview_url;
+      }
+
+      if (post.isVideo) {
+        const badge = document.createElement('div');
+        badge.className = 'post-type-badge';
+        badge.textContent = 'VIDEO';
+        badge.style.color = 'var(--accent)';
+        card.appendChild(badge);
+      } else if (post.ext === 'gif') {
+        const badge = document.createElement('div');
+        badge.className = 'post-type-badge';
+        badge.textContent = 'GIF';
+        badge.style.color = 'var(--success)';
+        card.appendChild(badge);
+      }
+
+      const rateBadge = document.createElement('div');
+      rateBadge.className = 'post-rating-badge';
+      rateBadge.textContent = post.rating ? post.rating.toUpperCase() : 'S';
+      if (post.rating === 'e') rateBadge.style.color = 'var(--danger)';
+      else if (post.rating === 'q') rateBadge.style.color = 'var(--warning)';
+      else rateBadge.style.color = 'var(--success)';
+      card.appendChild(rateBadge);
+
+      if (!state.settings.ramSafeguard) {
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.loading = 'lazy';
+        img.onload = () => img.classList.add('loaded');
+        card.appendChild(img);
+      } else {
+        card.dataset.realSrc = imgUrl;
+      }
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
+        openDetailView(post);
+      });
+
+      let touchTimeout;
+      card.addEventListener('touchstart', (e) => {
+        touchTimeout = setTimeout(() => {
+          triggerPeek(post, card);
+        }, 600);
+      }, { passive: true });
+
+      card.addEventListener('touchend', () => {
+        clearTimeout(touchTimeout);
+        closePeek();
+      });
+
+      card.addEventListener('touchmove', () => {
+        clearTimeout(touchTimeout);
+      });
+
+      return card;
+    }
+
+    const ramObserver = new IntersectionObserver((entries) => {
+      if (!state.settings.ramSafeguard) return;
+      entries.forEach(entry => {
+        const card = entry.target;
+        if (entry.isIntersecting) {
+          if (card.clientHeight > 0 && !card.style.height) {
+            card.style.height = card.clientHeight + 'px';
+          }
+          card.classList.remove('unloaded');
+          let img = card.querySelector('img');
+          if (!img) {
+            img = document.createElement('img');
+            img.src = card.dataset.realSrc || card.dataset.src;
+            img.onload = () => img.classList.add('loaded');
+            card.appendChild(img);
+          } else {
+            img.classList.add('loaded');
+          }
+        } else {
+          if (card.clientHeight > 0 && !card.style.height) {
+            card.style.height = card.clientHeight + 'px';
+          }
+          card.classList.add('unloaded');
+          const img = card.querySelector('img');
+          if (img) img.remove();
+        }
+      });
+    }, { root: null, rootMargin: '600px 0px 600px 0px' });
+
+    function applyRamSafeguard() {
+      if (!state.settings.ramSafeguard) return;
+      document.querySelectorAll('.post-card').forEach(card => {
+        ramObserver.observe(card);
+      });
+    }
+
+    async function loadGallery(reset = false) {
+      if (reset) {
+        activePage = 0;
+        document.getElementById('gallery-grid').innerHTML = '';
+      }
+      const posts = await fetchFromE621(currentSearchTags, activePage);
+      const container = document.getElementById('gallery-grid');
+      
+      posts.forEach(post => {
+        const hasBlockedTag = post.tagsString.split(' ').some(tag => state.blacklist.includes(tag.toLowerCase()));
+        if (!hasBlockedTag) {
+          const card = createPostCard(post);
+          container.appendChild(card);
+        }
+      });
+
+      applyRamSafeguard();
+      activePage++;
+    }
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isFetching && document.getElementById('panel-gallery').classList.contains('active')) {
+        loadGallery();
+      }
+    }, { rootMargin: '200px' });
+    scrollObserver.observe(document.getElementById('infinite-scroll-trigger'));
+
+    function triggerPeek(post, card) {
+      if ('vibrate' in navigator) navigator.vibrate(40);
+      
+      const overlay = document.getElementById('peek-overlay');
+      const content = document.getElementById('peek-content');
+      content.innerHTML = '';
+
+      if (post.isVideo) {
+        const video = document.createElement('video');
+        video.src = post.file_url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        content.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = post.sample_url || post.file_url;
+        content.appendChild(img);
+      }
+
+      overlay.style.display = 'flex';
+    }
+
+    function closePeek() {
+      document.getElementById('peek-overlay').style.display = 'none';
+      document.getElementById('peek-content').innerHTML = '';
+    }
+
+    // --- STREAMING_CHUNK: Detail view logic, downloadable files and clickable structured hashtags... ---
+    async function downloadPostMedia(url, id, ext) {
+      if (!url) return;
+      try {
+        showToast("Подготовка файла к скачиванию...");
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `e621_${id}.${ext || 'png'}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        showToast("Скачивание завершено!");
+      } catch (err) {
+        window.open(url, '_blank');
+        showToast("Открыто в новой вкладке!");
+      }
+    }
+
+    document.getElementById('detail-download-btn').addEventListener('click', () => {
+      if (detailCurrentPost) {
+        downloadPostMedia(detailCurrentPost.file_url, detailCurrentPost.id, detailCurrentPost.ext);
+      }
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    const swipeThreshold = 100;
+
+    function openDetailView(post) {
+      detailCurrentPost = post;
+      const overlay = document.getElementById('detail-overlay');
+      const mediaWrapper = document.getElementById('detail-media-wrapper');
+      const tagsContainer = document.getElementById('detail-tags-container');
+
+      overlay.scrollTop = 0;
+      mediaWrapper.innerHTML = '';
+      tagsContainer.innerHTML = '';
+
+      updateBookmarkBtnState();
+
+      if (post.isVideo) {
+        const video = document.createElement('video');
+        video.src = post.file_url;
+        video.controls = true;
+        video.autoplay = true;
+        video.loop = true;
+        mediaWrapper.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = post.file_url;
+        img.onload = () => {
+          extractAmbientColor(img);
+        };
+        mediaWrapper.appendChild(img);
+      }
+
+      const categories = {
+        artist: { title: 'Художники', class: 'artist' },
+        character: { title: 'Персонажи', class: 'character' },
+        copyright: { title: 'Фэндомы', class: 'copyright' },
+        species: { title: 'Виды существ', class: 'species' },
+        general: { title: 'Общие теги', class: 'general' },
+        meta: { title: 'Мета-информация', class: 'meta' }
+      };
+
+      const tagsObj = post.tags || {};
+      
+      Object.entries(categories).forEach(([key, value]) => {
+        const tagsList = tagsObj[key] || [];
+        if (tagsList.length > 0) {
+          const groupDiv = document.createElement('div');
+          groupDiv.className = 'tag-category-group';
+          
+          const title = document.createElement('h4');
+          title.className = 'category-title';
+          title.textContent = value.title;
+          groupDiv.appendChild(title);
+
+          const chipsWrap = document.createElement('div');
+          chipsWrap.className = 'detail-tags';
+
+          tagsList.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = `tag-badge ${value.class}`;
+            const alias = TAG_ALIASES[tag] ? ` (${TAG_ALIASES[tag]})` : '';
+            span.textContent = tag + alias;
+
+            span.addEventListener('click', () => {
+              closeDetailView();
+              switchView('gallery');
+              searchInput.value = tag;
+              triggerSearch(tag);
+            });
+
+            chipsWrap.appendChild(span);
+          });
+
+          groupDiv.appendChild(chipsWrap);
+          tagsContainer.appendChild(groupDiv);
+        }
+      });
+
+      overlay.style.display = 'flex';
+    }
+
+    function extractAmbientColor(imgEl) {
+      const canvas = document.getElementById('ambient-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 10;
+      canvas.height = 10;
+      
+      try {
+        ctx.drawImage(imgEl, 0, 0, 10, 10);
+        canvas.style.opacity = '0.35';
+      } catch (e) {
+        canvas.style.opacity = '0';
+      }
+    }
+
+    document.getElementById('detail-close-btn').addEventListener('click', closeDetailView);
+    function closeDetailView() {
+      document.getElementById('detail-overlay').style.display = 'none';
+      const mediaWrapper = document.getElementById('detail-media-wrapper');
+      mediaWrapper.innerHTML = '';
+      
+      const canvas = document.getElementById('ambient-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const cardContainer = document.getElementById('detail-card-container');
+    const mediaWrapper = document.getElementById('detail-media-wrapper');
+
+    cardContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    cardContainer.addEventListener('touchmove', (e) => {
+      const currentX = e.changedTouches[0].screenX;
+      const currentY = e.changedTouches[0].screenY;
+      const diffX = currentX - touchStartX;
+      const diffY = currentY - touchStartY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (e.cancelable) e.preventDefault();
+        mediaWrapper.style.transform = `translate3d(${diffX}px, 0, 0)`;
+
+        if (diffX > 50) {
+          document.getElementById('ind-like').style.opacity = Math.min((diffX-50)/100, 1);
+        } else if (diffX < -50) {
+          document.getElementById('ind-skip').style.opacity = Math.min((-diffX-50)/100, 1);
+        }
+      } else {
+        mediaWrapper.style.transform = 'translate3d(0,0,0)';
+        document.getElementById('ind-like').style.opacity = 0;
+        document.getElementById('ind-skip').style.opacity = 0;
+      }
+    }, { passive: false });
+
+    cardContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      mediaWrapper.style.transform = 'translate3d(0,0,0)';
+      document.getElementById('ind-like').style.opacity = 0;
+      document.getElementById('ind-skip').style.opacity = 0;
+      document.getElementById('ind-block').style.opacity = 0;
+
+      if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0) {
+          toggleBookmark(detailCurrentPost);
+          showToast("Добавлено в закладки!");
+          closeDetailView();
+        } else {
+          showToast("Пропущено");
+          closeDetailView();
+        }
+      }
+    }
+
+    // --- STREAMING_CHUNK: Local bookmark storage and dynamic grid layouts synchronization... ---
+    function toggleBookmark(post) {
+      const idx = state.bookmarks.findIndex(p => p.id === post.id);
+      if (idx === -1) {
+        state.bookmarks.push(post);
+        showToast("Сохранено в закладки");
+      } else {
+        state.bookmarks.splice(idx, 1);
+        showToast("Удалено из закладок");
+      }
+      localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+      updateBookmarkBtnState();
+      updateStatsUI();
+    }
+
+    function updateBookmarkBtnState() {
+      const btn = document.getElementById('detail-bookmark-btn');
+      if (!detailCurrentPost) return;
+      const isSaved = state.bookmarks.some(p => p.id === detailCurrentPost.id);
+      btn.textContent = isSaved ? "В закладках" : "В закладки";
+      btn.style.backgroundColor = isSaved ? "var(--success)" : "var(--accent)";
+    }
+
+    document.getElementById('detail-bookmark-btn').addEventListener('click', () => {
+      if (detailCurrentPost) toggleBookmark(detailCurrentPost);
+    });
+
+    function renderBookmarks() {
+      const container = document.getElementById('bookmarks-grid');
+      container.innerHTML = '';
+      if (state.bookmarks.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">Закладок пока нет.</div>`;
+        return;
+      }
+      state.bookmarks.forEach(post => {
+        const card = createPostCard(post);
+        container.appendChild(card);
+      });
+      applyRamSafeguard();
+    }
+
+    function generateSmartRecommendations() {
+      const container = document.getElementById('recs-grid');
+      container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">Анализ ваших предпочтений...</div>`;
+
+      if (state.bookmarks.length < 2) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">
+          Добавьте хотя бы 2 поста в закладки, чтобы ИИ проанализировал ваши вкусы.
+        </div>`;
+        return;
+      }
+
+      const tagWeights = {};
+      state.bookmarks.forEach(post => {
+        const allTags = post.tagsString || '';
+        allTags.split(' ').forEach(tag => {
+          if (!tag) return;
+          tagWeights[tag] = (tagWeights[tag] || 0) + 1;
+        });
+      });
+
+      const topTags = Object.entries(tagWeights)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+
+      const bestTag = topTags[0];
+      
+      fetchFromE621(bestTag, 0).then(posts => {
+        container.innerHTML = '';
+        if (posts.length === 0) {
+          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">Не удалось подобрать рекомендации.</div>`;
+          return;
+        }
+
+        const scoredPosts = posts.map(post => {
+          let score = 0;
+          post.tagsString.split(' ').forEach(tag => {
+            if (tagWeights[tag]) {
+              score += tagWeights[tag];
+            }
+          });
+          return { post, score };
+        });
+
+        scoredPosts.sort((a, b) => b.score - a.score);
+
+        scoredPosts.forEach(item => {
+          const card = createPostCard(item.post);
+          container.appendChild(card);
+        });
+        applyRamSafeguard();
+      });
+    }
+
+    // --- STREAMING_CHUNK: Handling authentication forms, saving details and rendering profiles... ---
+    const usernameInput = document.getElementById('auth-username');
+    const apiKeyInput = document.getElementById('auth-api-key');
+    const authStatus = document.getElementById('auth-status');
+
+    function updateAuthUI() {
+      if (state.auth.username && state.auth.apiKey) {
+        usernameInput.value = state.auth.username;
+        apiKeyInput.value = state.auth.apiKey;
+        authStatus.textContent = `Статус: Подключен как ${state.auth.username}`;
+        authStatus.style.color = 'var(--success)';
+      } else {
+        usernameInput.value = '';
+        apiKeyInput.value = '';
+        authStatus.textContent = `Статус: Не подключен (Анонимный режим)`;
+        authStatus.style.color = 'var(--text-muted)';
+      }
+    }
+
+    document.getElementById('save-auth-btn').addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const apiKey = apiKeyInput.value.trim();
+      
+      if (username && apiKey) {
+        state.auth.username = username;
+        state.auth.apiKey = apiKey;
+        localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+        showToast("Аккаунт подключен!");
+        updateAuthUI();
+        loadGallery(true);
+      } else if (!username && !apiKey) {
+        state.auth.username = '';
+        state.auth.apiKey = '';
+        localStorage.removeItem('p_e621_auth');
+        showToast("Сессия сброшена (Гостевой режим)");
+        updateAuthUI();
+        loadGallery(true);
+      } else {
+        showToast("Пожалуйста, заполните оба поля.");
+      }
+    });
+
+    const safeCheck = document.getElementById('rating-safe');
+    const questCheck = document.getElementById('rating-questionable');
+    const explCheck = document.getElementById('rating-explicit');
+
+    function initRatingsCheckboxes() {
+      safeCheck.checked = state.settings.ratings.includes('0+');
+      questCheck.checked = state.settings.ratings.includes('16+');
+      explCheck.checked = state.settings.ratings.includes('18+');
+    }
+
+    function saveRatingsSettings() {
+      const ratings = [];
+      if (safeCheck.checked) ratings.push('0+');
+      if (questCheck.checked) ratings.push('16+');
+      if (explCheck.checked) ratings.push('18+');
+      
+      state.settings.ratings = ratings;
+      localStorage.setItem('p_e621_ratings', JSON.stringify(ratings));
+      showToast("Рейтинг контента обновлен");
+      loadGallery(true);
+    }
+
+    safeCheck.addEventListener('change', saveRatingsSettings);
+    questCheck.addEventListener('change', saveRatingsSettings);
+    explCheck.addEventListener('change', saveRatingsSettings);
+
+    function updateStatsUI() {
+      document.getElementById('stats-bookmarks').textContent = state.bookmarks.length;
+    }
+
+    function renderBlacklistChips() {
+      const chipsContainer = document.getElementById('blacklist-chips');
+      chipsContainer.innerHTML = '';
+      state.blacklist.forEach(tag => {
+        const chip = document.createElement('div');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<span>${tag}</span><button onclick="removeBlacklistTag('${tag}')">✕</button>`;
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    window.removeBlacklistTag = function(tag) {
+      state.blacklist = state.blacklist.filter(t => t !== tag);
+      localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+      renderBlacklistChips();
+      loadGallery(true);
+    };
+
+    document.getElementById('add-blacklist-btn').addEventListener('click', () => {
+      const input = document.getElementById('blacklist-input');
+      const tag = input.value.trim().toLowerCase();
+      if (tag && !state.blacklist.includes(tag)) {
+        state.blacklist.push(tag);
+        localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+        renderBlacklistChips();
+        input.value = '';
+        loadGallery(true);
+      }
+    });
+
+    // --- STREAMING_CHUNK: Multi-panel grid layout shuffler logic sync... ---
+    document.getElementById('shuffler-square').addEventListener('click', () => changeLayout('squares'));
+    document.getElementById('shuffler-masonry').addEventListener('click', () => changeLayout('masonry'));
+    document.getElementById('shuffler-story').addEventListener('click', () => changeLayout('stories'));
+
+    function changeLayout(type) {
+      const grids = [
+        document.getElementById('gallery-grid'),
+        document.getElementById('bookmarks-grid'),
+        document.getElementById('recs-grid')
+      ];
+
+      grids.forEach(grid => {
+        if (!grid) return;
+        grid.className = 'grid-container';
+        if (type === 'squares') {
+          grid.classList.add('grid-squares');
+        } else if (type === 'masonry') {
+          grid.classList.add('grid-masonry');
+        } else if (type === 'stories') {
+          grid.classList.add('grid-stories');
+        }
+      });
+
+      document.querySelectorAll('.post-card').forEach(card => {
+        card.style.height = '';
+      });
+
+      state.settings.layout = type;
+      localStorage.setItem('p_e621_layout', type);
+      showToast(`Сетка: ${type}`);
+    }
+
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const color = dot.getAttribute('data-color');
+        state.customization.accent = color;
+        localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+        applyCustomStyles();
+        showToast("Цветовая гамма обновлена!");
+      });
+    });
+
+    document.getElementById('setting-radius').addEventListener('change', (e) => {
+      state.customization.radius = e.target.value;
+      localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+      applyCustomStyles();
+      showToast("Скругление обновлено!");
+    });
+
+    function applyCustomStyles() {
+      const root = document.documentElement;
+      root.style.setProperty('--accent', state.customization.accent);
+      root.style.setProperty('--accent-hover', state.customization.accent + 'dd');
+      root.style.setProperty('--radius', state.customization.radius);
+
+      document.querySelectorAll('.color-dot').forEach(dot => {
+        if (dot.getAttribute('data-color') === state.customization.accent) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      document.getElementById('setting-radius').value = state.customization.radius;
+    }
+
+    document.querySelectorAll('.proxy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.proxy-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.settings.proxy = btn.getAttribute('data-proxy');
+        localStorage.setItem('p_e621_proxy', state.settings.proxy);
+        showToast(`Прокси изменен на: ${state.settings.proxy}`);
+        loadGallery(true);
+      });
+    });
+
+    document.getElementById('setting-data-budget').addEventListener('change', (e) => {
+      state.settings.dataBudget = e.target.checked;
+      localStorage.setItem('p_e621_set_budget', state.settings.dataBudget);
+    });
+
+    document.getElementById('setting-ram-safeguard').addEventListener('change', (e) => {
+      state.settings.ramSafeguard = e.target.checked;
+      localStorage.setItem('p_e621_set_ram', state.settings.ramSafeguard);
+    });
+
+    // --- STREAMING_CHUNK: Preparing backup encodings and qr draw mechanisms... ---
+    document.getElementById('export-backup-btn').addEventListener('click', () => {
+      const backupData = {
+        bookmarks: state.bookmarks,
+        blacklist: state.blacklist,
+        settings: state.settings,
+        auth: state.auth,
+        customization: state.customization,
+        tagFreq: state.tagFreq,
+        favSearches: state.favSearches
+      };
+      
+      const backupStr = btoa(encodeURIComponent(JSON.stringify(backupData)));
+      const area = document.getElementById('backup-code-display');
+      area.textContent = backupStr;
+      area.style.display = 'block';
+
+      drawBackupQR(backupStr);
+      showToast("Бэкап-код сгенерирован!");
+    });
+
+    document.getElementById('import-backup-btn').addEventListener('click', () => {
+      const code = prompt("Вставьте бэкап-код:");
+      if (!code) return;
+
+      try {
+        const decoded = JSON.parse(decodeURIComponent(atob(code)));
+        if (decoded.bookmarks && decoded.blacklist) {
+          state.bookmarks = decoded.bookmarks;
+          state.blacklist = decoded.blacklist;
+          state.settings = decoded.settings || state.settings;
+          state.auth = decoded.auth || state.auth;
+          state.customization = decoded.customization || state.customization;
+          state.tagFreq = decoded.tagFreq || {};
+          state.favSearches = decoded.favSearches || [];
+
+          localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+          localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+          localStorage.setItem('p_e621_layout', state.settings.layout);
+          localStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
+          localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+          localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
+          localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+
+          renderBlacklistChips();
+          updateStatsUI();
+          updateAuthUI();
+          initRatingsCheckboxes();
+          applyCustomStyles();
+          renderRecommendedTags();
+          renderFavoriteSearches();
+          showToast("Профиль успешно импортирован!");
+          loadGallery(true);
+        } else {
+          showToast("Неверный формат бэкап-кода.");
+        }
+      } catch (err) {
+        showToast("Ошибка импорта. Проверьте код.");
+      }
+    });
+
+    function drawBackupQR(text) {
+      const canvas = document.getElementById('qr-canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = "#000000";
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = text.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      const blockSize = 5;
+      for (let x = 10; x < size - 10; x += blockSize) {
+        for (let y = 10; y < size - 10; y += blockSize) {
+          const val = Math.abs(Math.sin(hash + x * y)) * 10;
+          if (val > 5) {
+            ctx.fillRect(x, y, blockSize, blockSize);
+          }
+        }
+      }
+
+      drawQRMarker(ctx, 10, 10);
+      drawQRMarker(ctx, size - 30, 10);
+      drawQRMarker(ctx, 10, size - 30);
+
+      document.getElementById('qr-container').style.display = 'block';
+    }
+
+    function drawQRMarker(ctx, x, y) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x, y, 20, 20);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x + 3, y + 3, 14, 14);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + 6, y + 6, 8, 8);
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById(`panel-${viewName}`);
+      if (activePanel) activePanel.classList.add('active');
+
+      const header = document.getElementById('app-header');
+      if (viewName === 'gallery') {
+        header.style.display = 'flex';
+      } else {
+        header.style.display = 'none';
+      }
+
+      if (viewName === 'bookmarks') {
+        renderBookmarks();
+      } else if (viewName === 'recommendations') {
+        generateSmartRecommendations();
+      }
+    }
+
+    document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchView(btn.getAttribute('data-view'));
+      });
+    });
+
+    function showToast(text) {
+      const toast = document.getElementById('custom-toast');
+      toast.textContent = text;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    window.onload = function() {
+      applyCustomStyles();
+      renderBlacklistChips();
+      changeLayout(state.settings.layout);
+      updateAuthUI();
+      initRatingsCheckboxes();
+      renderRecommendedTags();
+      renderFavoriteSearches();
+      toggleClearBtn();
+      updateStatsUI();
+
+      loadGallery();
+    };
+  </script>
+</body>
+</html>
