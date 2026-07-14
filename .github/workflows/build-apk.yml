@@ -54,7 +54,7 @@ jobs:
         npx cap init "Chromium E621" "com.chromium.e621.client" --web-dir=www
         npx cap add android
         
-    # --- ТЕПЕРЬ ГЕНЕРИРУЕМ ИКОНКИ (Строго ПОСЛЕ создания папки android) ---
+    # --- ГЕНЕРИРУЕМ ИКОНКИ ---
     - name: Generate App Icons
       run: |
         echo "=== Checking for icon source ==="
@@ -68,23 +68,34 @@ jobs:
         fi
         
         echo "=== Generating icons via Capacitor Assets ==="
-        # Инструмент автоматически нарежет icon-512.png во все mipmap-папки
         npx capacitor-assets generate --android
-    # ----------------------------------------------------------------------
 
     - name: Sync Capacitor
       run: |
         npx cap sync android
     
-    - name: Build APK
+    # Сборка не подписанного релизного APK
+    - name: Build Release APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --stacktrace
+        ./gradlew assembleRelease --stacktrace
     
-    - name: Upload APK
+    # Автоматическое подписание релиза нашим Keystore
+    - name: Sign Release APK
+      uses: r0adkll/sign-android-release@v1
+      id: sign_app
+      with:
+        releaseDirectory: android/app/build/outputs/apk/release
+        signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+        keyStorePassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    
+    # Загрузка готового, подписанного APK в артефакты
+    - name: Upload Signed APK
       uses: actions/upload-artifact@v4
       with:
-        name: chromium-e621-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        name: chromium-e621-release-apk
+        path: ${{ steps.sign_app.outputs.signedReleaseFile }}
         retention-days: 30
