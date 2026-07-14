@@ -79,7 +79,7 @@ jobs:
         npm install sharp --force
         
         echo "=== Generating icons WITHOUT white background ==="
-        npx capacitor-assets generate --android --iconBackgroundColor transparent
+        npx @capacitor/assets generate --android --iconBackgroundColor transparent
 
     - name: Sync Capacitor
       run: |
