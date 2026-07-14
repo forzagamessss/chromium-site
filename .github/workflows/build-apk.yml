@@ -7,6 +7,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,9 +32,6 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    # ============================================================
-    # НОВЫЙ ШАГ: Генерация иконок всех размеров из одного файла
-    # ============================================================
     - name: Generate app icons
       run: |
         echo "=== Installing ImageMagick ==="
@@ -46,7 +46,6 @@ jobs:
         mkdir -p android/app/src/main/res/mipmap-xxxhdpi
         
         echo "=== Checking for icon source ==="
-        # Ищем иконку в разных местах
         if [ -f "icon-512.png" ]; then
           ICON_SOURCE="icon-512.png"
         elif [ -f "assets/icon-512.png" ]; then
@@ -55,7 +54,6 @@ jobs:
           ICON_SOURCE="assets/icon.png"
         else
           echo "⚠️ No icon found, creating a default one"
-          # Создаём дефолтную иконку с буквами "E6"
           convert -size 512x512 xc:#2563eb \
             -fill white -draw "circle 256,256 256,76" \
             -fill white -draw "circle 256,256 76,256" \
@@ -68,15 +66,12 @@ jobs:
         fi
         
         echo "=== Generating icons from: $ICON_SOURCE ==="
-        
-        # Основная иконка (векторная) - все размеры
         convert $ICON_SOURCE -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
         convert $ICON_SOURCE -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
         convert $ICON_SOURCE -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
         convert $ICON_SOURCE -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
         convert $ICON_SOURCE -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
         
-        # Круглая иконка (для Android 8+) - все размеры
         convert $ICON_SOURCE -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
         convert $ICON_SOURCE -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
         convert $ICON_SOURCE -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
@@ -84,8 +79,6 @@ jobs:
         convert $ICON_SOURCE -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
         
         echo "=== Icons generated successfully ==="
-        echo "Generated files:"
-        ls -la android/app/src/main/res/mipmap-xxxhdpi/
     
     - name: Clean install dependencies
       run: |
@@ -106,6 +99,11 @@ jobs:
     - name: Install Capacitor
       run: |
         npm install @capacitor/core @capacitor/cli @capacitor/android --force
+    
+    - name: Remove existing Android folder
+      run: |
+        echo "=== Removing existing android folder to avoid conflicts ==="
+        rm -rf android
     
     - name: Build Android project
       run: |
