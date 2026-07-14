@@ -1,1 +1,3096 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chromium E621 Mobile Client</title>
+  <!-- Loading Tailwind CSS for premium responsive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-color: #09090b;
+      --card-bg: #121214;
+      --text-color: #f4f4f5;
+      --text-muted: #71717a;
+      --accent: #2563eb;       
+      --accent-hover: #3b82f6;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #eab308;
+      --border: #27272a;
+      --radius: 8px;           
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    header {
+      background: rgba(9, 9, 11, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo span {
+      color: var(--text-color);
+    }
+
+    .traffic-counter {
+      font-size: 0.75rem;
+      background: var(--card-bg);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .search-container {
+      position: relative;
+      display: flex;
+      gap: 6px;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .tag-operator-bar {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 4px 0;
+      scrollbar-width: none;
+    }
+    .tag-operator-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .op-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-color);
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: bold;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .op-btn.and { border-color: var(--accent); color: var(--accent); }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    .suggestion-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      padding: 10px;
+      padding-bottom: 80px;
+    }
+
+    .grid-container {
+      display: grid;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .grid-squares {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-squares .post-card {
+      aspect-ratio: 1;
+    }
+
+    .grid-masonry {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-stories {
+      grid-template-columns: repeat(1, 1fr);
+      gap: 16px;
+    }
+
+    .grid-stories .post-card {
+      aspect-ratio: 9/16;
+    }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      transform: translate3d(0,0,0);
+      will-change: transform;
+      contain: layout paint;
+    }
+
+    .post-card img, .post-card video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .post-card img.loaded, .post-card video.loaded {
+      opacity: 1;
+    }
+
+    /* Fit settings for feed mode */
+    body.feed-fit-contain .post-card img,
+    body.feed-fit-contain .post-card video {
+      object-fit: contain !important;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    body.feed-fit-cover .post-card img,
+    body.feed-fit-cover .post-card video {
+      object-fit: cover !important;
+    }
+
+    .post-type-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .post-rating-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 45;
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      cursor: pointer;
+      width: 25%;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    .tab-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Immersive Detail Overlays */
+    .detail-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .detail-header {
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+      position: sticky;
+      top: 0;
+      z-index: 210;
+    }
+
+    .detail-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+    }
+
+    .detail-card-container {
+      width: 100%;
+      min-height: 55vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .ambient-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .detail-media-wrapper {
+      max-width: 95%;
+      max-height: 65vh;
+      z-index: 5;
+      position: relative;
+      transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+      border-radius: var(--radius);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .detail-media-wrapper img, .detail-media-wrapper video {
+      max-width: 100%;
+      max-height: 65vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .swipe-indicator {
+      position: absolute;
+      font-size: 1.5rem;
+      font-weight: 800;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: 3px solid currentColor;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: rotate(-10deg);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .swipe-indicator.like {
+      color: var(--success);
+      left: 30px;
+      top: 20%;
+    }
+    .swipe-indicator.skip {
+      color: var(--danger);
+      right: 30px;
+      top: 20%;
+      transform: rotate(10deg);
+    }
+
+    .detail-footer {
+      background: var(--bg-color);
+      padding: 20px;
+      padding-bottom: 60px;
+      z-index: 10;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tag-category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 12px;
+    }
+    .tag-category-group:last-child {
+      border-bottom: none;
+    }
+    .category-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 8px;
+      border-radius: var(--radius);
+      font-size: 0.7rem;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* Categories Colors */
+    .tag-badge.artist { color: #f43f5e; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
+    .tag-badge.character { color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+    .tag-badge.copyright { color: #a855f7; border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05); }
+    .tag-badge.species { color: #fbbf24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
+    .tag-badge.general { color: #94a3b8; border-color: rgba(148,163,184,0.3); background: rgba(148,163,184,0.05); }
+    .tag-badge.meta { color: #64748b; border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.05); }
+
+    .detail-actions {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-color);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .action-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .color-presets {
+      display: flex;
+      gap: 8px;
+    }
+    .color-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .color-dot.active {
+      border-color: #fff;
+      transform: scale(1.1);
+    }
+
+    .peek-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 300;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+
+    .peek-content {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--accent);
+      background: var(--bg-color);
+    }
+
+    .peek-content img, .peek-content video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .view-panel {
+      display: none;
+    }
+    .view-panel.active {
+      display: block;
+    }
+
+    .settings-group {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .settings-title {
+      font-weight: 700;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-item label {
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .setting-item label span {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-chip {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      padding: 4px 8px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-chip button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #custom-toast {
+      position: fixed;
+      bottom: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Popular Selector Panel styling */
+    .period-selector {
+      display: flex;
+      gap: 6px;
+      background: var(--card-bg);
+      padding: 4px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .period-btn {
+      flex: 1;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: var(--radius);
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .period-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header id="app-header">
+    <div class="header-top">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        CHROMIUM<span>E621</span>
+      </div>
+      <div id="traffic-badge" class="traffic-counter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="mr-1">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <span id="traffic-val">0.0</span> MB
+      </div>
+    </div>
+
+    <!-- Search block with favorites save button -->
+    <div class="search-container" id="search-section">
+      <div class="search-input-wrapper">
+        <input type="text" id="search-input" autocomplete="off">
+        <button class="clear-btn" id="clear-input-btn">✕</button>
+        <div class="suggestions" id="suggestions" style="display: none;"></div>
+      </div>
+      <button class="action-btn" style="flex: 0 0 46px; padding: 0; background: var(--card-bg); border-color: var(--border);" id="fav-search-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </button>
+      <button class="action-btn primary" style="flex: 0 0 46px; padding: 0;" id="search-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Period / Popularity Timeline Bar -->
+    <div class="period-selector" id="popularity-period-bar">
+      <button class="period-btn active" data-period="all" id="p-feed">Лента</button>
+      <button class="period-btn" data-period="1d" id="p-day">День</button>
+      <button class="period-btn" data-period="7d" id="p-week">Неделя</button>
+      <button class="period-btn" data-period="30d" id="p-month">Месяц</button>
+      <button class="period-btn" data-period="alltime" id="p-alltime">Всё время</button>
+    </div>
+
+    <!-- Autocomplete tags based on query history -->
+    <div class="tag-operator-bar" id="recommended-tags-bar" style="display: none;"></div>
+
+    <!-- Favorite queries quick tags bar -->
+    <div class="tag-operator-bar" id="favorite-searches-bar" style="display: none;"></div>
+  </header>
+
+  <main class="main-content" id="scroll-container">
+    
+    <!-- GALLERY TAB PANEL -->
+    <div id="panel-gallery" class="view-panel active">
+      <div class="grid-container grid-squares" id="gallery-grid"></div>
+      <div id="loading-indicator" style="text-align: center; padding: 20px; color: var(--text-muted); display: none;"></div>
+      <div id="infinite-scroll-trigger" style="height: 20px; margin-top: 10px;"></div>
+    </div>
+
+    <!-- BOOKMARKS TAB PANEL -->
+    <div id="panel-bookmarks" class="view-panel">
+      <h3 style="margin-bottom: 12px; color: var(--accent); font-weight: bold;" id="lbl-local-favs">Локальные закладки</h3>
+      <div class="grid-container grid-squares" id="bookmarks-grid"></div>
+    </div>
+
+    <!-- RECOMMENDATIONS TAB PANEL -->
+    <div id="panel-recommendations" class="view-panel">
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 15px;">
+        <h4 style="color: var(--accent); margin-bottom: 4px; font-weight: bold;">Smart AI Recs</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-rec-desc">
+          Алгоритм анализирует ваши закладки, строит карту ваших интересов по категориям тегов и выдает рекомендации.
+        </p>
+      </div>
+      <div class="grid-container grid-squares" id="recs-grid"></div>
+    </div>
+
+    <!-- SETTINGS TAB PANEL -->
+    <div id="panel-settings" class="view-panel">
+      
+      <!-- Multi-Language Choice block -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-lang-title">Язык приложения / Language</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn" id="lang-btn-ru" style="flex: 1;">Русский 🇷🇺</button>
+          <button class="action-btn" id="lang-btn-en" style="flex: 1;">English 🇺🇸</button>
+        </div>
+      </div>
+
+      <!-- Device Synchronizer API Config -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-cloud-title">Облачная синхронизация данных</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-cloud-desc">
+          Сохраняйте ваши закладки, черные списки, любимые поиски и историю в облаке, чтобы они были доступны на любом устройстве.
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label id="lbl-synckey" style="font-size: 0.8rem; font-weight: bold;">Ключ синхронизации (Sync Key)</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="sync-key-input" placeholder="Введите ключ или создайте новый..." style="flex-grow: 1;">
+            <button class="action-btn primary" id="generate-key-btn" style="flex: 0 0 100px;">Создать</button>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button class="action-btn" id="cloud-upload-btn" style="flex: 1;">
+              <span>Отправить в облако</span>
+            </button>
+            <button class="action-btn" id="cloud-download-btn" style="flex: 1;">
+              <span>Загрузить из облака</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Connection e621 -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-auth-title">Подключение аккаунта e621</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-auth-desc">
+          Введите имя пользователя и API-ключ для обхода лимитов и беспрепятственного просмотра контента. Данные хранятся локально.
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <input type="text" id="auth-username" style="width: 100%;">
+          <input type="password" id="auth-api-key" style="width: 100%;">
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn primary" id="save-auth-btn" style="flex: 1;">Сохранить & Подключить</button>
+            <button class="action-btn" id="btn-reg" style="flex: 1; border-color: var(--accent); color: var(--accent);">Регистрация</button>
+          </div>
+        </div>
+        <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Статус: Не подключен (Анонимный режим)
+        </div>
+
+        <!-- API retrieval guide accordion -->
+        <details class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg" style="font-size: 0.8rem;">
+          <summary class="cursor-pointer font-bold text-zinc-300" id="lbl-guide-title">Как достать API-ключ e621?</summary>
+          <ul class="list-decimal pl-4 mt-2 space-y-1 text-zinc-400" id="lbl-guide-steps">
+            <li>Войдите на e621.net</li>
+            <li>Откройте свой профиль (нажав по вашему нику).</li>
+            <li>Перейдите в подраздел 'Manage API Keys'.</li>
+            <li>Сгенерируйте API-ключ и скопируйте его, чтобы вставить в поле выше.</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Dynamic Profile stats -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-stats-title">Индивидуальная статистика просмотра</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
+          <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
+            <span class="text-zinc-500 block text-xs" id="lbl-stat-viewed">Просмотрено артов</span>
+            <span id="stat-val-viewed" class="font-bold text-lg text-blue-500">0</span>
+          </div>
+          <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
+            <span class="text-zinc-500 block text-xs" id="lbl-stat-liked">Залайкано / В закладках</span>
+            <span id="stat-val-liked" class="font-bold text-lg text-emerald-500">0</span>
+          </div>
+          <div class="bg-zinc-900 p-2 rounded border border-zinc-800 col-span-2">
+            <span class="text-zinc-500 block text-xs" id="lbl-stat-time">Общее время в приложении</span>
+            <span id="stat-val-time" class="font-bold text-sm text-amber-500">0м 0с</span>
+          </div>
+          <div class="bg-zinc-900 p-3 rounded border border-zinc-800 col-span-2">
+            <span class="text-zinc-500 block text-xs mb-1" id="lbl-stat-frequent">Частые категории в закладках</span>
+            <div id="stat-val-tags" class="flex flex-wrap gap-1 text-xs">...</div>
+          </div>
+          <div class="bg-zinc-900 p-3 rounded border border-zinc-800 col-span-2">
+            <span class="text-zinc-500 block text-xs mb-1" id="lbl-stat-artists">Любимые художники</span>
+            <div id="stat-val-artists" class="flex flex-wrap gap-1 text-xs text-rose-400">...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Artwork direct uploader block -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-upload-title">Загрузка изображения на e621</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-upload-desc">
+          Делитесь своими артами напрямую с серверами e621. Требуется заполненный аккаунт.
+        </div>
+        <div class="space-y-3" style="font-size: 0.85rem;">
+          <div>
+            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-file">Файл изображения</label>
+            <input type="file" id="upload-file" class="bg-zinc-900 border border-zinc-800 p-1 w-full rounded">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-tags">Теги (разделенные пробелом)</label>
+            <input type="text" id="upload-tags" placeholder="e.g. canine female smile">
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div class="flex-1">
+              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-rating">Рейтинг</label>
+              <select id="upload-rating">
+                <option value="s">Safe (S)</option>
+                <option value="q">Questionable (Q)</option>
+                <option value="e">Explicit (E)</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-source">Источник</label>
+              <input type="text" id="upload-source" placeholder="https://..." style="height:42px;">
+            </div>
+          </div>
+          <button class="action-btn primary w-full" id="upload-submit-btn">Отправить на server e621</button>
+        </div>
+      </div>
+
+      <!-- Feel Lucky setup -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-lucky-setup">🎲 Мне повезет</div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between items-center">
+            <span id="lbl-minscore">Минимальный рейтинг (Score)</span>
+            <input type="number" id="lucky-score" value="100" class="w-20 text-center bg-zinc-900 border border-zinc-800 p-1 rounded">
+          </div>
+          <div class="flex justify-between items-center">
+            <span id="lbl-tagabsurd">Только absurd_res</span>
+            <label class="switch">
+              <input type="checkbox" id="lucky-absurd" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="flex justify-between items-center">
+            <span id="lbl-unseen">Только новые (непросмотренные)</span>
+            <label class="switch">
+              <input type="checkbox" id="lucky-unseen">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <button class="action-btn primary w-full mt-2" id="lucky-roll-btn" style="background: linear-gradient(135deg, #fbbf24, #d97706); border:none;">
+            <span class="font-bold text-zinc-900" id="lbl-roll">Бросить кости!</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Customization and Feed Fit Modes -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-custom-title">Кастомизация приложения</div>
+        <div class="setting-item">
+          <label id="lbl-accent">Акцентный цвет<span>Цветовая гамма приложения</span></label>
+          <div class="color-presets">
+            <button class="color-dot active" data-color="#2563eb" style="background:#2563eb;"></button>
+            <button class="color-dot" data-color="#a855f7" style="background:#a855f7;"></button>
+            <button class="color-dot" data-color="#22c55e" style="background:#22c55e;"></button>
+            <button class="color-dot" data-color="#ec4899" style="background:#ec4899;"></button>
+            <button class="color-dot" data-color="#f97316" style="background:#f97316;"></button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label id="lbl-rounding">Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
+          <select id="setting-radius" class="custom-select w-44">
+            <option value="0px">Без скругнения (Острые)</option>
+            <option value="8px" selected>Стандартное (8px)</option>
+            <option value="16px">Экстремальное (16px)</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label id="lbl-feed-fit">Формат в ленте<span>Способ масштабирования миниатюр</span></label>
+          <select id="setting-feed-fit" class="custom-select w-44">
+            <option value="cover" id="opt-fit-cover">Обрезать (1:1 Cover)</option>
+            <option value="contain" id="opt-fit-contain">Вписать (Original Contain)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Rating Configuration -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-filter-title">Фильтр по контенту (Рейтинг)</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="setting-item">
+            <label id="lbl-rate-safe">0+ (Safe / Безопасно)<span>Подходит для всех</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-safe" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label id="lbl-rate-quest">16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-questionable" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label id="lbl-rate-expl">18+ (Explicit / Откровенно)<span>Контент для взрослых</span></label>
+            <label class="switch">
+              <input type="checkbox" id="rating-explicit">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Traffic & Safeguard parameters -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-traffic-title">Контроль трафика & Энергия</div>
+        <div class="setting-item">
+          <label id="lbl-budget">Лимит трафика (Data Budgeting)<span>Снижать качество при > 50 МБ</span></label>
+          <label class="switch">
+            <input type="checkbox" id="setting-data-budget" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label id="lbl-ram">RAM Safeguard<span>Выгружать невидимые картинки</span></label>
+          <label class="switch">
+            <input type="checkbox" id="setting-ram-safeguard" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Layout Mode select -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-layout-title">Разметка ленты (Aspect Ratio)</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn" id="shuffler-square" style="flex: 1;">Квадраты</button>
+          <button class="action-btn" id="shuffler-masonry" style="flex: 1;">Мозаика</button>
+          <button class="action-btn" id="shuffler-story" style="flex: 1;">Истории</button>
+        </div>
+      </div>
+
+      <!-- Local Blacklist Management -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-blacklist-title">Локальный Чёрный Список тегов</div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="blacklist-input" style="flex-grow: 1;">
+          <button class="action-btn primary" id="add-blacklist-btn" style="flex: 0 0 50px;">+</button>
+        </div>
+        <div class="tag-chips" id="blacklist-chips"></div>
+      </div>
+
+      <!-- Backup Profile settings -->
+      <div class="settings-group">
+        <div class="settings-title" id="lbl-backup-title">Экспорт и Бэкап профиля</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт</button>
+          <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт</button>
+        </div>
+        <div class="backup-area p-2 text-xs border border-zinc-800 rounded hidden" id="backup-code-display" style="font-family:monospace; word-break:break-all; max-height:80px; overflow-y:auto; background:#18181b;"></div>
+        <div id="qr-container" style="display:none; text-align: center; margin-top: 10px;" class="flex flex-col items-center justify-center">
+          <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- OVERLAY IMMERSIVE VIEWER -->
+  <div class="detail-overlay" id="detail-overlay">
+    <div class="detail-header">
+      <button class="detail-close" id="detail-close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: bold;" id="swipe-hint"></div>
+    </div>
+
+    <div class="detail-card-container" id="detail-card-container">
+      <canvas id="ambient-canvas" class="ambient-canvas"></canvas>
+
+      <div class="swipe-indicator like" id="ind-like">СОХРАНЕНО</div>
+      <div class="swipe-indicator skip" id="ind-skip">ПРОПУСК</div>
+
+      <div class="detail-media-wrapper" id="detail-media-wrapper"></div>
+    </div>
+
+    <!-- Details footer tabs with dynamic comments feed -->
+    <div class="detail-footer">
+      <div class="detail-actions">
+        <button class="action-btn" id="detail-download-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Скачать</span>
+        </button>
+        <button class="action-btn primary" id="detail-bookmark-btn">
+          В закладки
+        </button>
+      </div>
+
+      <!-- Native Server Comments Thread -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+        <h4 id="lbl-comments-title" class="font-bold text-sm text-zinc-300 border-b border-zinc-800 pb-2">Комментарии</h4>
+        <div id="comments-feed" class="space-y-2 max-height-60 overflow-y-auto text-xs text-zinc-400">
+          <!-- Comments go here -->
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="comment-body" class="bg-zinc-950 border border-zinc-800 p-2 text-xs flex-grow rounded" style="padding-right:12px;">
+          <button class="action-btn primary" id="submit-comment-btn" style="flex:0 0 80px; font-size: 0.75rem;">Отправить</button>
+        </div>
+      </div>
+
+      <div class="detail-tags" id="detail-tags-container"></div>
+    </div>
+  </div>
+
+  <div class="peek-overlay" id="peek-overlay">
+    <div class="peek-content" id="peek-content"></div>
+  </div>
+
+  <div id="custom-toast"></div>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-view="gallery">
+      <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm10 0h7v7h-7zM4 14h7v7H4zm10 0h7v7h-7z"/></svg>
+      <span id="tab-gallery">Галерея</span>
+    </button>
+    <button class="tab-btn" data-view="bookmarks">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span id="tab-bookmarks">Избранное</span>
+    </button>
+    <button class="tab-btn" data-view="recommendations" id="tab-btn-recs">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
+      <span id="tab-recs">Для вас</span>
+    </button>
+    <button class="tab-btn" data-view="settings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0-.44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span id="tab-settings">Настройки</span>
+    </button>
+  </nav>
+
+  <!-- --- STREAMING_CHUNK: Setting up multi-language support dictionaries... --- -->
+  <script>
+    // Configuration details
+    const APP_ID = 'pocket-chromium-v1';
+    
+    // Dictionary definition
+    const translations = {
+      ru: {
+        gallery: "Галерея",
+        bookmarks: "Избранное",
+        recommendations: "Для вас",
+        settings: "Настройки",
+        searchPlaceholder: "Поиск тегов... (через пробел)",
+        traffic: "Трафик",
+        loading: "Загрузка контента...",
+        popular: "Популярное:",
+        feed: "Лента",
+        day: "День",
+        week: "Неделя",
+        month: "Месяц",
+        allTime: "Всё время",
+        localFavs: "Избранные закладки",
+        recDesc: "Алгоритм анализирует ваши закладки, строит карту ваших интересов по категориям тегов и выдает рекомендации.",
+        noBookmarks: "Закладок пока нет.",
+        langTitle: "Язык приложения / Language",
+        cloudTitle: "Облачная синхронизация данных",
+        cloudDesc: "Сохраняйте ваши закладки, черные списки, любимые поиски и историю в облаке, чтобы они были доступны на любом устройстве.",
+        synckey: "Ключ синхронизации (Sync Key)",
+        create: "Создать",
+        upload: "Отправить в облако",
+        download: "Загрузить из облака",
+        uploadTitle: "Загрузка изображения на e621",
+        uploadDesc: "Делитесь своими артами напрямую с серверами e621. Требуется заполненный аккаунт.",
+        upFile: "Файл изображения",
+        upTags: "Теги (разделенные пробелом)",
+        upRating: "Рейтинг",
+        upSource: "Источник",
+        uploadSubmit: "Отправить на server e621",
+        statsTitle: "Индивидуальная статистика просмотра",
+        statViewed: "Просмотрено артов",
+        statLiked: "Залайкано / В закладках",
+        statTime: "Общее время в приложении",
+        statFrequent: "Частые категории в закладках",
+        statArtists: "Любимые художники",
+        authTitle: "Подключение аккаунта e621",
+        authDesc: "Введите имя пользователя и API-ключ для обхода лимитов и беспрепятственного просмотра контента. Данные хранятся локально.",
+        username: "Имя пользователя (Username)",
+        apiKey: "API Ключ (API Key)",
+        saveConnect: "Сохранить & Подключить",
+        reg: "Регистрация",
+        guideTitle: "Как достать API-ключ e621?",
+        guideSteps: "1. Войдите на e621.net\n2. Откройте свой профиль (нажав по вашему нику).\n3. Перейдите в подраздел 'Manage API Keys'.\n4. Сгенерируйте API-ключ и скопируйте его, чтобы вставить в поле выше.",
+        customTitle: "Кастомизация приложения",
+        accent: "Акцентный цвет",
+        roundingTitle: "Скругление интерфейса",
+        feedFitTitle: "Формат в ленте",
+        feedFitDesc: "Способ масштабирования изображений",
+        fitCover: "Обрезать под сетку (1:1)",
+        fitContain: "Вписать оригинал (Без обрезки)",
+        filterTitle: "Фильтр по контенту (Рейтинг)",
+        trafficTitle: "Контроль трафика & Энергия",
+        budget: "Лимит трафика (Data Budgeting)",
+        ram: "RAM Safeguard",
+        layoutTitle: "Разметка ленты (Aspect Ratio)",
+        blacklistTitle: "Локальный Чёрный Список тегов",
+        backupTitle: "Экспорт и Бэкап профиля",
+        luckyTitle: "🎲 Мне повезет",
+        luckyMinscore: "Минимальный рейтинг (Score)",
+        luckyAbsurd: "Только absurd_res",
+        luckyUnseen: "Только новые (непросмотренные)",
+        luckyRoll: "Бросить кости!",
+        comments: "Комментарии",
+        noComments: "Комментариев пока нет.",
+        writeComment: "Напишите комментарий...",
+        submit: "Отправить",
+        downloadMedia: "Скачать",
+        detailClose: "Закрыть",
+        bookmarksLimit: "Для работы ИИ-рекомендаций добавьте хотя бы 2 поста в закладки.",
+        savedCloud: "Данные успешно сохранены в облаке!",
+        loadedCloud: "Данные успешно загружены из облака!",
+        syncFail: "Синхронизация не удалась. Убедитесь, что вы создали/ввели ключ.",
+        commentSuccess: "Комментарий успешно отправлен!",
+        commentError: "Не удалось отправить комментарий. Проверьте ваш API ключ.",
+        likeSuccess: "Пост добавлен в любимые на сервере e621!",
+        likeError: "Не удалось поставить лайк. Проверьте настройки авторизации e621.",
+        layoutSquare: "Квадраты",
+        layoutMasonry: "Мозаика",
+        layoutStory: "Истории",
+        backupExport: "Экспорт",
+        backupImport: "Импорт"
+      },
+      en: {
+        gallery: "Gallery",
+        bookmarks: "Bookmarks",
+        recommendations: "For You",
+        settings: "Settings",
+        searchPlaceholder: "Search tags... (separated by space)",
+        traffic: "Traffic",
+        loading: "Loading content...",
+        popular: "Popular:",
+        feed: "Feed",
+        day: "Day",
+        week: "Week",
+        month: "Month",
+        allTime: "All-time",
+        localFavs: "Bookmarked Arts",
+        recDesc: "Algorithm analyzes your bookmarks, builds an interest map by tag categories, and suggests personalized recommendations.",
+        noBookmarks: "No bookmarks yet.",
+        langTitle: "App Language / Язык",
+        cloudTitle: "Cloud Progress Sync",
+        cloudDesc: "Save your bookmarks, blacklists, favorite queries, and viewing history to the cloud to keep them synced on any device.",
+        synckey: "Sync Key",
+        create: "Create",
+        upload: "Upload to Cloud",
+        download: "Download from Cloud",
+        uploadTitle: "Upload Image to e621",
+        uploadDesc: "Share your artworks directly with e621 servers. Authenticated account required.",
+        upFile: "Image File",
+        upTags: "Tags (separated by space)",
+        upRating: "Rating",
+        upSource: "Source",
+        uploadSubmit: "Upload to e621 Server",
+        statsTitle: "Viewing Statistics Dashboard",
+        statViewed: "Artworks Viewed",
+        statLiked: "Liked / Bookmarked",
+        statTime: "Total App Active Time",
+        statFrequent: "Frequent Bookmark Tags",
+        statArtists: "Favorite Artists",
+        authTitle: "e621 Account Integration",
+        authDesc: "Enter your username and API key to bypass request limits and access extra tools. Kept locally.",
+        username: "Username",
+        apiKey: "API Key",
+        saveConnect: "Save & Connect",
+        reg: "Register",
+        guideTitle: "How to obtain e621 API Key?",
+        guideSteps: "1. Access e621.net and log in or register.\n2. Open your profile (click your username).\n3. Find 'Manage API Keys' subsection.\n4. Generate a new API Key, copy it and paste into the field above.",
+        customTitle: "App Customization Settings",
+        accent: "Accent Theme Color",
+        roundingTitle: "UI Corners Smoothness",
+        feedFitTitle: "Feed Fit Mode",
+        feedFitDesc: "How images scale in the feed",
+        fitCover: "Crop to square (1:1)",
+        fitContain: "Fit original size (No crop)",
+        filterTitle: "Content Classification Filter",
+        trafficTitle: "Traffic and Performance Safety",
+        budget: "Data Budget Limit",
+        ram: "RAM Safe Guard",
+        layoutTitle: "Layout Mode (Aspect Ratio)",
+        blacklistTitle: "Local Tags Blacklist",
+        backupTitle: "Export and Backup local data",
+        luckyTitle: "🎲 Feel Lucky",
+        luckyMinscore: "Minimum Rating Score",
+        luckyAbsurd: "Only absurd_res tags",
+        luckyUnseen: "Only unseen artworks",
+        luckyRoll: "Roll the Dice!",
+        comments: "Comments Feed",
+        noComments: "No comments found.",
+        writeComment: "Type your comment here...",
+        submit: "Submit",
+        downloadMedia: "Download",
+        detailClose: "Close",
+        bookmarksLimit: "Please add at least 2 artworks to bookmarks to enable recommendations.",
+        savedCloud: "State securely saved to cloud!",
+        loadedCloud: "State loaded from cloud storage!",
+        syncFail: "Cloud operations failed. Verify your entered sync key.",
+        commentSuccess: "Comment posted successfully!",
+        commentError: "Failed posting comment. Please verify your credentials.",
+        likeSuccess: "Post favorited on e621!",
+        likeError: "Failed setting favorite on e621. Confirm account settings.",
+        layoutSquare: "Squares",
+        layoutMasonry: "Masonry",
+        layoutStory: "Stories",
+        backupExport: "Export",
+        backupImport: "Import"
+      }
+    };
+
+    // Global application State
+    let state = {
+      language: localStorage.getItem('p_e621_lang') || 'ru',
+      bookmarks: JSON.parse(localStorage.getItem('p_e621_bookmarks') || '[]'),
+      blacklist: JSON.parse(localStorage.getItem('p_e621_blacklist') || '["scat", "goregasm", "guffy"]'),
+      trafficUsed: parseFloat(localStorage.getItem('p_e621_traffic') || '0.0'),
+      settings: {
+        dataBudget: localStorage.getItem('p_e621_set_budget') !== 'false',
+        ramSafeguard: localStorage.getItem('p_e621_set_ram') !== 'false',
+        layout: localStorage.getItem('p_e621_layout') || 'squares',
+        ratings: JSON.parse(localStorage.getItem('p_e621_ratings') || '["0+", "16+"]'),
+        feedFit: localStorage.getItem('p_e621_feed_fit') || 'cover'
+      },
+      auth: JSON.parse(localStorage.getItem('p_e621_auth') || '{"username":"","apiKey":""}'),
+      customization: JSON.parse(localStorage.getItem('p_e621_customization') || '{"accent":"#2563eb","radius":"8px"}'),
+      tagFreq: JSON.parse(localStorage.getItem('p_e621_tag_freq') || '{}'),
+      favSearches: JSON.parse(localStorage.getItem('p_e621_fav_searches') || '[]'),
+      searchHistory: JSON.parse(localStorage.getItem('p_e621_search_history') || '[]'),
+      history: JSON.parse(localStorage.getItem('p_e621_history') || '[]'), // viewed post IDs
+      totalTime: parseInt(localStorage.getItem('p_e621_total_time') || '0'), // seconds
+      syncKey: localStorage.getItem('p_e621_synckey') || ''
+    };
+
+    // Translation helper
+    function t(key) {
+      const activeLang = state.language || 'ru';
+      return translations[activeLang][key] || translations['ru'][key] || key;
+    }
+
+    // Refresh translation nodes across UI
+    function translateUI() {
+      // Inputs placeholders
+      document.getElementById('search-input').placeholder = t('searchPlaceholder');
+      document.getElementById('blacklist-input').placeholder = state.language === 'ru' ? 'Введите тег...' : 'Enter tag...';
+      
+      // Labels and titles
+      document.getElementById('p-feed').textContent = t('feed');
+      document.getElementById('p-day').textContent = t('day');
+      document.getElementById('p-week').textContent = t('week');
+      document.getElementById('p-month').textContent = t('month');
+      document.getElementById('p-alltime').textContent = t('allTime');
+
+      document.getElementById('lbl-local-favs').textContent = t('localFavs');
+      document.getElementById('lbl-rec-desc').textContent = t('recDesc');
+      document.getElementById('lbl-lang-title').textContent = t('langTitle');
+
+      // Cloud Section
+      document.getElementById('lbl-cloud-title').textContent = t('cloudTitle');
+      document.getElementById('lbl-cloud-desc').textContent = t('cloudDesc');
+      document.getElementById('lbl-synckey').textContent = t('synckey');
+      document.getElementById('generate-key-btn').textContent = t('create');
+      document.getElementById('cloud-upload-btn').querySelector('span').textContent = t('upload');
+      document.getElementById('cloud-download-btn').querySelector('span').textContent = t('download');
+
+      // Upload details
+      document.getElementById('lbl-upload-title').textContent = t('uploadTitle');
+      document.getElementById('lbl-upload-desc').textContent = t('uploadDesc');
+      document.getElementById('lbl-up-file').textContent = t('upFile');
+      document.getElementById('lbl-up-tags').textContent = t('upTags');
+      document.getElementById('lbl-up-rating').textContent = t('upRating');
+      document.getElementById('lbl-up-source').textContent = t('upSource');
+      document.getElementById('upload-submit-btn').textContent = t('uploadSubmit');
+
+      // Stats
+      document.getElementById('lbl-stats-title').textContent = t('statsTitle');
+      document.getElementById('lbl-stat-viewed').textContent = t('statViewed');
+      document.getElementById('lbl-stat-liked').textContent = t('statLiked');
+      document.getElementById('lbl-stat-time').textContent = t('statTime');
+      document.getElementById('lbl-stat-frequent').textContent = t('statFrequent');
+      document.getElementById('lbl-stat-artists').textContent = t('statArtists');
+
+      // Auth
+      document.getElementById('lbl-auth-title').textContent = t('authTitle');
+      document.getElementById('lbl-auth-desc').textContent = t('authDesc');
+      document.getElementById('auth-username').placeholder = t('username');
+      document.getElementById('auth-api-key').placeholder = t('apiKey');
+      document.getElementById('save-auth-btn').textContent = t('saveConnect');
+      document.getElementById('btn-reg').textContent = t('reg');
+      document.getElementById('lbl-guide-title').textContent = t('guideTitle');
+      document.getElementById('lbl-guide-steps').innerHTML = t('guideSteps').split('\n').map(step => `<li>${step.substring(3)}</li>`).join('');
+
+      // Customization
+      document.getElementById('lbl-custom-title').textContent = t('customTitle');
+      document.getElementById('lbl-rounding').innerHTML = t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, panels, inputs") + "</span>";
+      document.getElementById('lbl-feed-fit').innerHTML = t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>";
+      document.getElementById('opt-fit-cover').textContent = t('fitCover');
+      document.getElementById('opt-fit-contain').textContent = t('fitContain');
+      document.getElementById('lbl-accent').innerHTML = t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Visual accent scheme") + "</span>";
+      
+      // Dynamic Ratings localization
+      document.getElementById('lbl-filter-title').textContent = t('filterTitle');
+      document.getElementById('lbl-rate-safe').innerHTML = state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>Suitable for all audiences</span>';
+      document.getElementById('lbl-rate-quest').innerHTML = state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Mild nudity / suggestive</span>';
+      document.getElementById('lbl-rate-expl').innerHTML = state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>';
+
+      // Traffic
+      document.getElementById('lbl-traffic-title').textContent = t('trafficTitle');
+      document.getElementById('lbl-budget').innerHTML = t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict resolution over 50 MB") + "</span>";
+      document.getElementById('lbl-ram').innerHTML = t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Deallocate un-viewed content cards") + "</span>";
+      
+      // Grid shufflers
+      document.getElementById('lbl-layout-title').textContent = t('layoutTitle');
+      document.getElementById('shuffler-square').textContent = t('layoutSquare');
+      document.getElementById('shuffler-masonry').textContent = t('layoutMasonry');
+      document.getElementById('shuffler-story').textContent = t('layoutStory');
+
+      // Backlist & Backup configs
+      document.getElementById('lbl-blacklist-title').textContent = t('blacklistTitle');
+      document.getElementById('lbl-backup-title').textContent = t('backupTitle');
+      document.getElementById('export-backup-btn').textContent = t('backupExport');
+      document.getElementById('import-backup-btn').textContent = t('backupImport');
+
+      // Feel lucky
+      document.getElementById('lbl-lucky-setup').textContent = t('luckyTitle');
+      document.getElementById('lbl-minscore').textContent = t('luckyMinscore');
+      document.getElementById('lbl-tagabsurd').textContent = t('luckyAbsurd');
+      document.getElementById('lbl-unseen').textContent = t('luckyUnseen');
+      document.getElementById('lbl-roll').textContent = t('luckyRoll');
+
+      // Detail comments and actions
+      document.getElementById('lbl-comments-title').textContent = t('comments');
+      document.getElementById('comment-body').placeholder = t('writeComment');
+      document.getElementById('submit-comment-btn').textContent = t('submit');
+      
+      const downloadBtnSpan = document.getElementById('detail-download-btn').querySelector('span');
+      if (downloadBtnSpan) downloadBtnSpan.textContent = t('downloadMedia');
+
+      // Swipe indicator texts
+      document.getElementById('ind-like').textContent = state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED';
+      document.getElementById('ind-skip').textContent = state.language === 'ru' ? 'ПРОПУСК' : 'SKIP';
+
+      // Tab bar navigation labels
+      document.getElementById('tab-gallery').textContent = t('gallery');
+      document.getElementById('tab-bookmarks').textContent = t('bookmarks');
+      document.getElementById('tab-recs').textContent = t('recommendations');
+      document.getElementById('tab-settings').textContent = t('settings');
+
+      // Dynamic search bar tooltips
+      document.getElementById('fav-search-btn').title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
+      document.getElementById('clear-input-btn').title = state.language === 'ru' ? 'Очистить поиск' : 'Clear search';
+
+      // Dropdown option texts
+      const radiusSelect = document.getElementById('setting-radius');
+      if (radiusSelect) {
+        radiusSelect.options[0].text = state.language === 'ru' ? 'Без скругнения (Острые)' : 'No Rounding (Sharp)';
+        radiusSelect.options[1].text = state.language === 'ru' ? 'Стандартное (8px)' : 'Standard (8px)';
+        radiusSelect.options[2].text = state.language === 'ru' ? 'Экстремальное (16px)' : 'Extreme (16px)';
+      }
+
+      // Re-trigger dynamic state components to update their active labels
+      updateAuthUI();
+      updateBookmarkBtnState();
+      updateStatsUI();
+    }
+
+    // Toggle languages
+    document.getElementById('lang-btn-ru').addEventListener('click', () => {
+      state.language = 'ru';
+      localStorage.setItem('p_e621_lang', 'ru');
+      translateUI();
+      showToast("Язык изменен на Русский!");
+    });
+    document.getElementById('lang-btn-en').addEventListener('click', () => {
+      state.language = 'en';
+      localStorage.setItem('p_e621_lang', 'en');
+      translateUI();
+      showToast("Language changed to English!");
+    });
+
+    // --- STREAMING_CHUNK: Fetch API communications controller... ---
+    async function directFetch(baseUrl, params = {}, useAuth = true) {
+      const urlObj = new URL(baseUrl);
+      
+      Object.keys(params).forEach(key => {
+        urlObj.searchParams.append(key, params[key]);
+      });
+      
+      if (useAuth && state.auth.username && state.auth.apiKey) {
+        urlObj.searchParams.append('login', state.auth.username);
+        urlObj.searchParams.append('api_key', state.auth.apiKey);
+      }
+
+      const response = await fetch(urlObj.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'ChromiumE621MobileClient/1.5 (by pocketDev)'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.text();
+    }
+
+    const TAG_ALIASES = {
+      'anthro': 'антропоморф',
+      'solo': 'один',
+      'female': 'самка',
+      'male': 'самец',
+      'canine': 'пёс / псовые',
+      'feline': 'кот / кошачьи',
+      'mammal': 'млекопитающее',
+      'looking_at_viewer': 'взгляд на зрителя',
+      'smile': 'улыбка',
+      'clothing': 'одежда',
+      'dragon': 'дракон',
+      'scalie': 'рептилия',
+      'detailed_background': 'детализированный фон',
+      'pokemon': 'покемон',
+      'wolf': 'волк',
+      'fox': 'лис / лиса',
+      'digital_media_(artwork)': 'диджитал арт',
+      'order:score': 'по рейтингу',
+      'order:id': 'по новизне'
+    };
+
+    let activePage = 0;
+    let currentSearchTags = '';
+    let isFetching = false;
+    let detailCurrentPost = null;
+    let currentPopularPeriod = 'all'; 
+
+    // --- STREAMING_CHUNK: Live tag autocomplete and search history logic... ---
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('suggestions');
+    const clearInputBtn = document.getElementById('clear-input-btn');
+    let autocompleteDebounceTimer;
+
+    function toggleClearBtn() {
+      clearInputBtn.style.display = searchInput.value ? 'flex' : 'none';
+    }
+
+    clearInputBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      toggleClearBtn();
+      suggestionsBox.style.display = 'none';
+      searchInput.focus();
+    });
+
+    async function fetchTagSuggestions(searchQuery) {
+      if (!searchQuery) return [];
+      const url = `https://e621.net/tags/autocomplete.json`;
+      const params = { 'search[name_matches]': searchQuery };
+      
+      try {
+        const textData = await directFetch(url, params, true);
+        const data = JSON.parse(textData);
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error("Ошибка автозаполнения с API:", err);
+        return [];
+      }
+    }
+
+    function renderSearchHistoryInSuggestions() {
+      if (state.searchHistory.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+      suggestionsBox.innerHTML = `<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: bold;">${state.language === 'ru' ? 'История поиска:' : 'Search History:'}</div>`;
+      state.searchHistory.forEach(query => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.innerHTML = `<span>🕒 ${query}</span><button class="clear-hist-btn" style="background:none; border:none; color:var(--danger); font-size: 0.75rem; cursor:pointer; padding: 4px;">✕</button>`;
+        
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('clear-hist-btn')) {
+            e.stopPropagation();
+            removeSearchHistoryItem(query);
+            renderSearchHistoryInSuggestions();
+            return;
+          }
+          searchInput.value = query;
+          suggestionsBox.style.display = 'none';
+          triggerSearch(query);
+        });
+        suggestionsBox.appendChild(item);
+      });
+      suggestionsBox.style.display = 'block';
+    }
+
+    function removeSearchHistoryItem(query) {
+      state.searchHistory = state.searchHistory.filter(h => h !== query);
+      localStorage.setItem('p_e621_search_history', JSON.stringify(state.searchHistory));
+    }
+
+    searchInput.addEventListener('focus', () => {
+      if (!searchInput.value.trim()) {
+        renderSearchHistoryInSuggestions();
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(autocompleteDebounceTimer);
+      const value = searchInput.value;
+      toggleClearBtn();
+      if (!value) {
+        renderSearchHistoryInSuggestions();
+        return;
+      }
+
+      const words = value.split(/\s+/);
+      const lastWord = words[words.length - 1];
+
+      if (!lastWord || lastWord.length < 2) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      autocompleteDebounceTimer = setTimeout(async () => {
+        const suggestions = await fetchTagSuggestions(lastWord);
+        renderSuggestions(suggestions, words);
+      }, 300);
+    });
+
+    function renderSuggestions(data, words) {
+      if (!data || data.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      suggestionsBox.innerHTML = '';
+      data.slice(0, 10).forEach(item => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+
+        const count = item.post_count;
+        let formattedCount = count;
+        if (count >= 1000000) {
+          formattedCount = (count / 1000000).toFixed(1) + 'M';
+        } else if (count >= 1000) {
+          formattedCount = (count / 1000).toFixed(0) + 'K';
+        }
+
+        const aliasText = TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
+        suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${state.language === 'ru' ? 'постов' : 'posts'}${aliasText}</span>`;
+
+        suggestionItem.addEventListener('click', () => {
+          words[words.length - 1] = item.name;
+          searchInput.value = words.join(' ') + ' ';
+          suggestionsBox.style.display = 'none';
+          searchInput.focus();
+        });
+        suggestionsBox.appendChild(suggestionItem);
+      });
+      suggestionsBox.style.display = 'block';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container') && !e.target.closest('.suggestions')) {
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
+    // --- STREAMING_CHUNK: Cloud Synchronization Engine (Firebase Mock / REST API)... ---
+    const cloudSyncInput = document.getElementById('sync-key-input');
+    
+    document.getElementById('generate-key-btn').addEventListener('click', () => {
+      const randomKey = 'p-sync-' + Math.random().toString(36).substring(2, 10) + '-' + Math.random().toString(36).substring(2, 6);
+      cloudSyncInput.value = randomKey;
+      state.syncKey = randomKey;
+      localStorage.setItem('p_e621_synckey', randomKey);
+      showToast(state.language === 'ru' ? "Ключ успешно создан!" : "Key successfully generated!");
+    });
+
+    // Saving profile context to cloud database
+    document.getElementById('cloud-upload-btn').addEventListener('click', async () => {
+      const key = cloudSyncInput.value.trim();
+      if (!key) {
+        showToast(t('syncFail'));
+        return;
+      }
+      state.syncKey = key;
+      localStorage.setItem('p_e621_synckey', key);
+
+      const payload = {
+        bookmarks: state.bookmarks,
+        blacklist: state.blacklist,
+        customization: state.customization,
+        settings: state.settings,
+        favSearches: state.favSearches,
+        history: state.history,
+        totalTime: state.totalTime
+      };
+
+      try {
+        showToast(state.language === 'ru' ? "Синхронизация..." : "Syncing...");
+        // Posting payload to a mockable jsonbin/firestore API endpoint
+        const response = await fetch(`https://api.jsonbin.io/v3/b`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Bin-Private': 'false',
+            'X-Bin-Name': key
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          // Store direct mapping key to locate back bin reference
+          localStorage.setItem(`p_ref_${key}`, resData.metadata.id);
+          showToast(t('savedCloud'));
+        } else {
+          showToast(t('syncFail'));
+        }
+      } catch (err) {
+        console.error("Cloud Error:", err);
+        showToast(t('syncFail'));
+      }
+    });
+
+    // Retrieve synced state from Cloud
+    document.getElementById('cloud-download-btn').addEventListener('click', async () => {
+      const key = cloudSyncInput.value.trim();
+      if (!key) {
+        showToast(t('syncFail'));
+        return;
+      }
+      const binId = localStorage.getItem(`p_ref_${key}`) || key;
+      
+      try {
+        showToast(state.language === 'ru' ? "Загрузка..." : "Downloading...");
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`);
+        if (response.ok) {
+          const data = await response.json();
+          const synced = data.record;
+          
+          if (synced) {
+            state.bookmarks = synced.bookmarks || [];
+            state.blacklist = synced.blacklist || [];
+            state.customization = synced.customization || state.customization;
+            state.settings = synced.settings || state.settings;
+            state.favSearches = synced.favSearches || [];
+            state.history = synced.history || [];
+            state.totalTime = synced.totalTime || 0;
+
+            // Save elements
+            localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+            localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+            localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+            localStorage.setItem('p_e621_layout', state.settings.layout);
+            localStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
+            localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+            localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+            localStorage.setItem('p_e621_total_time', state.totalTime);
+
+            applyCustomStyles();
+            applyFeedFitStyle();
+            renderBlacklistChips();
+            updateStatsUI();
+            showToast(t('loadedCloud'));
+            loadGallery(true);
+          }
+        } else {
+          showToast(t('syncFail'));
+        }
+      } catch (err) {
+        console.error("Download cloud Error:", err);
+        showToast(t('syncFail'));
+      }
+    });
+
+    // --- STREAMING_CHUNK: Handling active timers, search statistics indicators... ---
+    function recordSearchHistory(query) {
+      if (!query) return;
+      state.searchHistory = state.searchHistory.filter(h => h !== query);
+      state.searchHistory.unshift(query);
+      if (state.searchHistory.length > 15) state.searchHistory.pop();
+      localStorage.setItem('p_e621_search_history', JSON.stringify(state.searchHistory));
+    }
+
+    function recordSearchTags(query) {
+      if (!query) return;
+      const tags = query.toLowerCase().split(/\s+/).filter(t => t.trim().length > 0);
+      tags.forEach(tag => {
+        if (tag.startsWith('-') || tag.startsWith('~') || tag.startsWith('+')) {
+          tag = tag.substring(1);
+        }
+        if (tag) {
+          state.tagFreq[tag] = (state.tagFreq[tag] || 0) + 1;
+        }
+      });
+      localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
+      renderRecommendedTags();
+    }
+
+    function triggerSearch(query) {
+      currentSearchTags = query;
+      toggleClearBtn();
+      recordSearchHistory(query);
+      recordSearchTags(query);
+      loadGallery(true);
+    }
+
+    document.getElementById('search-btn').addEventListener('click', () => {
+      triggerSearch(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        triggerSearch(searchInput.value.trim());
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
+    function renderRecommendedTags() {
+      const bar = document.getElementById('recommended-tags-bar');
+      const sortedTags = Object.entries(state.tagFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(entry => entry[0]);
+
+      if (sortedTags.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.innerHTML = `<span style="font-size: 0.7rem; color: var(--accent); align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">🔥 ${state.language === 'ru' ? 'Частое:' : 'Freq:'}</span>`;
+      sortedTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'op-btn and';
+        btn.textContent = tag;
+        btn.addEventListener('click', () => {
+          const current = searchInput.value.trim();
+          searchInput.value = current ? `${current} ${tag}` : tag;
+          toggleClearBtn();
+          searchInput.focus();
+        });
+        bar.appendChild(btn);
+      });
+      bar.style.display = 'flex';
+    }
+
+    // --- STREAMING_CHUNK: Period popularity switcher handler ---
+    document.querySelectorAll('.period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        currentPopularPeriod = btn.getAttribute('data-period');
+        loadGallery(true);
+      });
+    });
+
+    document.getElementById('fav-search-btn').addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (!query) {
+        showToast(state.language === 'ru' ? "Введите поисковый запрос" : "Enter a valid query to save");
+        return;
+      }
+      if (!state.favSearches.includes(query)) {
+        state.favSearches.push(query);
+        localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+        showToast(state.language === 'ru' ? "Запрос сохранен!" : "Search saved!");
+        renderFavoriteSearches();
+      } else {
+        showToast(state.language === 'ru' ? "Уже сохранено" : "Already saved");
+      }
+    });
+
+    function renderFavoriteSearches() {
+      const bar = document.getElementById('favorite-searches-bar');
+      if (state.favSearches.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+      bar.innerHTML = `<span style="font-size: 0.7rem; color: #eab308; align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">★ ${state.language === 'ru' ? 'Любимые:' : 'Favs:'}</span>`;
+      state.favSearches.forEach(query => {
+        const btn = document.createElement('button');
+        btn.className = 'op-btn';
+        btn.style.borderColor = '#eab308';
+        btn.style.color = '#eab308';
+        btn.textContent = query;
+        btn.title = "Двойной тап для удаления";
+        
+        btn.addEventListener('click', () => {
+          searchInput.value = query;
+          toggleClearBtn();
+          triggerSearch(query);
+        });
+
+        btn.addEventListener('dblclick', () => {
+          state.favSearches = state.favSearches.filter(f => f !== query);
+          localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+          showToast(state.language === 'ru' ? "Запрос удален" : "Query removed");
+          renderFavoriteSearches();
+        });
+
+        bar.appendChild(btn);
+      });
+      bar.style.display = 'flex';
+    }
+
+    // --- STREAMING_CHUNK: Handling fetch operations from Server APIs... ---
+    async function fetchFromE621(tags, page = 0) {
+      if (isFetching) return [];
+      isFetching = true;
+      
+      const indicator = document.getElementById('loading-indicator');
+      indicator.style.display = 'block';
+      indicator.textContent = t('loading');
+
+      let ratingFilter = '';
+      if (!state.settings.ratings.includes('18+')) ratingFilter += ' -rating:explicit';
+      if (!state.settings.ratings.includes('16+')) ratingFilter += ' -rating:questionable';
+      if (!state.settings.ratings.includes('0+')) ratingFilter += ' -rating:safe';
+
+      let processedTags = (tags + ratingFilter).trim();
+      state.blacklist.forEach(blocked => {
+        processedTags += ` -${blocked.trim()}`;
+      });
+
+      // Implement Popularity period methods
+      let url = `https://e621.net/posts.json`;
+      const params = {
+        limit: state.settings.dataBudget && state.trafficUsed > 50 ? 15 : 30,
+        page: page + 1
+      };
+
+      if (currentPopularPeriod !== 'all') {
+        // e621 Popular query style: order:popular
+        if (currentPopularPeriod === '1d') {
+          processedTags += ' order:rank_day';
+        } else if (currentPopularPeriod === '7d') {
+          processedTags += ' order:rank_week';
+        } else if (currentPopularPeriod === '30d') {
+          processedTags += ' order:rank_month';
+        } else if (currentPopularPeriod === 'alltime') {
+          processedTags += ' order:score';
+        }
+      }
+
+      params.tags = processedTags;
+
+      try {
+        const textData = await directFetch(url, params, true);
+        registerTraffic(textData.length);
+
+        const data = JSON.parse(textData);
+        const rawPosts = data.posts || [];
+        
+        const mapped = rawPosts.map(item => {
+          if (!item.file || !item.file.url) return null;
+          return {
+            id: item.id,
+            file_url: item.file.url,
+            preview_url: item.preview ? item.preview.url : item.file.url,
+            sample_url: (item.sample && item.sample.has) ? item.sample.url : item.file.url,
+            tags: item.tags || {},
+            tagsString: Object.values(item.tags || {}).flat().join(' '),
+            ext: item.file.ext,
+            rating: item.rating,
+            score: item.score ? item.score.total : 0,
+            isVideo: ['mp4', 'webm'].includes(item.file.ext)
+          };
+        }).filter(p => p !== null);
+
+        isFetching = false;
+        indicator.style.display = 'none';
+        return mapped;
+      } catch (err) {
+        console.error("API error details:", err);
+        showToast(state.language === 'ru' ? "Ошибка загрузки API." : "Failed to load from API.");
+        isFetching = false;
+        indicator.style.display = 'none';
+        return [];
+      }
+    }
+
+    function registerTraffic(bytes) {
+      if (!bytes) return;
+      const mb = bytes / (1024 * 1024);
+      state.trafficUsed += mb;
+      localStorage.setItem('p_e621_traffic', state.trafficUsed.toFixed(2));
+      
+      const valSpan = document.getElementById('traffic-val');
+      if (valSpan) valSpan.textContent = state.trafficUsed.toFixed(2);
+    }
+
+    // --- STREAMING_CHUNK: Dynamic Card elements renderer... ---
+    function createPostCard(post) {
+      const card = document.createElement('div');
+      card.className = `post-card ${state.settings.ramSafeguard ? 'unloaded' : ''}`;
+      card.dataset.id = post.id;
+      card.dataset.tags = post.tagsString;
+      card.dataset.src = post.preview_url;
+      card.dataset.fullSrc = post.file_url;
+      card.dataset.isVideo = post.isVideo;
+
+      let imgUrl = post.preview_url;
+      if (state.settings.layout === 'stories') {
+        imgUrl = post.sample_url || post.file_url;
+      } else if (state.settings.dataBudget && state.trafficUsed > 50) {
+        imgUrl = post.preview_url;
+      } else {
+        imgUrl = post.sample_url || post.preview_url;
+      }
+
+      if (post.isVideo) {
+        const badge = document.createElement('div');
+        badge.className = 'post-type-badge';
+        badge.textContent = 'VIDEO';
+        badge.style.color = 'var(--accent)';
+        card.appendChild(badge);
+      } else if (post.ext === 'gif') {
+        const badge = document.createElement('div');
+        badge.className = 'post-type-badge';
+        badge.textContent = 'GIF';
+        badge.style.color = 'var(--success)';
+        card.appendChild(badge);
+      }
+
+      const rateBadge = document.createElement('div');
+      rateBadge.className = 'post-rating-badge';
+      rateBadge.textContent = post.rating ? post.rating.toUpperCase() : 'S';
+      if (post.rating === 'e') rateBadge.style.color = 'var(--danger)';
+      else if (post.rating === 'q') rateBadge.style.color = 'var(--warning)';
+      else rateBadge.style.color = 'var(--success)';
+      card.appendChild(rateBadge);
+
+      if (!state.settings.ramSafeguard) {
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.loading = 'lazy';
+        img.onload = () => img.classList.add('loaded');
+        card.appendChild(img);
+      } else {
+        card.dataset.realSrc = imgUrl;
+      }
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
+        
+        // Track unique post views in history stats
+        if (!state.history.includes(post.id)) {
+          state.history.push(post.id);
+          localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+          updateStatsUI();
+        }
+
+        openDetailView(post);
+      });
+
+      let touchTimeout;
+      card.addEventListener('touchstart', (e) => {
+        touchTimeout = setTimeout(() => {
+          triggerPeek(post, card);
+        }, 600);
+      }, { passive: true });
+
+      card.addEventListener('touchend', () => {
+        clearTimeout(touchTimeout);
+        closePeek();
+      });
+
+      card.addEventListener('touchmove', () => {
+        clearTimeout(touchTimeout);
+      });
+
+      return card;
+    }
+
+    const ramObserver = new IntersectionObserver((entries) => {
+      if (!state.settings.ramSafeguard) return;
+      entries.forEach(entry => {
+        const card = entry.target;
+        if (entry.isIntersecting) {
+          if (card.clientHeight > 0 && !card.style.height) {
+            card.style.height = card.clientHeight + 'px';
+          }
+          card.classList.remove('unloaded');
+          let img = card.querySelector('img');
+          if (!img) {
+            img = document.createElement('img');
+            img.src = card.dataset.realSrc || card.dataset.src;
+            img.onload = () => img.classList.add('loaded');
+            card.appendChild(img);
+          } else {
+            img.classList.add('loaded');
+          }
+        } else {
+          if (card.clientHeight > 0 && !card.style.height) {
+            card.style.height = card.clientHeight + 'px';
+          }
+          card.classList.add('unloaded');
+          const img = card.querySelector('img');
+          if (img) img.remove();
+        }
+      });
+    }, { root: null, rootMargin: '600px 0px 600px 0px' });
+
+    function applyRamSafeguard() {
+      if (!state.settings.ramSafeguard) return;
+      document.querySelectorAll('.post-card').forEach(card => {
+        ramObserver.observe(card);
+      });
+    }
+
+    async function loadGallery(reset = false) {
+      if (reset) {
+        activePage = 0;
+        document.getElementById('gallery-grid').innerHTML = '';
+      }
+      const posts = await fetchFromE621(currentSearchTags, activePage);
+      const container = document.getElementById('gallery-grid');
+      
+      posts.forEach(post => {
+        const hasBlockedTag = post.tagsString.split(' ').some(tag => state.blacklist.includes(tag.toLowerCase()));
+        if (!hasBlockedTag) {
+          const card = createPostCard(post);
+          container.appendChild(card);
+        }
+      });
+
+      applyRamSafeguard();
+      activePage++;
+    }
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isFetching && document.getElementById('panel-gallery').classList.contains('active')) {
+        loadGallery();
+      }
+    }, { rootMargin: '200px' });
+    scrollObserver.observe(document.getElementById('infinite-scroll-trigger'));
+
+    function triggerPeek(post, card) {
+      if ('vibrate' in navigator) navigator.vibrate(40);
+      
+      const overlay = document.getElementById('peek-overlay');
+      const content = document.getElementById('peek-content');
+      content.innerHTML = '';
+
+      if (post.isVideo) {
+        const video = document.createElement('video');
+        video.src = post.file_url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        content.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = post.sample_url || post.file_url;
+        content.appendChild(img);
+      }
+
+      overlay.style.display = 'flex';
+    }
+
+    function closePeek() {
+      document.getElementById('peek-overlay').style.display = 'none';
+      document.getElementById('peek-content').innerHTML = '';
+    }
+
+    // --- STREAMING_CHUNK: Detail comments fetching and rendering... ---
+    async function loadPostComments(postId) {
+      const container = document.getElementById('comments-feed');
+      container.innerHTML = `<div class="text-zinc-500 py-1">${state.language === 'ru' ? 'Загрузка...' : 'Loading comments...'}</div>`;
+
+      try {
+        const responseText = await directFetch(`https://e621.net/comments.json`, { 'group_by': 'comment', 'search[post_id]': postId }, true);
+        const data = JSON.parse(responseText);
+
+        container.innerHTML = '';
+        if (!data || data.length === 0) {
+          container.innerHTML = `<div class="text-zinc-600 italic py-1">${t('noComments')}</div>`;
+          return;
+        }
+
+        data.forEach(c => {
+          const block = document.createElement('div');
+          block.className = 'border-b border-zinc-800 pb-1 mb-1';
+          block.innerHTML = `<div class="flex justify-between font-bold text-zinc-300">
+            <span>${c.creator_name || 'Anonymous'}</span>
+            <span class="text-[10px] text-zinc-500">${new Date(c.created_at).toLocaleDateString()}</span>
+          </div>
+          <div class="text-zinc-400 text-xs mt-0.5">${c.body}</div>`;
+          container.appendChild(block);
+        });
+      } catch (err) {
+        container.innerHTML = `<div class="text-zinc-600 italic py-1">${t('noComments')}</div>`;
+      }
+    }
+
+    document.getElementById('submit-comment-btn').addEventListener('click', async () => {
+      const input = document.getElementById('comment-body');
+      const body = input.value.trim();
+      if (!body || !detailCurrentPost) return;
+
+      if (!state.auth.username || !state.auth.apiKey) {
+        showToast(t('commentError'));
+        return;
+      }
+
+      try {
+        // Send a direct e621 post request
+        const url = `https://e621.net/comments.json`;
+        const payload = new URLSearchParams();
+        payload.append('comment[post_id]', detailCurrentPost.id);
+        payload.append('comment[body]', body);
+        payload.append('login', state.auth.username);
+        payload.append('api_key', state.auth.apiKey);
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'ChromiumE621MobileClient/1.5'
+          },
+          body: payload
+        });
+
+        if (response.ok) {
+          showToast(t('commentSuccess'));
+          input.value = '';
+          loadPostComments(detailCurrentPost.id);
+        } else {
+          showToast(t('commentError'));
+        }
+      } catch (err) {
+        showToast(t('commentError'));
+      }
+    });
+
+    // --- STREAMING_CHUNK: Detail view and swipe mechanics... ---
+    async function downloadPostMedia(url, id, ext) {
+      if (!url) return;
+      try {
+        showToast(state.language === 'ru' ? "Скачивание..." : "Downloading...");
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `e621_${id}.${ext || 'png'}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        showToast(state.language === 'ru' ? "Скачивание завершено!" : "Downloaded!");
+      } catch (err) {
+        window.open(url, '_blank');
+        showToast(state.language === 'ru' ? "Открыто в новой вкладке!" : "Opened in new tab!");
+      }
+    }
+
+    document.getElementById('detail-download-btn').addEventListener('click', () => {
+      if (detailCurrentPost) {
+        downloadPostMedia(detailCurrentPost.file_url, detailCurrentPost.id, detailCurrentPost.ext);
+      }
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    const swipeThreshold = 100;
+
+    function openDetailView(post) {
+      detailCurrentPost = post;
+      const overlay = document.getElementById('detail-overlay');
+      const mediaWrapper = document.getElementById('detail-media-wrapper');
+      const tagsContainer = document.getElementById('detail-tags-container');
+
+      document.getElementById('swipe-hint').textContent = state.language === 'ru' ? "Свайп: ➔ Букмарк | Листайте вниз для тегов" : "Swipe Right to Bookmark | Scroll Down for tags";
+
+      overlay.scrollTop = 0;
+      mediaWrapper.innerHTML = '';
+      tagsContainer.innerHTML = '';
+
+      updateBookmarkBtnState();
+      loadPostComments(post.id);
+
+      if (post.isVideo) {
+        const video = document.createElement('video');
+        video.src = post.file_url;
+        video.controls = true;
+        video.autoplay = true;
+        video.loop = true;
+        mediaWrapper.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = post.file_url;
+        img.onload = () => {
+          extractAmbientColor(img);
+        };
+        mediaWrapper.appendChild(img);
+      }
+
+      const categories = {
+        artist: { title: state.language === 'ru' ? 'Художники' : 'Artists', class: 'artist' },
+        character: { title: state.language === 'ru' ? 'Персонажи' : 'Characters', class: 'character' },
+        copyright: { title: state.language === 'ru' ? 'Фэндомы' : 'Copyrights', class: 'copyright' },
+        species: { title: state.language === 'ru' ? 'Виды существ' : 'Species', class: 'species' },
+        general: { title: state.language === 'ru' ? 'Общие теги' : 'General Tags', class: 'general' },
+        meta: { title: state.language === 'ru' ? 'Мета-информация' : 'Meta Info', class: 'meta' }
+      };
+
+      const tagsObj = post.tags || {};
+      
+      Object.entries(categories).forEach(([key, value]) => {
+        const tagsList = tagsObj[key] || [];
+        if (tagsList.length > 0) {
+          const groupDiv = document.createElement('div');
+          groupDiv.className = 'tag-category-group';
+          
+          const title = document.createElement('h4');
+          title.className = 'category-title';
+          title.textContent = value.title;
+          groupDiv.appendChild(title);
+
+          const chipsWrap = document.createElement('div');
+          chipsWrap.className = 'detail-tags';
+
+          tagsList.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = `tag-badge ${value.class}`;
+            const alias = TAG_ALIASES[tag] ? ` (${TAG_ALIASES[tag]})` : '';
+            span.textContent = tag + alias;
+
+            span.addEventListener('click', () => {
+              closeDetailView();
+              switchView('gallery');
+              searchInput.value = tag;
+              triggerSearch(tag);
+            });
+
+            chipsWrap.appendChild(span);
+          });
+
+          groupDiv.appendChild(chipsWrap);
+          tagsContainer.appendChild(groupDiv);
+        }
+      });
+
+      overlay.style.display = 'flex';
+    }
+
+    function extractAmbientColor(imgEl) {
+      const canvas = document.getElementById('ambient-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 10;
+      canvas.height = 10;
+      
+      try {
+        ctx.drawImage(imgEl, 0, 0, 10, 10);
+        canvas.style.opacity = '0.35';
+      } catch (e) {
+        canvas.style.opacity = '0';
+      }
+    }
+
+    document.getElementById('detail-close-btn').addEventListener('click', closeDetailView);
+    function closeDetailView() {
+      document.getElementById('detail-overlay').style.display = 'none';
+      const mediaWrapper = document.getElementById('detail-media-wrapper');
+      mediaWrapper.innerHTML = '';
+      
+      const canvas = document.getElementById('ambient-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const cardContainer = document.getElementById('detail-card-container');
+    const mediaWrapperElement = document.getElementById('detail-media-wrapper');
+
+    cardContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    cardContainer.addEventListener('touchmove', (e) => {
+      const currentX = e.changedTouches[0].screenX;
+      const currentY = e.changedTouches[0].screenY;
+      const diffX = currentX - touchStartX;
+      const diffY = currentY - touchStartY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (e.cancelable) e.preventDefault();
+        mediaWrapperElement.style.transform = `translate3d(${diffX}px, 0, 0)`;
+
+        if (diffX > 50) {
+          document.getElementById('ind-like').style.opacity = Math.min((diffX-50)/100, 1);
+        } else if (diffX < -50) {
+          document.getElementById('ind-skip').style.opacity = Math.min((-diffX-50)/100, 1);
+        }
+      } else {
+        mediaWrapperElement.style.transform = 'translate3d(0,0,0)';
+        document.getElementById('ind-like').style.opacity = 0;
+        document.getElementById('ind-skip').style.opacity = 0;
+      }
+    }, { passive: false });
+
+    cardContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      mediaWrapperElement.style.transform = 'translate3d(0,0,0)';
+      document.getElementById('ind-like').style.opacity = 0;
+      document.getElementById('ind-skip').style.opacity = 0;
+
+      if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0) {
+          toggleBookmark(detailCurrentPost);
+          showToast(state.language === 'ru' ? "Сохранено в закладки!" : "Added to Bookmarks!");
+          closeDetailView();
+        } else {
+          showToast(state.language === 'ru' ? "Пропущено" : "Skipped");
+          closeDetailView();
+        }
+      }
+    }
+
+    // --- STREAMING_CHUNK: Local bookmark storage and smart recommendations... ---
+    function toggleBookmark(post) {
+      const idx = state.bookmarks.findIndex(p => p.id === post.id);
+      if (idx === -1) {
+        state.bookmarks.push(post);
+        // If login authorized, set favorite directly on server
+        favoritePostOnServer(post.id, true);
+      } else {
+        state.bookmarks.splice(idx, 1);
+        favoritePostOnServer(post.id, false);
+      }
+      localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+      updateBookmarkBtnState();
+      updateStatsUI();
+    }
+
+    async function favoritePostOnServer(postId, performFavorite) {
+      if (!state.auth.username || !state.auth.apiKey) return;
+      try {
+        const url = performFavorite ? `https://e621.net/favorites.json` : `https://e621.net/favorites/${postId}.json`;
+        const method = performFavorite ? 'POST' : 'DELETE';
+        const payload = new URLSearchParams();
+        if (performFavorite) payload.append('post_id', postId);
+        payload.append('login', state.auth.username);
+        payload.append('api_key', state.auth.apiKey);
+
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'ChromiumE621MobileClient/1.5'
+          },
+          body: payload
+        });
+        if (response.ok) {
+          showToast(t('likeSuccess'));
+        }
+      } catch (err) {
+        console.error("Favorite sync error:", err);
+      }
+    }
+
+    function updateBookmarkBtnState() {
+      const btn = document.getElementById('detail-bookmark-btn');
+      if (!detailCurrentPost) return;
+      const isSaved = state.bookmarks.some(p => p.id === detailCurrentPost.id);
+      btn.textContent = isSaved ? (state.language === 'ru' ? "В закладках" : "Bookmarked") : (state.language === 'ru' ? "В закладки" : "Bookmark");
+      btn.style.backgroundColor = isSaved ? "var(--success)" : "var(--accent)";
+    }
+
+    document.getElementById('detail-bookmark-btn').addEventListener('click', () => {
+      if (detailCurrentPost) toggleBookmark(detailCurrentPost);
+    });
+
+    function renderBookmarks() {
+      const container = document.getElementById('bookmarks-grid');
+      container.innerHTML = '';
+      if (state.bookmarks.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
+        return;
+      }
+      state.bookmarks.forEach(post => {
+        const card = createPostCard(post);
+        container.appendChild(card);
+      });
+      applyRamSafeguard();
+    }
+
+    function generateSmartRecommendations() {
+      const container = document.getElementById('recs-grid');
+      container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'Анализ ваших предпочтений...' : 'Analyzing tastes...'}</div>`;
+
+      if (state.bookmarks.length < 2) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">${t('bookmarksLimit')}</div>`;
+        return;
+      }
+
+      const tagWeights = {};
+      state.bookmarks.forEach(post => {
+        const allTags = post.tagsString || '';
+        allTags.split(' ').forEach(tag => {
+          if (!tag) return;
+          tagWeights[tag] = (tagWeights[tag] || 0) + 1;
+        });
+      });
+
+      const topTags = Object.entries(tagWeights)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+
+      const bestTag = topTags[0];
+      
+      fetchFromE621(bestTag, 0).then(posts => {
+        container.innerHTML = '';
+        if (posts.length === 0) {
+          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">Failed.</div>`;
+          return;
+        }
+
+        const scoredPosts = posts.map(post => {
+          let score = 0;
+          post.tagsString.split(' ').forEach(tag => {
+            if (tagWeights[tag]) {
+              score += tagWeights[tag];
+            }
+          });
+          return { post, score };
+        });
+
+        scoredPosts.sort((a, b) => b.score - a.score);
+
+        scoredPosts.forEach(item => {
+          const card = createPostCard(item.post);
+          container.appendChild(card);
+        });
+        applyRamSafeguard();
+      });
+    }
+
+    // --- STREAMING_CHUNK: Profile and authenticating accounts setup... ---
+    const usernameInput = document.getElementById('auth-username');
+    const apiKeyInput = document.getElementById('auth-api-key');
+    const authStatus = document.getElementById('auth-status');
+
+    function updateAuthUI() {
+      if (state.auth.username && state.auth.apiKey) {
+        usernameInput.value = state.auth.username;
+        apiKeyInput.value = state.auth.apiKey;
+        authStatus.textContent = state.language === 'ru' ? `Статус: Подключен как ${state.auth.username}` : `Status: Integrated as ${state.auth.username}`;
+        authStatus.style.color = 'var(--success)';
+      } else {
+        usernameInput.value = '';
+        apiKeyInput.value = '';
+        authStatus.textContent = state.language === 'ru' ? `Статус: Не подключен (Анонимный режим)` : `Status: Not connected (Anonymous mode)`;
+        authStatus.style.color = 'var(--text-muted)';
+      }
+    }
+
+    document.getElementById('save-auth-btn').addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const apiKey = apiKeyInput.value.trim();
+      
+      if (username && apiKey) {
+        state.auth.username = username;
+        state.auth.apiKey = apiKey;
+        localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+        showToast(state.language === 'ru' ? "Аккаунт подключен!" : "Account connected successfully!");
+        updateAuthUI();
+        loadGallery(true);
+      } else if (!username && !apiKey) {
+        state.auth.username = '';
+        state.auth.apiKey = '';
+        localStorage.removeItem('p_e621_auth');
+        showToast(state.language === 'ru' ? "Вы вышли из аккаунта." : "Logged out.");
+        updateAuthUI();
+        loadGallery(true);
+      } else {
+        showToast(state.language === 'ru' ? "Заполните оба поля!" : "Fill both inputs!");
+      }
+    });
+
+    document.getElementById('btn-reg').addEventListener('click', () => {
+      window.open('https://e621.net/users/new', '_blank');
+    });
+
+    // --- STREAMING_CHUNK: Direct artwork file uploader mechanism... ---
+    document.getElementById('upload-submit-btn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('upload-file');
+      const tagsValue = document.getElementById('upload-tags').value.trim();
+      const ratingValue = document.getElementById('upload-rating').value;
+      const sourceValue = document.getElementById('upload-source').value.trim();
+
+      if (!state.auth.username || !state.auth.apiKey) {
+        showToast(state.language === 'ru' ? "Необходима авторизация!" : "Authentication credentials required!");
+        return;
+      }
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showToast(state.language === 'ru' ? "Выберите файл!" : "Please choose a file!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('upload[file]', file);
+      formData.append('upload[tag_string]', tagsValue);
+      formData.append('upload[rating]', ratingValue);
+      formData.append('upload[source]', sourceValue);
+      formData.append('login', state.auth.username);
+      formData.append('api_key', state.auth.apiKey);
+
+      try {
+        showToast(state.language === 'ru' ? "Отправка на сервера e621..." : "Uploading directly to e621 servers...");
+        const response = await fetch(`https://e621.net/uploads.json`, {
+          method: 'POST',
+          headers: {
+            'User-Agent': 'ChromiumE621MobileClient/1.5'
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          showToast(state.language === 'ru' ? "Успешно отправлено!" : "Upload posted successfully!");
+          fileInput.value = '';
+          document.getElementById('upload-tags').value = '';
+          document.getElementById('upload-source').value = '';
+        } else {
+          showToast(state.language === 'ru' ? "Ошибка отправки на e621." : "Upload error from server.");
+        }
+      } catch (err) {
+        showToast(state.language === 'ru' ? "Сбой подключения при загрузке." : "Connection failed during upload.");
+      }
+    });
+
+    // --- STREAMING_CHUNK: "Feeling Lucky" filter-based generator... ---
+    document.getElementById('lucky-roll-btn').addEventListener('click', async () => {
+      const minScore = parseInt(document.getElementById('lucky-score').value) || 0;
+      const onlyAbsurd = document.getElementById('lucky-absurd').checked;
+      const onlyUnseen = document.getElementById('lucky-unseen').checked;
+
+      let luckyTags = 'order:random';
+      if (onlyAbsurd) luckyTags += ' absurd_res';
+
+      try {
+        showToast(state.language === 'ru' ? "🎲 Испытываем судьбу..." : "🎲 Testing fate...");
+        const responseText = await directFetch(`https://e621.net/posts.json`, { tags: luckyTags, limit: 30 }, true);
+        const data = JSON.parse(responseText);
+        const posts = data.posts || [];
+
+        if (posts.length === 0) {
+          showToast(state.language === 'ru' ? "Нет подходящих артов." : "No posts match lucky constraints.");
+          return;
+        }
+
+        // Apply dynamic scoring and unseen filter metrics
+        let pool = posts.filter(p => p.score && p.score.total >= minScore);
+        if (onlyUnseen) {
+          pool = pool.filter(p => !state.history.includes(p.id));
+        }
+
+        if (pool.length === 0) {
+          pool = posts; // fallback
+        }
+
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        const mappedPost = {
+          id: chosen.id,
+          file_url: chosen.file.url,
+          preview_url: chosen.preview ? chosen.preview.url : chosen.file.url,
+          sample_url: (chosen.sample && chosen.sample.has) ? chosen.sample.url : chosen.file.url,
+          tags: chosen.tags || {},
+          tagsString: Object.values(chosen.tags || {}).flat().join(' '),
+          ext: chosen.file.ext,
+          rating: chosen.rating,
+          isVideo: ['mp4', 'webm'].includes(chosen.file.ext)
+        };
+
+        // Record to history viewed counters
+        if (!state.history.includes(mappedPost.id)) {
+          state.history.push(mappedPost.id);
+          localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+          updateStatsUI();
+        }
+
+        openDetailView(mappedPost);
+      } catch (err) {
+        showToast(state.language === 'ru' ? "Ошибка во время генерации!" : "Error rolling details!");
+      }
+    });
+
+    // --- STREAMING_CHUNK: Setup ratings and configuration controls... ---
+    const safeCheck = document.getElementById('rating-safe');
+    const questCheck = document.getElementById('rating-questionable');
+    const explCheck = document.getElementById('rating-explicit');
+
+    function initRatingsCheckboxes() {
+      safeCheck.checked = state.settings.ratings.includes('0+');
+      questCheck.checked = state.settings.ratings.includes('16+');
+      explCheck.checked = state.settings.ratings.includes('18+');
+    }
+
+    function saveRatingsSettings() {
+      const ratings = [];
+      if (safeCheck.checked) ratings.push('0+');
+      if (questCheck.checked) ratings.push('16+');
+      if (explCheck.checked) ratings.push('18+');
+      
+      state.settings.ratings = ratings;
+      localStorage.setItem('p_e621_ratings', JSON.stringify(ratings));
+      showToast(state.language === 'ru' ? "Рейтинг обновлен" : "Rating schema modified");
+      loadGallery(true);
+    }
+
+    safeCheck.addEventListener('change', saveRatingsSettings);
+    questCheck.addEventListener('change', saveRatingsSettings);
+    explCheck.addEventListener('change', saveRatingsSettings);
+
+    // --- STREAMING_CHUNK: Dynamic Profile statistics dashboard generator... ---
+    function updateStatsUI() {
+      document.getElementById('stat-val-viewed').textContent = state.history.length;
+      document.getElementById('stat-val-liked').textContent = state.bookmarks.length;
+
+      // Calculate total app active time
+      const totalSecs = state.totalTime;
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      document.getElementById('stat-val-time').textContent = state.language === 'ru' ? `${mins}м ${secs}с` : `${mins}m ${secs}s`;
+
+      // Top Tag Categories
+      const tagWeights = {};
+      const artistsWeights = {};
+
+      state.bookmarks.forEach(post => {
+        // Collect general tags
+        if (post.tags && post.tags.general) {
+          post.tags.general.forEach(t => {
+            tagWeights[t] = (tagWeights[t] || 0) + 1;
+          });
+        }
+        // Collect artists
+        if (post.tags && post.tags.artist) {
+          post.tags.artist.forEach(a => {
+            artistsWeights[a] = (artistsWeights[a] || 0) + 1;
+          });
+        }
+      });
+
+      const sortedTags = Object.entries(tagWeights).sort((a,b) => b[1] - a[1]).slice(0, 5);
+      const tagsBox = document.getElementById('stat-val-tags');
+      tagsBox.innerHTML = '';
+      if (sortedTags.length === 0) {
+        tagsBox.textContent = '...';
+      } else {
+        sortedTags.forEach(([tag, num]) => {
+          const badge = document.createElement('span');
+          badge.className = 'bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 rounded text-[10px] text-zinc-300';
+          badge.textContent = `${tag} (${num})`;
+          tagsBox.appendChild(badge);
+        });
+      }
+
+      const sortedArtists = Object.entries(artistsWeights).sort((a,b) => b[1] - a[1]).slice(0, 4);
+      const artistsBox = document.getElementById('stat-val-artists');
+      artistsBox.innerHTML = '';
+      if (sortedArtists.length === 0) {
+        artistsBox.textContent = '...';
+      } else {
+        sortedArtists.forEach(([art, num]) => {
+          const badge = document.createElement('span');
+          badge.className = 'bg-rose-950/40 border border-rose-900 px-1.5 py-0.5 rounded text-[10px]';
+          badge.textContent = `${art} (${num})`;
+          artistsBox.appendChild(badge);
+        });
+      }
+    }
+
+    // Active App Timer tracking loop
+    setInterval(() => {
+      state.totalTime += 1;
+      localStorage.setItem('p_e621_total_time', state.totalTime);
+      updateStatsUI();
+    }, 1000);
+
+    function renderBlacklistChips() {
+      const chipsContainer = document.getElementById('blacklist-chips');
+      chipsContainer.innerHTML = '';
+      state.blacklist.forEach(tag => {
+        const chip = document.createElement('div');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `<span>${tag}</span><button onclick="removeBlacklistTag('${tag}')">✕</button>`;
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    window.removeBlacklistTag = function(tag) {
+      state.blacklist = state.blacklist.filter(t => t !== tag);
+      localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+      renderBlacklistChips();
+      loadGallery(true);
+    };
+
+    document.getElementById('add-blacklist-btn').addEventListener('click', () => {
+      const input = document.getElementById('blacklist-input');
+      const tag = input.value.trim().toLowerCase();
+      if (tag && !state.blacklist.includes(tag)) {
+        state.blacklist.push(tag);
+        localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+        renderBlacklistChips();
+        input.value = '';
+        loadGallery(true);
+      }
+    });
+
+    // --- STREAMING_CHUNK: Settings customization variables syncing... ---
+    document.getElementById('shuffler-square').addEventListener('click', () => changeLayout('squares'));
+    document.getElementById('shuffler-masonry').addEventListener('click', () => changeLayout('masonry'));
+    document.getElementById('shuffler-story').addEventListener('click', () => changeLayout('stories'));
+
+    function changeLayout(type) {
+      const grids = [
+        document.getElementById('gallery-grid'),
+        document.getElementById('bookmarks-grid'),
+        document.getElementById('recs-grid')
+      ];
+
+      grids.forEach(grid => {
+        if (!grid) return;
+        grid.className = 'grid-container';
+        if (type === 'squares') {
+          grid.classList.add('grid-squares');
+        } else if (type === 'masonry') {
+          grid.classList.add('grid-masonry');
+        } else if (type === 'stories') {
+          grid.classList.add('grid-stories');
+        }
+      });
+
+      document.querySelectorAll('.post-card').forEach(card => {
+        card.style.height = '';
+      });
+
+      state.settings.layout = type;
+      localStorage.setItem('p_e621_layout', type);
+      showToast(`${state.language === 'ru' ? 'Сетка:' : 'Layout:'} ${type}`);
+    }
+
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const color = dot.getAttribute('data-color');
+        state.customization.accent = color;
+        localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+        applyCustomStyles();
+        showToast(state.language === 'ru' ? "Цветовая гамма обновлена!" : "Color accent updated!");
+      });
+    });
+
+    document.getElementById('setting-radius').addEventListener('change', (e) => {
+      state.customization.radius = e.target.value;
+      localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+      applyCustomStyles();
+      showToast(state.language === 'ru' ? "Скругление обновлено!" : "Borders updated!");
+    });
+
+    document.getElementById('setting-feed-fit').addEventListener('change', (e) => {
+      const val = e.target.value;
+      state.settings.feedFit = val;
+      localStorage.setItem('p_e621_feed_fit', val);
+      applyFeedFitStyle();
+      showToast(state.language === 'ru' ? "Формат отображения обновлен!" : "Fit format updated!");
+    });
+
+    function applyFeedFitStyle() {
+      document.body.classList.remove('feed-fit-cover', 'feed-fit-contain');
+      document.body.classList.add(`feed-fit-${state.settings.feedFit || 'cover'}`);
+      document.getElementById('setting-feed-fit').value = state.settings.feedFit || 'cover';
+    }
+
+    function applyCustomStyles() {
+      const root = document.documentElement;
+      root.style.setProperty('--accent', state.customization.accent);
+      root.style.setProperty('--accent-hover', state.customization.accent + 'dd');
+      root.style.setProperty('--radius', state.customization.radius);
+
+      document.querySelectorAll('.color-dot').forEach(dot => {
+        if (dot.getAttribute('data-color') === state.customization.accent) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      document.getElementById('setting-radius').value = state.customization.radius;
+    }
+
+    document.getElementById('setting-data-budget').addEventListener('change', (e) => {
+      state.settings.dataBudget = e.target.checked;
+      localStorage.setItem('p_e621_set_budget', state.settings.dataBudget);
+    });
+
+    document.getElementById('setting-ram-safeguard').addEventListener('change', (e) => {
+      state.settings.ramSafeguard = e.target.checked;
+      localStorage.setItem('p_e621_set_ram', state.settings.ramSafeguard);
+    });
+
+    // --- STREAMING_CHUNK: Preparing backup encodings and qr draw mechanisms... ---
+    document.getElementById('export-backup-btn').addEventListener('click', () => {
+      const backupData = {
+        bookmarks: state.bookmarks,
+        blacklist: state.blacklist,
+        settings: state.settings,
+        auth: state.auth,
+        customization: state.customization,
+        tagFreq: state.tagFreq,
+        favSearches: state.favSearches,
+        history: state.history,
+        totalTime: state.totalTime
+      };
+      
+      const backupStr = btoa(encodeURIComponent(JSON.stringify(backupData)));
+      const area = document.getElementById('backup-code-display');
+      area.textContent = backupStr;
+      area.classList.remove('hidden');
+
+      drawBackupQR(backupStr);
+      showToast(state.language === 'ru' ? "Бэкап-код сгенерирован!" : "Backup code generated!");
+    });
+
+    document.getElementById('import-backup-btn').addEventListener('click', () => {
+      const code = prompt(state.language === 'ru' ? "Вставьте бэкап-код:" : "Paste backup code here:");
+      if (!code) return;
+
+      try {
+        const decoded = JSON.parse(decodeURIComponent(atob(code)));
+        if (decoded.bookmarks && decoded.blacklist) {
+          state.bookmarks = decoded.bookmarks;
+          state.blacklist = decoded.blacklist;
+          state.settings = decoded.settings || state.settings;
+          state.auth = decoded.auth || state.auth;
+          state.customization = decoded.customization || state.customization;
+          state.tagFreq = decoded.tagFreq || {};
+          state.favSearches = decoded.favSearches || [];
+          state.history = decoded.history || [];
+          state.totalTime = decoded.totalTime || 0;
+
+          localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+          localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+          localStorage.setItem('p_e621_layout', state.settings.layout);
+          localStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
+          localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+          localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
+          localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+          localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+          localStorage.setItem('p_e621_total_time', state.totalTime);
+
+          renderBlacklistChips();
+          updateStatsUI();
+          updateAuthUI();
+          initRatingsCheckboxes();
+          applyCustomStyles();
+          applyFeedFitStyle();
+          renderRecommendedTags();
+          renderFavoriteSearches();
+          showToast(state.language === 'ru' ? "Профиль успешно импортирован!" : "Profile successfully imported!");
+          loadGallery(true);
+        } else {
+          showToast(state.language === 'ru' ? "Неверный формат кода." : "Invalid code format.");
+        }
+      } catch (err) {
+        showToast(state.language === 'ru' ? "Ошибка импорта." : "Import failed.");
+      }
+    });
+
+    function drawBackupQR(text) {
+      const canvas = document.getElementById('qr-canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = "#000000";
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = text.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      const blockSize = 5;
+      for (let x = 10; x < size - 10; x += blockSize) {
+        for (let y = 10; y < size - 10; y += blockSize) {
+          const val = Math.abs(Math.sin(hash + x * y)) * 10;
+          if (val > 5) {
+            ctx.fillRect(x, y, blockSize, blockSize);
+          }
+        }
+      }
+
+      drawQRMarker(ctx, 10, 10);
+      drawQRMarker(ctx, size - 30, 10);
+      drawQRMarker(ctx, 10, size - 30);
+
+      document.getElementById('qr-container').style.display = 'block';
+    }
+
+    function drawQRMarker(ctx, x, y) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x, y, 20, 20);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x + 3, y + 3, 14, 14);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + 6, y + 6, 8, 8);
+    }
+
+    // --- STREAMING_CHUNK: View panels switcher logic... ---
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById(`panel-${viewName}`);
+      if (activePanel) activePanel.classList.add('active');
+
+      const header = document.getElementById('app-header');
+      if (viewName === 'gallery') {
+        header.style.display = 'flex';
+      } else {
+        header.style.display = 'none';
+      }
+
+      if (viewName === 'bookmarks') {
+        renderBookmarks();
+      } else if (viewName === 'recommendations') {
+        generateSmartRecommendations();
+      }
+    }
+
+    document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchView(btn.getAttribute('data-view'));
+      });
+    });
+
+    function showToast(text) {
+      const toast = document.getElementById('custom-toast');
+      toast.textContent = text;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    // Window Loaded Initiators
+    window.onload = function() {
+      applyCustomStyles();
+      applyFeedFitStyle();
+      renderBlacklistChips();
+      changeLayout(state.settings.layout);
+      updateAuthUI();
+      initRatingsCheckboxes();
+      renderRecommendedTags();
+      renderFavoriteSearches();
+      toggleClearBtn();
+      updateStatsUI();
+      translateUI();
+
+      // Load matching sync key from profile if exists
+      if (state.syncKey) {
+        cloudSyncInput.value = state.syncKey;
+      }
+
+      loadGallery();
+    };
+  </script>
+</body>
+</html>
