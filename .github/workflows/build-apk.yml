@@ -82,14 +82,17 @@ jobs:
         cd android
         chmod +x gradlew
         ./gradlew assembleRelease --stacktrace
+
+    # Создаем виртуальную папку 29.0.3, которая перенаправляет экшен в рабочую папку 34.0.0
+    - name: Link Build Tools for Signing Action
+      run: |
+        mkdir -p /usr/local/lib/android/sdk/build-tools
+        ln -s /usr/local/lib/android/sdk/build-tools/34.0.0 /usr/local/lib/android/sdk/build-tools/29.0.3
     
-# Автоматическое подписание релиза нашим Keystore
+    # Автоматическое подписание релиза нашим Keystore
     - name: Sign Release APK
       uses: r0adkll/sign-android-release@v1
       id: sign_app
-      # Передаем версию через переменную окружения для самого экшена:
-      env:
-        ANDROID_BUILD_TOOLS_VERSION: '34.0.0'
       with:
         releaseDirectory: android/app/build/outputs/apk/release
         signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
