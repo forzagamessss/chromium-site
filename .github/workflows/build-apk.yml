@@ -13,21 +13,79 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # Используем основную версию v4
+      uses: actions/checkout@v4
     
     - name: Setup Node.js
-      uses: actions/setup-node@v4  # Используем основную версию v4
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
     
     - name: Setup Java
-      uses: actions/setup-java@v4  # Используем основную версию v4 (НЕ v4.9.0)
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3  # Используем основную версию v3 (НЕ v3.3.0)
+      uses: android-actions/setup-android@v3
+    
+    # ============================================================
+    # НОВЫЙ ШАГ: Генерация иконок всех размеров из одного файла
+    # ============================================================
+    - name: Generate app icons
+      run: |
+        echo "=== Installing ImageMagick ==="
+        sudo apt-get update
+        sudo apt-get install -y imagemagick
+        
+        echo "=== Creating icon directories ==="
+        mkdir -p android/app/src/main/res/mipmap-mdpi
+        mkdir -p android/app/src/main/res/mipmap-hdpi
+        mkdir -p android/app/src/main/res/mipmap-xhdpi
+        mkdir -p android/app/src/main/res/mipmap-xxhdpi
+        mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+        
+        echo "=== Checking for icon source ==="
+        # Ищем иконку в разных местах
+        if [ -f "icon-512.png" ]; then
+          ICON_SOURCE="icon-512.png"
+        elif [ -f "assets/icon-512.png" ]; then
+          ICON_SOURCE="assets/icon-512.png"
+        elif [ -f "assets/icon.png" ]; then
+          ICON_SOURCE="assets/icon.png"
+        else
+          echo "⚠️ No icon found, creating a default one"
+          # Создаём дефолтную иконку с буквами "E6"
+          convert -size 512x512 xc:#2563eb \
+            -fill white -draw "circle 256,256 256,76" \
+            -fill white -draw "circle 256,256 76,256" \
+            -fill white -draw "circle 256,256 256,436" \
+            -fill white -draw "circle 256,256 436,256" \
+            -fill '#2563eb' -draw "circle 256,256 200,200" \
+            -fill white -font Arial -pointsize 160 -gravity center -draw "text 0,20 'E6'" \
+            icon-512.png
+          ICON_SOURCE="icon-512.png"
+        fi
+        
+        echo "=== Generating icons from: $ICON_SOURCE ==="
+        
+        # Основная иконка (векторная) - все размеры
+        convert $ICON_SOURCE -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+        convert $ICON_SOURCE -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        convert $ICON_SOURCE -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        convert $ICON_SOURCE -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        convert $ICON_SOURCE -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+        
+        # Круглая иконка (для Android 8+) - все размеры
+        convert $ICON_SOURCE -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+        convert $ICON_SOURCE -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+        convert $ICON_SOURCE -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+        convert $ICON_SOURCE -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+        convert $ICON_SOURCE -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+        
+        echo "=== Icons generated successfully ==="
+        echo "Generated files:"
+        ls -la android/app/src/main/res/mipmap-xxxhdpi/
     
     - name: Clean install dependencies
       run: |
@@ -62,7 +120,7 @@ jobs:
         ./gradlew assembleDebug --stacktrace
     
     - name: Upload APK
-      uses: actions/upload-artifact@v4  # Используем основную версию v4
+      uses: actions/upload-artifact@v4
       with:
         name: chromium-e621-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
