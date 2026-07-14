@@ -31,6 +31,10 @@
 
     body {
       background-color: var(--bg-color);
+      background-image: var(--custom-bg, none);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
@@ -38,6 +42,17 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    /* Backdrop overlay to keep layout legible when custom photo is active */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(9, 9, 11, var(--bg-opacity, 0.9));
+      z-index: -1;
+      pointer-events: none;
     }
 
     /* Prevent scrolling when overlay is active */
@@ -294,7 +309,7 @@
       height: 60px;
       background: rgba(9, 9, 11, 0.95);
       backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--accent);
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -311,11 +326,12 @@
       color: var(--text-muted);
       font-size: 0.65rem;
       cursor: pointer;
-      width: 25%; 
+      flex: 1; /* Monolith style - evenly divided into 5 segments */
+      transition: color 0.2s ease;
     }
 
     .tab-btn.active {
-      color: var(--accent);
+      color: var(--accent) !important;
     }
 
     .tab-btn svg {
@@ -567,23 +583,48 @@
       display: block;
     }
 
+    /* Structured Accordion Styling for Settings */
     .settings-group {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .settings-summary {
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 16px;
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      outline: none;
+      user-select: none;
+    }
+
+    .settings-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .settings-summary::after {
+      content: '▼';
+      font-size: 0.75rem;
+      transition: transform 0.2s;
+    }
+
+    details[open] .settings-summary::after {
+      transform: rotate(180deg);
+    }
+
+    .settings-content {
       padding: 16px;
-      margin-bottom: 16px;
+      border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       gap: 14px;
-    }
-
-    .settings-title {
-      font-weight: 700;
-      font-size: 1rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-      color: var(--accent);
     }
 
     .setting-item {
@@ -717,6 +758,13 @@
   </style>
 </head>
 <body>
+  <div class="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border-b border-amber-500/30 text-amber-400 text-center py-1.5 px-4 text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-2 select-none z-50">
+    <span class="flex h-2 w-2 relative">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+    </span>
+    <span>BETA TEST: Приложение находится в стадии бета-тестирования | App is in Beta Test</span>
+  </div>
 
   <header id="app-header">
     <div class="header-top">
@@ -771,7 +819,6 @@
   </header>
 
   <main class="main-content" id="scroll-container">
-    
     <!-- GALLERY TAB PANEL -->
     <div id="panel-gallery" class="view-panel active">
       <div class="grid-container grid-squares" id="gallery-grid"></div>
@@ -779,18 +826,10 @@
       <div id="infinite-scroll-trigger" style="height: 20px; margin-top: 10px;"></div>
     </div>
 
-    <!-- BOOKMARKS TAB PANEL -->
+    <!-- BOOKMARKS TAB PANEL (Simplified - Local Bookmarks ONLY) -->
     <div id="panel-bookmarks" class="view-panel">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-md font-bold text-blue-500" id="lbl-local-favs">Локальные закладки</h3>
-        <!-- Toggle selector between local & online original favs -->
-        <div class="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
-          <button id="bookmark-mode-local" class="px-3 py-1 rounded bg-blue-600 font-medium transition-all">Локально</button>
-          <button id="bookmark-mode-online" class="px-3 py-1 rounded text-zinc-400 font-medium transition-all">e621.net</button>
-        </div>
-      </div>
-      <div id="bookmarks-unauth-warning" class="bg-zinc-900 border border-zinc-800 p-4 rounded-lg text-center hidden my-2 text-zinc-400 text-xs">
-        Авторизуйтесь в Настройках, чтобы просматривать ваши реальные лайкнутые посты с аккаунта e621.
+        <h3 class="text-md font-bold" id="lbl-local-favs" style="color: var(--accent);">Локальные закладки</h3>
       </div>
       <div class="grid-container grid-squares" id="bookmarks-grid"></div>
     </div>
@@ -806,84 +845,16 @@
       <div class="grid-container grid-squares" id="recs-grid"></div>
     </div>
 
-    <!-- SETTINGS TAB PANEL -->
+    <!-- SETTINGS TAB PANEL (Clean structural design) -->
     <div id="panel-settings" class="view-panel">
       
-      <!-- Multi-Language Choice block -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-lang-title">Язык приложения / Language</div>
-        <div style="display: flex; gap: 8px;">
-          <button class="action-btn" id="lang-btn-ru" style="flex: 1;">Русский 🇷🇺</button>
-          <button class="action-btn" id="lang-btn-en" style="flex: 1;">English 🇺🇸</button>
-        </div>
-      </div>
-
-      <!-- Connection & CORS Settings Group -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-connection-title">Настройки подключения & CORS</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-connection-desc">
-          Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.
-        </div>
-        <div class="space-y-3" style="font-size: 0.85rem;">
-          <div>
-            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-api-base-label">Базовый URL API</label>
-            <input type="text" id="api-base-url" value="https://e621.net" style="width: 100%;">
-          </div>
-          <div>
-            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-proxy-mode-label">Режим проксирования</label>
-            <select id="setting-proxy-mode" style="width:100%;">
-              <option value="direct" id="opt-proxy-direct">Прямое подключение (Без прокси)</option>
-              <option value="fallback" id="opt-proxy-fallback" selected>Автоматический обход (Рекомендуется)</option>
-              <option value="corsproxy.io">CORS-прокси corsproxy.io</option>
-              <option value="allorigins">CORS-прокси allorigins.win</option>
-              <option value="custom" id="opt-proxy-custom">Свой CORS-прокси (Указать ниже)</option>
-            </select>
-          </div>
-          <div id="custom-proxy-wrapper" class="hidden">
-            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-custom-proxy-url">URL своего CORS-прокси</label>
-            <input type="text" id="custom-proxy-prefix" placeholder="e.g. https://my-cors-proxy.com/?url=" style="width: 100%;">
-          </div>
-          <button class="action-btn primary w-full" id="save-connection-btn">Применить настройки подключения</button>
-        </div>
-      </div>
-
-      <!-- Account Connection e621 -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-auth-title">Подключение аккаунта e621</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-auth-desc">
-          Введите имя пользователя и API-ключ для обхода лимитов и беспрепятственного просмотра контента. Данные хранятся локально.
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <input type="text" id="auth-username" style="width: 100%;">
-          <input type="password" id="auth-api-key" style="width: 100%;">
-          <div style="display: flex; gap: 8px;">
-            <button class="action-btn primary" id="save-auth-btn" style="flex: 1;">Сохранить & Подключить</button>
-            <button class="action-btn" id="btn-reg" style="flex: 1; border-color: var(--accent); color: var(--accent);">Регистрация</button>
-          </div>
-        </div>
-        <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          Статус: Не подключен (Анонимный режим)
-        </div>
-
-        <!-- API retrieval guide accordion -->
-        <details class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg" style="font-size: 0.8rem;">
-          <summary class="cursor-pointer font-bold text-zinc-300" id="lbl-guide-title">Как достать API-ключ e621?</summary>
-          <ul class="list-decimal pl-4 mt-2 space-y-1 text-zinc-400" id="lbl-guide-steps">
-            <li>Войдите на e621.net</li>
-            <li>Откройте свой профиль (нажав по вашему нику).</li>
-            <li>Перейдите в подраздел 'Manage API Keys'.</li>
-            <li>Сгенерируйте API-ключ и скопируйте его, чтобы вставить в поле выше.</li>
-          </ul>
-        </details>
-      </div>
-
-      <!-- Dynamic Profile stats -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-stats-title">Индивидуальная статистика просмотра</div>
+      <!-- Profile stats (Visible inline on top of settings) -->
+      <div class="settings-group p-4">
+        <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm" id="lbl-stats-title">Индивидуальная статистика просмотра</div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
           <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
             <span class="text-zinc-500 block text-xs" id="lbl-stat-viewed">Просмотрено артов</span>
-            <span id="stat-val-viewed" class="font-bold text-lg text-blue-500">0</span>
+            <span id="stat-val-viewed" class="font-bold text-lg text-blue-500" style="color: var(--accent);">0</span>
           </div>
           <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
             <span class="text-zinc-500 block text-xs" id="lbl-stat-liked">Залайкано / В закладках</span>
@@ -904,189 +875,260 @@
         </div>
       </div>
 
-      <!-- Artwork direct uploader block -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-upload-title">Загрузка изображения на e621</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-upload-desc">
-          Делитесь своими артами напрямую с серверами e621. Требуется заполненный аккаунт.
+      <!-- Group 1: Account Configuration & Imports -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-account">👤 Аккаунт & Импорт</summary>
+        <div class="settings-content">
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-auth-desc">
+            Введите имя пользователя и API-ключ. Персональные данные хранятся локально.
+          </div>
+          <div class="bg-zinc-900/50 border border-zinc-800 p-3 rounded-lg text-xs text-zinc-400 space-y-2 mb-1 leading-relaxed">
+            <div class="font-semibold text-amber-500">Зачем нужен API-ключ e621?</div>
+            <ul class="list-disc pl-4 space-y-1">
+              <li><strong>Обход лимитов (Rate limits):</strong> Без API при быстрой прокрутке картинки будут ломаться под ошибкой 423 (Throttled). Ключ решает эту проблему.</li>
+              <li><strong>Импорт Избранного:</strong> Вы можете мгновенно перенести лайкнутые посты с сайта в локальные закладки!</li>
+            </ul>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="auth-username" style="width: 100%;">
+            <input type="password" id="auth-api-key" style="width: 100%;">
+            <div style="display: flex; gap: 8px;">
+              <button class="action-btn primary" id="save-auth-btn" style="flex: 1;">Сохранить & Подключить</button>
+              <button class="action-btn" id="btn-reg" style="flex: 1; border-color: var(--accent); color: var(--accent);">Регистрация</button>
+            </div>
+          </div>
+          <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted);">
+            Статус: Не подключен (Анонимный режим)
+          </div>
+
+          <button class="action-btn font-bold text-xs mt-1 hidden w-full py-2.5 transition duration-200 border-dashed" id="import-online-favs-btn" style="border-color: var(--accent); color: var(--accent); background: transparent;">
+            📥 Импортировать избранное с e621.net в локальное
+          </button>
+
+          <details class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg" style="font-size: 0.8rem;">
+            <summary class="cursor-pointer font-bold text-zinc-300" id="lbl-guide-title">Как достать API-ключ e621?</summary>
+            <ul class="list-decimal pl-4 mt-2 space-y-1 text-zinc-400" id="lbl-guide-steps">
+              <li>Войдите на e621.net</li>
+              <li>Откройте свой профиль (нажав по вашему нику).</li>
+              <li>Перейдите в подраздел 'Manage API Keys'.</li>
+              <li>Сгенерируйте API-ключ и скопируйте его, чтобы вставить в поле выше.</li>
+            </ul>
+          </details>
         </div>
-        <div class="space-y-3" style="font-size: 0.85rem;">
+      </details>
+
+      <!-- Group 2: Custom Appearance & Theme Visuals -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-appearance">🎨 Интерфейс & Свой фон</summary>
+        <div class="settings-content">
+          <!-- Multi-Language Choice block -->
           <div>
-            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-file">Файл изображения</label>
-            <input type="file" id="upload-file" class="bg-zinc-900 border border-zinc-800 p-1 w-full rounded">
+            <div class="text-xs font-bold mb-2 text-zinc-400" id="lbl-lang-title">Язык приложения / Language</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="action-btn" id="lang-btn-ru" style="flex: 1;">Русский 🇷🇺</button>
+              <button class="action-btn" id="lang-btn-en" style="flex: 1;">English 🇺🇸</button>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-tags">Теги (разделенные пробелом)</label>
-            <input type="text" id="upload-tags" placeholder="e.g. canine female smile">
+
+          <div class="setting-item">
+            <label id="lbl-accent">Акцентный цвет<span>Цветовая гамма приложения</span></label>
+            <div class="color-presets">
+              <button class="color-dot active" data-color="#2563eb" style="background:#2563eb;"></button>
+              <button class="color-dot" data-color="#a855f7" style="background:#a855f7;"></button>
+              <button class="color-dot" data-color="#22c55e" style="background:#22c55e;"></button>
+              <button class="color-dot" data-color="#ec4899" style="background:#ec4899;"></button>
+              <button class="color-dot" data-color="#f97316" style="background:#f97316;"></button>
+            </div>
           </div>
+
+          <div class="setting-item">
+            <label id="lbl-rounding">Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
+            <select id="setting-radius" class="custom-select w-44">
+              <option value="0px">Без скругнения (Острые)</option>
+              <option value="8px" selected>Стандартное (8px)</option>
+              <option value="16px">Экстремальное (16px)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label id="lbl-feed-fit">Формат в ленте<span>Способ масштабирования миниатюр</span></label>
+            <select id="setting-feed-fit" class="custom-select w-44">
+              <option value="cover" id="opt-fit-cover">Обрезать (1:1 Cover)</option>
+              <option value="contain" id="opt-fit-contain">Вписать (Original Contain)</option>
+            </select>
+          </div>
+
+          <!-- Custom Photo Background setup -->
+          <div class="border-t border-zinc-800/80 pt-4 mt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-custom-bg-section">Собственные фоновые обои</div>
+            <label class="block text-xs font-bold mb-1 text-zinc-500" id="lbl-bg-input-hint">Загрузить фоновое изображение (.jpg, .png)</label>
+            <input type="file" id="custom-bg-input" accept="image/*" class="bg-zinc-900 border border-zinc-800 p-1 w-full rounded text-xs text-zinc-300">
+            <div class="flex items-center justify-between gap-4 mt-3">
+              <span class="text-xs text-zinc-400" id="lbl-bg-opacity">Плотность затемнения фона</span>
+              <input type="range" id="bg-opacity-range" min="0.1" max="0.95" step="0.05" value="0.9" class="w-28 accent-[var(--accent)]">
+            </div>
+            <button id="clear-bg-btn" class="action-btn text-xs mt-3 w-full py-2 hover:bg-red-950/20" style="border-color: var(--danger); color: var(--danger);">Сбросить фон на стандартный</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 3: Safe Filters & Content Blacklist -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-safety">🛡️ Фильтры & Блэклист</summary>
+        <div class="settings-content">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="setting-item">
+              <label id="lbl-rate-safe">0+ (Safe / Безопасно)<span>Подходит для всех</span></label>
+              <label class="switch">
+                <input type="checkbox" id="rating-safe" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label id="lbl-rate-quest">16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span></label>
+              <label class="switch">
+                <input type="checkbox" id="rating-questionable" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label id="lbl-rate-expl">18+ (Explicit / Откровенно)<span>Контент для взрослых</span></label>
+              <label class="switch">
+                <input type="checkbox" id="rating-explicit">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="border-t border-zinc-800/80 pt-4 mt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-blacklist-title">Локальный Чёрный Список тегов</div>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" id="blacklist-input" style="flex-grow: 1;">
+              <button class="action-btn primary" id="add-blacklist-btn" style="flex: 0 0 50px;">+</button>
+            </div>
+            <div class="tag-chips mt-3" id="blacklist-chips"></div>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 4: Feel Lucky generator parameters -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-lucky">🎰 Параметры «Мне повезет»</summary>
+        <div class="settings-content">
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between items-center">
+              <span id="lbl-minscore">Минимальный рейтинг (Score)</span>
+              <input type="number" id="lucky-score" value="100" class="w-20 text-center bg-zinc-900 border border-zinc-800 p-1 rounded">
+            </div>
+            <div class="flex justify-between items-center">
+              <span id="lbl-tagabsurd">Только absurd_res</span>
+              <label class="switch">
+                <input type="checkbox" id="lucky-absurd" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="flex justify-between items-center">
+              <span id="lbl-unseen">Только новые (непросмотренные)</span>
+              <label class="switch">
+                <input type="checkbox" id="lucky-unseen">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 5: Grid layout chooser -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-layout">📐 Разметка ленты (Aspect Ratio)</summary>
+        <div class="settings-content">
           <div style="display: flex; gap: 8px;">
-            <div class="flex-1">
-              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-rating">Рейтинг</label>
-              <select id="upload-rating">
-                <option value="s">Safe (S)</option>
-                <option value="q">Questionable (Q)</option>
-                <option value="e">Explicit (E)</option>
+            <button class="action-btn" id="shuffler-square" style="flex: 1;">Квадраты</button>
+            <button class="action-btn" id="shuffler-masonry" style="flex: 1;">Мозаика</button>
+            <button class="action-btn" id="shuffler-story" style="flex: 1;">Истории</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 6: Traffic & Performance Parameters -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-traffic">🚀 Контроль трафика & Энергия</summary>
+        <div class="settings-content">
+          <div class="setting-item">
+            <label id="lbl-budget">Лимит трафика (Data Budgeting)<span>Снижать качество при > 50 МБ</span></label>
+            <label class="switch">
+              <input type="checkbox" id="setting-data-budget" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label id="lbl-ram">RAM Safeguard<span>Выгружать невидимые картинки</span></label>
+            <label class="switch">
+              <input type="checkbox" id="setting-ram-safeguard" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 7: Connection & CORS Settings Group -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-network">🌐 Сеть & CORS Настройки</summary>
+        <div class="settings-content">
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-connection-desc">
+            Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.
+          </div>
+          <div class="space-y-3" style="font-size: 0.85rem;">
+            <div>
+              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-api-base-label">Базовый URL API</label>
+              <input type="text" id="api-base-url" value="https://e621.net" style="width: 100%;">
+            </div>
+            <div>
+              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-proxy-mode-label">Режим проксирования</label>
+              <select id="setting-proxy-mode" style="width:100%;">
+                <option value="direct" id="opt-proxy-direct">Прямое подключение (Без прокси)</option>
+                <option value="fallback" id="opt-proxy-fallback" selected>Автоматический обход (Рекомендуется)</option>
+                <option value="corsproxy.io">CORS-прокси corsproxy.io</option>
+                <option value="allorigins">CORS-прокси allorigins.win</option>
+                <option value="custom" id="opt-proxy-custom">Свой CORS-прокси (Указать ниже)</option>
               </select>
             </div>
-            <div class="flex-1">
-              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-up-source">Источник</label>
-              <input type="text" id="upload-source" placeholder="https://..." style="height:42px;">
+            <div id="custom-proxy-wrapper" class="hidden">
+              <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-custom-proxy-url">URL своего CORS-прокси</label>
+              <input type="text" id="custom-proxy-prefix" placeholder="e.g. https://my-cors-proxy.com/?url=" style="width: 100%;">
+            </div>
+            <button class="action-btn primary w-full" id="save-connection-btn">Применить настройки подключения</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Group 8: Backup Profile settings -->
+      <details class="settings-group">
+        <summary class="settings-summary" id="sum-backup">💾 Экспорт & Бэкап профиля</summary>
+        <div class="settings-content">
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт</button>
+            <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт</button>
+          </div>
+          
+          <!-- Export Container with Copy Button -->
+          <div id="export-container" class="hidden flex flex-col gap-2">
+            <div class="flex gap-2">
+              <textarea id="backup-code-display" readonly class="text-xs border border-zinc-800 rounded p-2 flex-grow bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;"></textarea>
+              <button id="copy-export-btn" class="action-btn primary text-xs" style="flex: 0 0 100px; font-size: 0.8rem;">Копировать</button>
+            </div>
+            <div id="qr-container" style="display:none; text-align: center;" class="flex flex-col items-center justify-center mt-2">
+              <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
             </div>
           </div>
-          <button class="action-btn primary w-full" id="upload-submit-btn">Отправить на server e621</button>
-        </div>
-      </div>
 
-      <!-- Feel Lucky setup -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-lucky-setup">🎲 Мне повезет</div>
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between items-center">
-            <span id="lbl-minscore">Минимальный рейтинг (Score)</span>
-            <input type="number" id="lucky-score" value="100" class="w-20 text-center bg-zinc-900 border border-zinc-800 p-1 rounded">
-          </div>
-          <div class="flex justify-between items-center">
-            <span id="lbl-tagabsurd">Только absurd_res</span>
-            <label class="switch">
-              <input type="checkbox" id="lucky-absurd" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="flex justify-between items-center">
-            <span id="lbl-unseen">Только новые (непросмотренные)</span>
-            <label class="switch">
-              <input type="checkbox" id="lucky-unseen">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <button class="action-btn primary w-full mt-2" id="lucky-roll-btn" style="background: linear-gradient(135deg, #fbbf24, #d97706); border:none;">
-            <span class="font-bold text-zinc-900" id="lbl-roll">Бросить кости!</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Customization and Feed Fit Modes -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-custom-title">Кастомизация приложения</div>
-        <div class="setting-item">
-          <label id="lbl-accent">Акцентный цвет<span>Цветовая гамма приложения</span></label>
-          <div class="color-presets">
-            <button class="color-dot active" data-color="#2563eb" style="background:#2563eb;"></button>
-            <button class="color-dot" data-color="#a855f7" style="background:#a855f7;"></button>
-            <button class="color-dot" data-color="#22c55e" style="background:#22c55e;"></button>
-            <button class="color-dot" data-color="#ec4899" style="background:#ec4899;"></button>
-            <button class="color-dot" data-color="#f97316" style="background:#f97316;"></button>
+          <!-- Import Container for User Input -->
+          <div id="import-container" class="hidden flex flex-col gap-2">
+            <textarea id="import-code-input" class="text-xs border border-zinc-800 rounded p-2 bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;" placeholder="Вставьте код экспорта сюда... / Paste export code here..."></textarea>
+            <button id="apply-import-btn" class="action-btn primary w-full text-xs py-2">Применить импорт / Apply Import</button>
           </div>
         </div>
-        <div class="setting-item">
-          <label id="lbl-rounding">Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
-          <select id="setting-radius" class="custom-select w-44">
-            <option value="0px">Без скругнения (Острые)</option>
-            <option value="8px" selected>Стандартное (8px)</option>
-            <option value="16px">Экстремальное (16px)</option>
-          </select>
-        </div>
-        <div class="setting-item">
-          <label id="lbl-feed-fit">Формат в ленте<span>Способ масштабирования миниатюр</span></label>
-          <select id="setting-feed-fit" class="custom-select w-44">
-            <option value="cover" id="opt-fit-cover">Обрезать (1:1 Cover)</option>
-            <option value="contain" id="opt-fit-contain">Вписать (Original Contain)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Rating Configuration -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-filter-title">Фильтр по контенту (Рейтинг)</div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div class="setting-item">
-            <label id="lbl-rate-safe">0+ (Safe / Безопасно)<span>Подходит для всех</span></label>
-            <label class="switch">
-              <input type="checkbox" id="rating-safe" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-item">
-            <label id="lbl-rate-quest">16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span></label>
-            <label class="switch">
-              <input type="checkbox" id="rating-questionable" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-item">
-            <label id="lbl-rate-expl">18+ (Explicit / Откровенно)<span>Контент для взрослых</span></label>
-            <label class="switch">
-              <input type="checkbox" id="rating-explicit">
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Traffic & Safeguard parameters -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-traffic-title">Контроль трафика & Энергия</div>
-        <div class="setting-item">
-          <label id="lbl-budget">Лимит трафика (Data Budgeting)<span>Снижать качество при > 50 МБ</span></label>
-          <label class="switch">
-            <input type="checkbox" id="setting-data-budget" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="setting-item">
-          <label id="lbl-ram">RAM Safeguard<span>Выгружать невидимые картинки</span></label>
-          <label class="switch">
-            <input type="checkbox" id="setting-ram-safeguard" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Layout Mode select -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-layout-title">Разметка ленты (Aspect Ratio)</div>
-        <div style="display: flex; gap: 8px;">
-          <button class="action-btn" id="shuffler-square" style="flex: 1;">Квадраты</button>
-          <button class="action-btn" id="shuffler-masonry" style="flex: 1;">Мозаика</button>
-          <button class="action-btn" id="shuffler-story" style="flex: 1;">Истории</button>
-        </div>
-      </div>
-
-      <!-- Local Blacklist Management -->
-      <div class="settings-group">
-        <div class="settings-title" id="lbl-blacklist-title">Локальный Чёрный Список тегов</div>
-        <div style="display: flex; gap: 6px;">
-          <input type="text" id="blacklist-input" style="flex-grow: 1;">
-          <button class="action-btn primary" id="add-blacklist-btn" style="flex: 0 0 50px;">+</button>
-        </div>
-        <div class="tag-chips" id="blacklist-chips"></div>
-      </div>
-
-      <!-- Backup Profile settings -->
-      <div class="settings-group" style="margin-bottom: 30px;">
-        <div class="settings-title" id="lbl-backup-title">Экспорт и Бэкап профиля</div>
-        <div style="display: flex; gap: 8px;">
-          <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт</button>
-          <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт</button>
-        </div>
-        
-        <!-- Export Container with Copy Button -->
-        <div id="export-container" class="hidden flex flex-col gap-2 mt-3">
-          <div class="flex gap-2">
-            <textarea id="backup-code-display" readonly class="text-xs border border-zinc-800 rounded p-2 flex-grow bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;"></textarea>
-            <button id="copy-export-btn" class="action-btn primary text-xs" style="flex: 0 0 100px; font-size: 0.8rem;">Копировать</button>
-          </div>
-          <div id="qr-container" style="display:none; text-align: center;" class="flex flex-col items-center justify-center mt-2">
-            <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
-          </div>
-        </div>
-
-        <!-- Import Container for User Input -->
-        <div id="import-container" class="hidden flex flex-col gap-2 mt-3">
-          <textarea id="import-code-input" class="text-xs border border-zinc-800 rounded p-2 bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;" placeholder="Вставьте код экспорта сюда... / Paste export code here..."></textarea>
-          <button id="apply-import-btn" class="action-btn primary w-full text-xs py-2">Применить импорт / Apply Import</button>
-        </div>
-      </div>
+      </details>
 
       <!-- Hidden Minimalist TG Link Button at the absolute bottom -->
       <div class="w-full text-center py-2 opacity-30 hover:opacity-100 transition-opacity duration-300">
@@ -1119,9 +1161,12 @@
       <div class="detail-media-wrapper" id="detail-media-wrapper"></div>
     </div>
 
-    <!-- Details footer tabs with dynamic comments feed -->
     <div class="detail-footer">
       <div class="detail-actions">
+        <!-- Next Random generator button (Clean, text only, no icons/emojis) -->
+        <button class="action-btn text-white" id="detail-lucky-next-btn" style="display: none; background: linear-gradient(135deg, #fbbf24, #d97706); border: none;">
+          <span class="font-bold" id="lbl-lucky-next-text">Дальше</span>
+        </button>
         <button class="action-btn" id="detail-download-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1135,15 +1180,11 @@
         </button>
       </div>
 
-      <!-- Native Server Comments Thread -->
+      <!-- Comments safeguarding block -->
       <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
         <h4 id="lbl-comments-title" class="font-bold text-sm text-zinc-300 border-b border-zinc-800 pb-2">Комментарии</h4>
         <div id="comments-feed" class="space-y-2 max-height-60 overflow-y-auto text-xs text-zinc-400">
           <!-- Comments go here -->
-        </div>
-        <div class="flex gap-2">
-          <input type="text" id="comment-body" class="bg-zinc-950 border border-zinc-800 p-2 text-xs flex-grow rounded" style="padding-right:12px;">
-          <button class="action-btn primary" id="submit-comment-btn" style="flex:0 0 80px; font-size: 0.75rem;">Отправить</button>
         </div>
       </div>
 
@@ -1182,7 +1223,7 @@
       </label>
 
       <!-- Action Confirmation Trigger -->
-      <button id="eula-confirm-btn" class="w-full py-3 px-4 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+      <button id="eula-confirm-btn" class="w-full py-3 px-4 rounded text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed" style="background-color: var(--accent);" disabled>
         Подтвердить и Продолжить
       </button>
     </div>
@@ -1193,7 +1234,7 @@
     <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl max-w-sm w-full space-y-4 shadow-2xl">
       <div class="flex items-center gap-3">
         <span class="text-2xl">📢</span>
-        <h3 class="text-base font-bold text-blue-400" id="tg-modal-title">Телеграм канал автора</h3>
+        <h3 class="text-base font-bold text-blue-400" id="tg-modal-title" style="color: var(--accent);">Телеграм канал автора</h3>
       </div>
       <p class="text-xs text-zinc-400 leading-relaxed" id="tg-modal-desc">
         Подписывайтесь на официальный канал автора, чтобы следить за разработкой, получать важные обновления и первыми тестировать новые фичи!
@@ -1201,7 +1242,7 @@
       
       <!-- Link visual copy block -->
       <div class="bg-zinc-950 border border-zinc-800 p-3 rounded-lg flex items-center justify-between gap-3">
-        <a href="https://t.me/VelVetus_Chromus" target="_blank" class="text-xs font-semibold text-blue-400 hover:underline break-all">t.me/VelVetus_Chromus</a>
+        <a href="https://t.me/VelVetus_Chromus" target="_blank" class="text-xs font-semibold hover:underline break-all" style="color: var(--accent);">t.me/VelVetus_Chromus</a>
         <button id="tg-copy-btn" class="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white transition font-bold whitespace-nowrap">
           Копировать
         </button>
@@ -1220,8 +1261,8 @@
 
   <div id="custom-toast"></div>
 
-  <!-- NAVIGATION BAR (Updated: 4 tabs, no profile) -->
-  <nav class="tab-bar">
+  <!-- NAVIGATION BAR (Updated: 5 tabs, styled dynamically, random in the middle) -->
+  <nav class="tab-bar" id="bottom-tab-bar">
     <button class="tab-btn active" data-view="gallery">
       <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm10 0h7v7h-7zM4 14h7v7H4zm10 0h7v7h-7z"/></svg>
       <span id="tab-gallery">Галерея</span>
@@ -1230,8 +1271,17 @@
       <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       <span id="tab-bookmarks">Избранное</span>
     </button>
+    
+    <!-- 5th Tab Button placed exactly in the middle as monolith, without special highlighted styling -->
+    <button class="tab-btn" id="tab-btn-random" data-action="random">
+      <svg viewBox="0 0 24 24">
+        <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.38 10.17l-1.41 1.41 3.17 3.17L14.5 20H20v-5.5l-2.04 2.04-3.08-3.08z"/>
+      </svg>
+      <span id="tab-random">Рандом</span>
+    </button>
+
     <button class="tab-btn" data-view="recommendations" id="tab-btn-recs">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M19 10.5l1.2-2.7L22.9 6.6l-2.7-1.2L19 2.7l-1.2 2.7-2.7 1.2 2.7 1.2L19 10.5zm-8.5 3L13 8l2.5 5.5L21 16l-5.5 2.5L13 24l-2.5-5.5L5 16l5.5-2.5zM6 6.5l.9-2L8.9 3.6l-2-.9L6 1.7l-.9 2-2 .9 2 .9.9 2z"/></svg>
       <span id="tab-recs">Для вас</span>
     </button>
     <button class="tab-btn" data-view="settings">
@@ -1250,9 +1300,10 @@
         bookmarks: "Избранное",
         recommendations: "Для вас",
         settings: "Настройки",
+        random: "Рандом",
         searchPlaceholder: "Поиск тегов... (через пробел)",
         traffic: "Трафик",
-        loading: "Загрузка контента...",
+        loading: "Загрузка...",
         popular: "Популярное:",
         feed: "Лента",
         day: "День",
@@ -1263,13 +1314,6 @@
         recDesc: "Алгоритм анализирует ваши закладки, строит карту ваших интересов по категориям тегов и выдает рекомендации.",
         noBookmarks: "Закладок пока нет.",
         langTitle: "Язык приложения / Language",
-        uploadTitle: "Загрузка изображения на e621",
-        uploadDesc: "Делитесь своими артами напрямую с серверами e621. Требуется заполненный аккаунт.",
-        upFile: "Файл изображения",
-        upTags: "Теги (разделенные пробелом)",
-        upRating: "Рейтинг",
-        upSource: "Источник",
-        uploadSubmit: "Отправить на server e621",
         statsTitle: "Индивидуальная статистика просмотра",
         statViewed: "Просмотрено артов",
         statLiked: "Залайкано / В закладках",
@@ -1277,7 +1321,7 @@
         statFrequent: "Частые категории в закладках",
         statArtists: "Любимые художники",
         authTitle: "Подключение аккаунта e621",
-        authDesc: "Введите имя пользователя и API-ключ для обхода лимитов и беспрепятственного просмотра контента. Данные хранятся локально.",
+        authDesc: "Введите имя пользователя и API-ключ. Персональные данные хранятся локально.",
         username: "Имя пользователя (Username)",
         apiKey: "API Ключ (API Key)",
         saveConnect: "Сохранить & Подключить",
@@ -1302,18 +1346,11 @@
         luckyMinscore: "Минимальный рейтинг (Score)",
         luckyAbsurd: "Только absurd_res",
         luckyUnseen: "Только новые (непросмотренные)",
-        luckyRoll: "Бросить кости!",
         comments: "Комментарии",
         noComments: "Комментариев пока нет.",
-        writeComment: "Напишите комментарий...",
-        submit: "Отправить",
         downloadMedia: "Скачать",
         detailClose: "Закрыть",
         bookmarksLimit: "Для работы ИИ-рекомендаций добавьте хотя бы 2 поста в закладки.",
-        commentSuccess: "Комментарий успешно отправлен!",
-        commentError: "Не удалось отправить комментарий. Проверьте ваш API ключ.",
-        likeSuccess: "Пост добавлен в любимые на сервере e621!",
-        likeError: "Не удалось поставить лайк. Проверьте настройки авторизации e621.",
         layoutSquare: "Квадраты",
         layoutMasonry: "Мозаика",
         layoutStory: "Истории",
@@ -1345,9 +1382,10 @@
         bookmarks: "Bookmarks",
         recommendations: "For You",
         settings: "Settings",
+        random: "Random",
         searchPlaceholder: "Search tags... (separated by space)",
         traffic: "Traffic",
-        loading: "Loading content...",
+        loading: "Loading...",
         popular: "Popular:",
         feed: "Feed",
         day: "Day",
@@ -1358,13 +1396,6 @@
         recDesc: "Algorithm analyzes your bookmarks, builds an interest map by tag categories, and suggests personalized recommendations.",
         noBookmarks: "No bookmarks yet.",
         langTitle: "App Language / Язык",
-        uploadTitle: "Upload Image to e621",
-        uploadDesc: "Share your artworks directly with e621 servers. Authenticated account required.",
-        upFile: "Image File",
-        upTags: "Tags (separated by space)",
-        upRating: "Rating",
-        upSource: "Source",
-        uploadSubmit: "Upload to e621 Server",
         statsTitle: "Viewing Statistics Dashboard",
         statViewed: "Artworks Viewed",
         statLiked: "Liked / Bookmarked",
@@ -1372,7 +1403,7 @@
         statFrequent: "Frequent Bookmark Tags",
         statArtists: "Favorite Artists",
         authTitle: "e621 Account Integration",
-        authDesc: "Enter your username and API key to bypass request limits and access extra tools. Kept locally.",
+        authDesc: "Enter your username and API key. Data is saved locally.",
         username: "Username",
         apiKey: "API Key",
         saveConnect: "Save & Connect",
@@ -1397,18 +1428,11 @@
         luckyMinscore: "Minimum Rating Score",
         luckyAbsurd: "Only absurd_res tags",
         luckyUnseen: "Only unseen artworks",
-        luckyRoll: "Roll the Dice!",
         comments: "Comments Feed",
         noComments: "No comments found.",
-        writeComment: "Type your comment here...",
-        submit: "Submit",
         downloadMedia: "Download",
         detailClose: "Close",
         bookmarksLimit: "Please add at least 2 artworks to bookmarks to enable recommendations.",
-        commentSuccess: "Comment posted successfully!",
-        commentError: "Failed posting comment. Please verify your credentials.",
-        likeSuccess: "Post favorited on e621!",
-        likeError: "Failed setting favorite on e621. Confirm account settings.",
         layoutSquare: "Squares",
         layoutMasonry: "Masonry",
         layoutStory: "Stories",
@@ -1437,7 +1461,6 @@
       }
     };
 
-    // Global application State (Unified settings structure)
     let state = {
       language: localStorage.getItem('p_e621_lang') || 'ru',
       bookmarks: JSON.parse(localStorage.getItem('p_e621_bookmarks') || '[]'),
@@ -1449,7 +1472,6 @@
         layout: localStorage.getItem('p_e621_layout') || 'squares',
         ratings: JSON.parse(localStorage.getItem('p_e621_ratings') || '["0+", "16+"]'),
         feedFit: localStorage.getItem('p_e621_feed_fit') || 'cover',
-        // Connection & CORS properties
         apiBaseUrl: localStorage.getItem('p_e621_api_base') || 'https://e621.net',
         proxyMode: localStorage.getItem('p_e621_proxy_mode') || 'fallback',
         customProxyPrefix: localStorage.getItem('p_e621_custom_proxy') || ''
@@ -1461,7 +1483,9 @@
       searchHistory: JSON.parse(localStorage.getItem('p_e621_search_history') || '[]'),
       history: JSON.parse(localStorage.getItem('p_e621_history') || '[]'), 
       totalTime: parseInt(localStorage.getItem('p_e621_total_time') || '0'), 
-      bookmarkMode: 'local'
+      bookmarkMode: 'local',
+      customBg: localStorage.getItem('p_e621_custom_bg') || '',
+      bgOpacity: localStorage.getItem('p_e621_bg_opacity') || '0.9'
     };
 
     function t(key) {
@@ -1469,129 +1493,143 @@
       return translations[activeLang][key] || translations['ru'][key] || key;
     }
 
-    function translateUI() {
-      document.getElementById('search-input').placeholder = t('searchPlaceholder');
-      document.getElementById('blacklist-input').placeholder = state.language === 'ru' ? 'Введите тег...' : 'Enter tag...';
-      
-      document.getElementById('p-feed').textContent = t('feed');
-      document.getElementById('p-day').textContent = t('day');
-      document.getElementById('p-week').textContent = t('week');
-      document.getElementById('p-month').textContent = t('month');
-      document.getElementById('p-alltime').textContent = t('allTime');
+    function safeText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
 
-      document.getElementById('lbl-local-favs').textContent = state.bookmarkMode === 'local' 
-        ? t('localFavs') 
-        : (state.language === 'ru' ? 'Синхронизация e621.net' : 'e621.net Synced Favorites');
+    function safePlaceholder(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.placeholder = text;
+    }
+
+    function safeHTML(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    function translateUI() {
+      safePlaceholder('search-input', t('searchPlaceholder'));
+      safePlaceholder('blacklist-input', state.language === 'ru' ? 'Введите тег...' : 'Enter tag...');
       
-      document.getElementById('lbl-rec-desc').textContent = t('recDesc');
-      document.getElementById('lbl-lang-title').textContent = t('langTitle');
+      safeText('p-feed', t('feed'));
+      safeText('p-day', t('day'));
+      safeText('p-week', t('week'));
+      safeText('p-month', t('month'));
+      safeText('p-alltime', t('allTime'));
+
+      safeText('lbl-local-favs', t('localFavs'));
+      safeText('lbl-rec-desc', t('recDesc'));
+
+      // Structured summaries
+      safeText('sum-account', state.language === 'ru' ? '👤 e621.net Аккаунт & Импорт' : '👤 e621.net Account & Import');
+      safeText('sum-appearance', state.language === 'ru' ? '🎨 Интерфейс & Свой фон' : '🎨 Look & Custom Photo');
+      safeText('sum-safety', state.language === 'ru' ? '🛡️ Безопасность & Блэклист' : '🛡️ Safety & Blacklist');
+      safeText('sum-lucky', state.language === 'ru' ? '🎰 Параметры «Мне повезет»' : '🎰 Feel Lucky Setup');
+      safeText('sum-layout', state.language === 'ru' ? '📐 Разметка ленты (Aspect Ratio)' : '📐 Feed Aspect Ratio');
+      safeText('sum-traffic', state.language === 'ru' ? '🚀 Контроль трафика & Энергия' : '🚀 Data & RAM Safeguard');
+      safeText('sum-network', state.language === 'ru' ? '🌐 Сеть & CORS Настройки' : '🌐 Network & Proxy CORS');
+      safeText('sum-backup', state.language === 'ru' ? '💾 Резервный бэкап' : '💾 Backup / Export Code');
+
+      safeText('lbl-lang-title', t('langTitle'));
+
+      // Custom background translations
+      safeText('lbl-custom-bg-section', state.language === 'ru' ? 'Собственные фоновые обои' : 'Custom Desktop Background');
+      safeText('lbl-bg-input-hint', state.language === 'ru' ? 'Загрузить фоновое изображение (.jpg, .png)' : 'Upload backdrop photo (.jpg, .png)');
+      safeText('lbl-bg-opacity', state.language === 'ru' ? 'Плотность затемнения фона' : 'Dark overlay opacity level');
+      safeText('clear-bg-btn', state.language === 'ru' ? 'Сбросить фон на стандартный' : 'Reset to default theme color');
 
       // Connection Settings translations
-      document.getElementById('lbl-connection-title').textContent = t('connectionTitle');
-      document.getElementById('lbl-connection-desc').textContent = t('connectionDesc');
-      document.getElementById('lbl-api-base-label').textContent = t('apiBaseLabel');
-      document.getElementById('lbl-proxy-mode-label').textContent = t('proxyModeLabel');
-      document.getElementById('opt-proxy-direct').textContent = t('proxyDirect');
-      document.getElementById('opt-proxy-fallback').textContent = t('proxyFallback');
-      document.getElementById('opt-proxy-custom').textContent = t('proxyCustom');
-      document.getElementById('lbl-custom-proxy-url').textContent = t('customProxyUrl');
-      document.getElementById('save-connection-btn').textContent = t('connectionApply');
-
-      // Upload details
-      document.getElementById('lbl-upload-title').textContent = t('uploadTitle');
-      document.getElementById('lbl-upload-desc').textContent = t('uploadDesc');
-      document.getElementById('lbl-up-file').textContent = t('upFile');
-      document.getElementById('lbl-up-tags').textContent = t('upTags');
-      document.getElementById('lbl-up-rating').textContent = t('upRating');
-      document.getElementById('lbl-up-source').textContent = t('upSource');
-      document.getElementById('upload-submit-btn').textContent = t('uploadSubmit');
+      safeText('lbl-connection-desc', t('connectionDesc'));
+      safeText('lbl-api-base-label', t('apiBaseLabel'));
+      safeText('lbl-proxy-mode-label', t('proxyModeLabel'));
+      safeText('opt-proxy-direct', t('proxyDirect'));
+      safeText('opt-proxy-fallback', t('proxyFallback'));
+      safeText('opt-proxy-custom', t('proxyCustom'));
+      safeText('lbl-custom-proxy-url', t('customProxyUrl'));
+      safeText('save-connection-btn', t('connectionApply'));
 
       // Stats
-      document.getElementById('lbl-stats-title').textContent = t('statsTitle');
-      document.getElementById('lbl-stat-viewed').textContent = t('statViewed');
-      document.getElementById('lbl-stat-liked').textContent = t('statLiked');
-      document.getElementById('lbl-stat-time').textContent = t('statTime');
-      document.getElementById('lbl-stat-frequent').textContent = t('statFrequent');
-      document.getElementById('lbl-stat-artists').textContent = t('statArtists');
+      safeText('lbl-stats-title', t('statsTitle'));
+      safeText('lbl-stat-viewed', t('statViewed'));
+      safeText('lbl-stat-liked', t('statLiked'));
+      safeText('lbl-stat-time', t('statTime'));
+      safeText('lbl-stat-frequent', t('statFrequent'));
+      safeText('lbl-stat-artists', t('statArtists'));
 
       // Auth
-      document.getElementById('lbl-auth-title').textContent = t('authTitle');
-      document.getElementById('lbl-auth-desc').textContent = t('authDesc');
-      document.getElementById('auth-username').placeholder = t('username');
-      document.getElementById('auth-api-key').placeholder = t('apiKey');
-      document.getElementById('save-auth-btn').textContent = t('saveConnect');
-      document.getElementById('btn-reg').textContent = t('reg');
-      document.getElementById('lbl-guide-title').textContent = t('guideTitle');
-      document.getElementById('lbl-guide-steps').innerHTML = t('guideSteps').split('\n').map(step => `<li>${step.substring(3)}</li>`).join('');
+      safeText('lbl-auth-desc', t('authDesc'));
+      safePlaceholder('auth-username', t('username'));
+      safePlaceholder('auth-api-key', t('apiKey'));
+      safeText('save-auth-btn', t('saveConnect'));
+      safeText('btn-reg', t('reg'));
+      safeText('lbl-guide-title', t('guideTitle'));
+
+      const guideStepsEl = document.getElementById('lbl-guide-steps');
+      if (guideStepsEl) {
+        guideStepsEl.innerHTML = t('guideSteps').split('\n').map(step => `<li>${step.substring(3)}</li>`).join('');
+      }
 
       // Customization
-      document.getElementById('lbl-custom-title').textContent = t('customTitle');
-      document.getElementById('lbl-rounding').innerHTML = t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, panels, inputs") + "</span>";
-      document.getElementById('lbl-feed-fit').innerHTML = t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>";
-      document.getElementById('opt-fit-cover').textContent = t('fitCover');
-      document.getElementById('opt-fit-contain').textContent = t('fitContain');
-      document.getElementById('lbl-accent').innerHTML = t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Visual accent scheme") + "</span>";
+      safeHTML('lbl-rounding', t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, panels, inputs") + "</span>");
+      safeHTML('lbl-feed-fit', t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>");
+      safeText('opt-fit-cover', t('fitCover'));
+      safeText('opt-fit-contain', t('fitContain'));
+      safeHTML('lbl-accent', t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Visual accent scheme") + "</span>");
       
       // Dynamic Ratings localization
-      document.getElementById('lbl-filter-title').textContent = t('filterTitle');
-      document.getElementById('lbl-rate-safe').innerHTML = state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>Suitable for all audiences</span>';
-      document.getElementById('lbl-rate-quest').innerHTML = state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Mild nudity / suggestive</span>';
-      document.getElementById('lbl-rate-expl').innerHTML = state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>';
+      safeHTML('lbl-rate-safe', state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>Suitable for all audiences</span>');
+      safeHTML('lbl-rate-quest', state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Mild nudity / suggestive</span>');
+      safeHTML('lbl-rate-expl', state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>');
 
       // Traffic
-      document.getElementById('lbl-traffic-title').textContent = t('trafficTitle');
-      document.getElementById('lbl-budget').innerHTML = t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict resolution over 50 MB") + "</span>";
-      document.getElementById('lbl-ram').innerHTML = t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Deallocate un-viewed content cards") + "</span>";
+      safeText('lbl-traffic-title', t('trafficTitle'));
+      safeHTML('lbl-budget', t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict resolution over 50 MB") + "</span>");
+      safeHTML('lbl-ram', t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Deallocate un-viewed content cards") + "</span>");
       
       // Grid shufflers
-      document.getElementById('lbl-layout-title').textContent = t('layoutTitle');
-      document.getElementById('shuffler-square').textContent = t('layoutSquare');
-      document.getElementById('shuffler-masonry').textContent = t('layoutMasonry');
-      document.getElementById('shuffler-story').textContent = t('layoutStory');
+      safeText('lbl-layout-title', t('layoutTitle'));
+      safeText('shuffler-square', t('layoutSquare'));
+      safeText('shuffler-masonry', t('layoutMasonry'));
+      safeText('shuffler-story', t('layoutStory'));
 
       // Backlist & Backup configs
-      document.getElementById('lbl-blacklist-title').textContent = t('blacklistTitle');
-      document.getElementById('lbl-backup-title').textContent = t('backupTitle');
-      document.getElementById('export-backup-btn').textContent = t('backupExport');
-      document.getElementById('import-backup-btn').textContent = t('backupImport');
+      safeText('lbl-blacklist-title', t('blacklistTitle'));
+      safeText('export-backup-btn', t('backupExport'));
+      safeText('import-backup-btn', t('backupImport'));
 
       // Localization for custom Backup elements
-      document.getElementById('copy-export-btn').textContent = state.language === 'ru' ? 'Скопировать' : 'Copy Code';
-      document.getElementById('apply-import-btn').textContent = state.language === 'ru' ? 'Применить импорт' : 'Apply Import';
-      document.getElementById('import-code-input').placeholder = state.language === 'ru' ? 'Вставьте код экспорта сюда...' : 'Paste export code here...';
+      safeText('copy-export-btn', state.language === 'ru' ? 'Скопировать' : 'Copy Code');
+      safeText('apply-import-btn', state.language === 'ru' ? 'Применить импорт' : 'Apply Import');
+      safePlaceholder('import-code-input', state.language === 'ru' ? 'Вставьте код экспорта сюда...' : 'Paste export code here...');
 
       // Feel lucky
-      document.getElementById('lbl-lucky-setup').textContent = t('luckyTitle');
-      document.getElementById('lbl-minscore').textContent = t('luckyMinscore');
-      document.getElementById('lbl-tagabsurd').textContent = t('luckyAbsurd');
-      document.getElementById('lbl-unseen').textContent = t('luckyUnseen');
-      document.getElementById('lbl-roll').textContent = t('luckyRoll');
+      safeText('lbl-minscore', t('luckyMinscore'));
+      safeText('lbl-tagabsurd', t('luckyAbsurd'));
+      safeText('lbl-unseen', t('luckyUnseen'));
 
       // Detail comments and actions
-      document.getElementById('lbl-comments-title').textContent = t('comments');
-      document.getElementById('comment-body').placeholder = t('writeComment');
-      document.getElementById('submit-comment-btn').textContent = t('submit');
+      safeText('lbl-comments-title', t('comments'));
       
-      const downloadBtnSpan = document.getElementById('detail-download-btn').querySelector('span');
+      const downloadBtnSpan = document.getElementById('detail-download-btn')?.querySelector('span');
       if (downloadBtnSpan) downloadBtnSpan.textContent = t('downloadMedia');
 
       // Swipe indicator texts
-      document.getElementById('ind-like').textContent = state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED';
-      document.getElementById('ind-skip').textContent = state.language === 'ru' ? 'ПРОПУСК' : 'SKIP';
+      safeText('ind-like', state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED');
+      safeText('ind-skip', state.language === 'ru' ? 'ПРОПУСК' : 'SKIP');
 
       // Tab bar navigation labels
-      document.getElementById('tab-gallery').textContent = t('gallery');
-      document.getElementById('tab-bookmarks').textContent = t('bookmarks');
-      document.getElementById('tab-recs').textContent = t('recommendations');
-      document.getElementById('tab-settings').textContent = t('settings');
-
-      // Bookmark Toggle Labels
-      document.getElementById('bookmark-mode-local').textContent = state.language === 'ru' ? 'Локально' : 'Local';
-      document.getElementById('bookmark-mode-online').textContent = state.language === 'ru' ? 'e621.net' : 'e621.net';
+      safeText('tab-gallery', t('gallery'));
+      safeText('tab-bookmarks', t('bookmarks'));
+      safeText('tab-recs', t('recommendations'));
+      safeText('tab-settings', t('settings'));
+      safeText('tab-random', t('random'));
 
       // Dynamic search bar tooltips
-      document.getElementById('fav-search-btn').title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
-      document.getElementById('clear-input-btn').title = state.language === 'ru' ? 'Очистить поиск' : 'Clear search';
+      const favBtn = document.getElementById('fav-search-btn');
+      if (favBtn) favBtn.title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
+      const clearBtn = document.getElementById('clear-input-btn');
+      if (clearBtn) clearBtn.title = state.language === 'ru' ? 'Очистить поиск' : 'Clear search';
 
       const radiusSelect = document.getElementById('setting-radius');
       if (radiusSelect) {
@@ -1600,7 +1638,8 @@
         radiusSelect.options[2].text = state.language === 'ru' ? 'Экстремальное (16px)' : 'Extreme (16px)';
       }
 
-      document.getElementById('tg-author-btn').textContent = `ru - "ТГК автора" / en - "${t('authorTg')}"`;
+      const tgBtn = document.getElementById('tg-author-btn');
+      if (tgBtn) tgBtn.textContent = `ru - "ТГК автора" / en - "${t('authorTg')}"`;
 
       updateAuthUI();
       updateBookmarkBtnState();
@@ -1608,9 +1647,20 @@
       initConnectionSettingsUI();
     }
 
-    // Central communication fetch handler with auto dual-stage CORS bypass and Custom CORS settings (Strictly NO custom User-Agent to prevent TypeError)
+    function applyCustomBackground(bgUrl) {
+      if (bgUrl) {
+        document.documentElement.style.setProperty('--custom-bg', `url('${bgUrl}')`);
+      } else {
+        document.documentElement.style.setProperty('--custom-bg', 'none');
+      }
+    }
+
+    function applyBgOpacity(opacity) {
+      document.documentElement.style.setProperty('--bg-opacity', opacity);
+    }
+
+    // Direct fetch sequence with Stage 1 and 2 CORS proxies fallback
     async function directFetch(baseUrl, params = {}, useAuth = true) {
-      // Replace base domain with the user's customized API base endpoint
       let targetUrl = baseUrl;
       const customBase = state.settings.apiBaseUrl || 'https://e621.net';
       if (baseUrl.startsWith('https://e621.net')) {
@@ -1632,7 +1682,6 @@
       const mode = state.settings.proxyMode || 'fallback';
       const headers = { 'Accept': 'application/json' };
 
-      // Route request based on connection mode
       if (mode === 'direct') {
         return await performRawFetch(finalUrl, headers);
       } else if (mode === 'corsproxy.io') {
@@ -1645,7 +1694,6 @@
         const proxyUrl = `${state.settings.customProxyPrefix}${encodeURIComponent(finalUrl)}`;
         return await performRawFetch(proxyUrl, headers);
       } else {
-        // Fallback sequence (default 'fallback' mode)
         try {
           return await performRawFetch(finalUrl, headers);
         } catch (directErr) {
@@ -1667,7 +1715,6 @@
       }
     }
 
-    // Helper wrapper for making clean fetch requests without forbidden headers
     async function performRawFetch(url, headers) {
       const response = await fetch(url, {
         method: 'GET',
@@ -1677,6 +1724,43 @@
         return await response.text();
       }
       throw new Error(`Connection request failed with HTTP status: ${response.status}`);
+    }
+
+    // Safe direct favorites retrieval directly using owners endpoint
+    async function fetchOnlineFavorites(page = 0) {
+      if (!state.auth.username || !state.auth.apiKey) return [];
+      
+      const url = `https://e621.net/favorites.json`;
+      const params = {
+        page: page + 1,
+        limit: 50
+      };
+
+      try {
+        const textData = await directFetch(url, params, true);
+        registerTraffic(textData.length);
+        const data = JSON.parse(textData);
+        const rawPosts = data.posts || [];
+        
+        return rawPosts.map(item => {
+          if (!item.file || !item.file.url) return null;
+          return {
+            id: item.id,
+            file_url: item.file.url,
+            preview_url: item.preview ? item.preview.url : item.file.url,
+            sample_url: (item.sample && item.sample.has) ? item.sample.url : item.file.url,
+            tags: item.tags || {},
+            tagsString: Object.values(item.tags || {}).flat().join(' '),
+            ext: item.file.ext,
+            rating: item.rating,
+            score: item.score ? item.score.total : 0,
+            isVideo: ['mp4', 'webm'].includes(item.file.ext)
+          };
+        }).filter(p => p !== null);
+      } catch (err) {
+        console.error("Error pulling synced favorites:", err);
+        return [];
+      }
     }
 
     // Toggle languages
@@ -2240,6 +2324,22 @@
 
     async function loadPostComments(postId) {
       const container = document.getElementById('comments-feed');
+
+      // Comments read-only limitation logic for unregistered guests
+      if (!state.auth.username || !state.auth.apiKey) {
+        container.innerHTML = `
+          <div class="p-4 bg-zinc-950/80 border border-amber-500/20 rounded-lg text-center space-y-2">
+            <p class="text-amber-400 font-bold text-xs">🔒 Доступ заблокирован</p>
+            <p class="text-[11px] text-zinc-400 leading-normal">
+              ${state.language === 'ru' 
+                ? 'Комментарии доступны только зарегистрированным пользователям! Подключите аккаунт в Настройках, чтобы читать обсуждения других пользователей.' 
+                : 'Comments are restricted to registered users! Connect your active e621 account in Settings to read discussions.'}
+            </p>
+          </div>
+        `;
+        return;
+      }
+
       container.innerHTML = `<div class="text-zinc-500 py-1">${state.language === 'ru' ? 'Загрузка...' : 'Loading comments...'}</div>`;
 
       try {
@@ -2266,71 +2366,6 @@
         container.innerHTML = `<div class="text-zinc-600 italic py-1">${t('noComments')}</div>`;
       }
     }
-
-    document.getElementById('submit-comment-btn').addEventListener('click', async () => {
-      const input = document.getElementById('comment-body');
-      const body = input.value.trim();
-      if (!body || !detailCurrentPost) return;
-
-      if (!state.auth.username || !state.auth.apiKey) {
-        showToast(t('commentError'));
-        return;
-      }
-
-      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
-      const endpoint = `${baseEndpoint}/comments.json`;
-
-      const makeCommentRequest = async (targetUrl) => {
-        const payload = new URLSearchParams();
-        payload.append('comment[post_id]', detailCurrentPost.id);
-        payload.append('comment[body]', body);
-        payload.append('login', state.auth.username);
-        payload.append('api_key', state.auth.apiKey);
-
-        // Standard fetch (Removed кастомный User-Agent header)
-        return await fetch(targetUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: payload
-        });
-      };
-
-      const mode = state.settings.proxyMode || 'fallback';
-
-      try {
-        let response;
-        if (mode === 'direct') {
-          response = await makeCommentRequest(endpoint);
-        } else if (mode === 'corsproxy.io') {
-          response = await makeCommentRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
-        } else if (mode === 'allorigins') {
-          response = await makeCommentRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`);
-        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
-          response = await makeCommentRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(endpoint)}`);
-        } else {
-          // Fallback sequence
-          try {
-            response = await makeCommentRequest(endpoint);
-          } catch (err) {
-            console.warn("Direct comment post failed. Routing via Stage 1 proxy...", err);
-            response = await makeCommentRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
-          }
-        }
-
-        if (response && response.ok) {
-          showToast(t('commentSuccess'));
-          input.value = '';
-          loadPostComments(detailCurrentPost.id);
-        } else {
-          throw new Error("Comment response returned non-OK status");
-        }
-      } catch (err) {
-        console.error("Comment submission failed completely:", err);
-        showToast(t('commentError'));
-      }
-    });
 
     async function downloadPostMedia(url, id, ext) {
       if (!url) return;
@@ -2367,11 +2402,16 @@
     let touchEndY = 0;
     const swipeThreshold = 100;
 
-    function openDetailView(post) {
+    function openDetailView(post, isLucky = false) {
       detailCurrentPost = post;
       const overlay = document.getElementById('detail-overlay');
       const mediaWrapper = document.getElementById('detail-media-wrapper');
       const tagsContainer = document.getElementById('detail-tags-container');
+      const luckyNextBtn = document.getElementById('detail-lucky-next-btn');
+
+      if (luckyNextBtn) {
+        luckyNextBtn.style.display = isLucky ? 'flex' : 'none';
+      }
 
       document.getElementById('swipe-hint').textContent = state.language === 'ru' ? "Свайп: ➔ Букмарк | Листайте вниз для тегов" : "Swipe Right to Bookmark | Scroll Down for tags";
 
@@ -2532,10 +2572,8 @@
       const idx = state.bookmarks.findIndex(p => p.id === post.id);
       if (idx === -1) {
         state.bookmarks.push(post);
-        favoritePostOnServer(post.id, true);
       } else {
         state.bookmarks.splice(idx, 1);
-        favoritePostOnServer(post.id, false);
       }
       localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
       updateBookmarkBtnState();
@@ -2543,63 +2581,6 @@
       
       if (document.getElementById('panel-bookmarks').classList.contains('active')) {
         renderBookmarks();
-      }
-    }
-
-    // Liked posts synchronization with CORS bypass fallbacks
-    async function favoritePostOnServer(postId, performFavorite) {
-      if (!state.auth.username || !state.auth.apiKey) return;
-
-      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
-      const url = performFavorite ? `${baseEndpoint}/favorites.json` : `${baseEndpoint}/favorites/${postId}.json`;
-      const method = performFavorite ? 'POST' : 'DELETE';
-
-      const makeRequest = async (targetUrl) => {
-        const payload = new URLSearchParams();
-        if (performFavorite) payload.append('post_id', postId);
-        payload.append('login', state.auth.username);
-        payload.append('api_key', state.auth.apiKey);
-
-        // Standard fetch (Removed forbidden custom User-Agent headers)
-        return await fetch(targetUrl, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: payload
-        });
-      };
-
-      const mode = state.settings.proxyMode || 'fallback';
-
-      try {
-        let response;
-        if (mode === 'direct') {
-          response = await makeRequest(url);
-        } else if (mode === 'corsproxy.io') {
-          response = await makeRequest(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-        } else if (mode === 'allorigins') {
-          response = await makeRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
-          response = await makeRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(url)}`);
-        } else {
-          // Fallback sequence
-          try {
-            response = await makeRequest(url);
-          } catch (err) {
-            console.warn("Direct favorites sync blocked. Routing via Stage 1 proxy...", err);
-            response = await makeRequest(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-          }
-        }
-
-        if (response && response.ok) {
-          showToast(t('likeSuccess'));
-        } else {
-          throw new Error("Favorite request returned non-OK status");
-        }
-      } catch (err) {
-        console.error("Favorites sync failed completely:", err);
-        showToast(t('likeError'));
       }
     }
 
@@ -2615,68 +2596,19 @@
       if (detailCurrentPost) toggleBookmark(detailCurrentPost);
     });
 
-    const bmodeLocal = document.getElementById('bookmark-mode-local');
-    const bmodeOnline = document.getElementById('bookmark-mode-online');
-    
-    bmodeLocal.addEventListener('click', () => {
-      state.bookmarkMode = 'local';
-      bmodeLocal.classList.add('bg-blue-600');
-      bmodeLocal.classList.remove('text-zinc-400');
-      bmodeOnline.classList.remove('bg-blue-600');
-      bmodeOnline.classList.add('text-zinc-400');
-      translateUI();
-      renderBookmarks();
-    });
-
-    bmodeOnline.addEventListener('click', () => {
-      state.bookmarkMode = 'online';
-      bmodeOnline.classList.add('bg-blue-600');
-      bmodeOnline.classList.remove('text-zinc-400');
-      bmodeLocal.classList.remove('bg-blue-600');
-      bmodeLocal.classList.add('text-zinc-400');
-      translateUI();
-      renderBookmarks();
-    });
-
     async function renderBookmarks() {
       const container = document.getElementById('bookmarks-grid');
-      const unauthWarning = document.getElementById('bookmarks-unauth-warning');
       container.innerHTML = '';
-      unauthWarning.classList.add('hidden');
 
-      if (state.bookmarkMode === 'local') {
-        if (state.bookmarks.length === 0) {
-          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
-          return;
-        }
-        state.bookmarks.forEach(post => {
-          const card = createPostCard(post);
-          container.appendChild(card);
-        });
-        applyRamSafeguard();
-      } else {
-        if (!state.auth.username || !state.auth.apiKey) {
-          unauthWarning.classList.remove('hidden');
-          return;
-        }
-        
-        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('loading')}</div>`;
-        try {
-          const onlineFavs = await fetchFromE621(`fav:${state.auth.username}`, 0);
-          container.innerHTML = '';
-          if (onlineFavs.length === 0) {
-            container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'На вашем аккаунте нет избранных постов.' : 'No favorites found on your account.'}</div>`;
-            return;
-          }
-          onlineFavs.forEach(post => {
-            const card = createPostCard(post);
-            container.appendChild(card);
-          });
-          applyRamSafeguard();
-        } catch (err) {
-          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'Ошибка загрузки с серверов e621.' : 'Error loading from e621 servers.'}</div>`;
-        }
+      if (state.bookmarks.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
+        return;
       }
+      state.bookmarks.forEach(post => {
+        const card = createPostCard(post);
+        container.appendChild(card);
+      });
+      applyRamSafeguard();
     }
 
     function generateSmartRecommendations() {
@@ -2734,6 +2666,7 @@
     const usernameInput = document.getElementById('auth-username');
     const apiKeyInput = document.getElementById('auth-api-key');
     const authStatus = document.getElementById('auth-status');
+    const importFavsBtn = document.getElementById('import-online-favs-btn');
 
     function updateAuthUI() {
       if (state.auth.username && state.auth.apiKey) {
@@ -2741,11 +2674,13 @@
         apiKeyInput.value = state.auth.apiKey;
         authStatus.textContent = state.language === 'ru' ? `Статус: Подключен как ${state.auth.username}` : `Status: Integrated as ${state.auth.username}`;
         authStatus.style.color = 'var(--success)';
+        importFavsBtn.classList.remove('hidden');
       } else {
         usernameInput.value = '';
         apiKeyInput.value = '';
         authStatus.textContent = state.language === 'ru' ? `Статус: Не подключен (Анонимный режим)` : `Status: Not connected (Anonymous mode)`;
         authStatus.style.color = 'var(--text-muted)';
+        importFavsBtn.classList.add('hidden');
       }
     }
 
@@ -2774,92 +2709,51 @@
       }
     });
 
+    importFavsBtn.addEventListener('click', async () => {
+      if (!state.auth.username || !state.auth.apiKey) {
+        showToast(state.language === 'ru' ? "Сначала подключите аккаунт!" : "Please integrate your account first!");
+        return;
+      }
+      showToast(state.language === 'ru' ? "Импортируем посты..." : "Importing posts...");
+      try {
+        const onlineFavs = await fetchOnlineFavorites(0);
+        if (onlineFavs.length === 0) {
+          showToast(state.language === 'ru' ? "На вашем аккаунте нет избранного!" : "No favorites found on your account!");
+          return;
+        }
+
+        let importedCount = 0;
+        onlineFavs.forEach(post => {
+          const isDupe = state.bookmarks.some(b => b.id === post.id);
+          if (!isDupe) {
+            state.bookmarks.push(post);
+            importedCount++;
+          }
+        });
+
+        localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+        updateStatsUI();
+        renderBookmarks();
+        showToast(state.language === 'ru' ? `Успешно импортировано: ${importedCount} постов!` : `Successfully imported: ${importedCount} posts!`);
+      } catch (err) {
+        console.error(err);
+        showToast(state.language === 'ru' ? "Не удалось связаться с серверами!" : "Failed to sync with servers!");
+      }
+    });
+
     document.getElementById('btn-reg').addEventListener('click', () => {
       window.open('https://e621.net/users/new', '_blank');
     });
 
-    document.getElementById('upload-submit-btn').addEventListener('click', async () => {
-      const fileInput = document.getElementById('upload-file');
-      const tagsValue = document.getElementById('upload-tags').value.trim();
-      const ratingValue = document.getElementById('upload-rating').value;
-      const sourceValue = document.getElementById('upload-source').value.trim();
-
-      if (!state.auth.username || !state.auth.apiKey) {
-        showToast(state.language === 'ru' ? "Необходима авторизация!" : "Authentication credentials required!");
-        return;
-      }
-
-      if (!fileInput.files || fileInput.files.length === 0) {
-        showToast(state.language === 'ru' ? "Выберите файл!" : "Please choose a file!");
-        return;
-      }
-
-      const file = fileInput.files[0];
-      const formData = new FormData();
-      formData.append('upload[file]', file);
-      formData.append('upload[tag_string]', tagsValue);
-      formData.append('upload[rating]', ratingValue);
-      formData.append('upload[source]', sourceValue);
-      formData.append('login', state.auth.username);
-      formData.append('api_key', state.auth.apiKey);
-
-      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
-      const endpoint = `${baseEndpoint}/uploads.json`;
-
-      const makeUploadRequest = async (targetUrl) => {
-        return await fetch(targetUrl, {
-          method: 'POST',
-          body: formData
-        });
-      };
-
-      const mode = state.settings.proxyMode || 'fallback';
-
-      try {
-        showToast(state.language === 'ru' ? "Отправка..." : "Uploading...");
-        let response;
-        if (mode === 'direct') {
-          response = await makeUploadRequest(endpoint);
-        } else if (mode === 'corsproxy.io') {
-          response = await makeUploadRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
-        } else if (mode === 'allorigins') {
-          response = await makeUploadRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`);
-        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
-          response = await makeUploadRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(endpoint)}`);
-        } else {
-          // Fallback sequence
-          try {
-            response = await makeUploadRequest(endpoint);
-          } catch (err) {
-            console.warn("Direct upload blocked. Routing via Stage 1 proxy fallback...", err);
-            response = await makeUploadRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
-          }
-        }
-
-        if (response && response.ok) {
-          showToast(state.language === 'ru' ? "Успешно отправлено!" : "Upload posted successfully!");
-          fileInput.value = '';
-          document.getElementById('upload-tags').value = '';
-          document.getElementById('upload-source').value = '';
-        } else {
-          throw new Error("Upload request returned non-OK status");
-        }
-      } catch (err) {
-        console.error("Upload failed completely:", err);
-        showToast(state.language === 'ru' ? "Ошибка отправки на e621." : "Upload error from server.");
-      }
-    });
-
-    document.getElementById('lucky-roll-btn').addEventListener('click', async () => {
-      const minScore = parseInt(document.getElementById('lucky-score').value) || 0;
-      const onlyAbsurd = document.getElementById('lucky-absurd').checked;
-      const onlyUnseen = document.getElementById('lucky-unseen').checked;
+    async function rollLuckyPost() {
+      const minScore = parseInt(document.getElementById('lucky-score')?.value || '100') || 0;
+      const onlyAbsurd = document.getElementById('lucky-absurd')?.checked || false;
+      const onlyUnseen = document.getElementById('lucky-unseen')?.checked || false;
 
       let luckyTags = 'order:random';
       if (onlyAbsurd) luckyTags += ' absurd_res';
 
       try {
-        showToast(state.language === 'ru' ? "🎲 Испытываем судьбу..." : "🎲 Testing fate...");
         const responseText = await directFetch(`https://e621.net/posts.json`, { tags: luckyTags, limit: 30 }, true);
         const data = JSON.parse(responseText);
         const posts = data.posts || [];
@@ -2897,11 +2791,17 @@
           updateStatsUI();
         }
 
-        openDetailView(mappedPost);
+        openDetailView(mappedPost, true);
       } catch (err) {
         showToast(state.language === 'ru' ? "Ошибка во время генерации!" : "Error rolling details!");
       }
-    });
+    }
+
+    // Connect the Next Random button in detail overlay to load another random post
+    const nextLuckyBtn = document.getElementById('detail-lucky-next-btn');
+    if (nextLuckyBtn) {
+      nextLuckyBtn.addEventListener('click', rollLuckyPost);
+    }
 
     const safeCheck = document.getElementById('rating-safe');
     const questCheck = document.getElementById('rating-questionable');
@@ -3057,6 +2957,7 @@
         state.customization.accent = color;
         localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
         applyCustomStyles();
+        translateUI(); 
         showToast(state.language === 'ru' ? "Цветовая гамма обновлена!" : "Color accent updated!");
       });
     });
@@ -3096,7 +2997,20 @@
         }
       });
 
-      document.getElementById('setting-radius').value = state.customization.radius;
+      const radiusSelect = document.getElementById('setting-radius');
+      if (radiusSelect) radiusSelect.value = state.customization.radius;
+      
+      const bottomBar = document.getElementById('bottom-tab-bar');
+      if (bottomBar) bottomBar.style.borderColor = state.customization.accent;
+
+      // Force immediate re-color of active tab text/icons
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
+        if (b.classList.contains('active')) {
+          b.style.color = state.customization.accent;
+        } else {
+          b.style.color = 'var(--text-muted)';
+        }
+      });
     }
 
     document.getElementById('setting-data-budget').addEventListener('change', (e) => {
@@ -3107,6 +3021,63 @@
     document.getElementById('setting-ram-safeguard').addEventListener('change', (e) => {
       state.settings.ramSafeguard = e.target.checked;
       localStorage.setItem('p_e621_set_ram', state.settings.ramSafeguard);
+    });
+
+    // Custom background file handler with interactive compression
+    document.getElementById('custom-bg-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          // Compress to maximum size 1280px width or height to stay within localStorage boundaries
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const max_size = 1280;
+          if (width > max_size) {
+            height *= max_size / width;
+            width = max_size;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          try {
+            state.customBg = compressedDataUrl;
+            localStorage.setItem('p_e621_custom_bg', compressedDataUrl);
+            applyCustomBackground(compressedDataUrl);
+            showToast(state.language === 'ru' ? "Фоновое изображение успешно установлено!" : "Wallpaper configured!");
+          } catch (err) {
+            showToast(state.language === 'ru' ? "Слишком большой файл! Выберите другое фото." : "File too large! Select a smaller photo.");
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('clear-bg-btn').addEventListener('click', function() {
+      state.customBg = '';
+      localStorage.removeItem('p_e621_custom_bg');
+      applyCustomBackground('');
+      document.getElementById('custom-bg-input').value = '';
+      showToast(state.language === 'ru' ? "Стандартный фон возвращен!" : "Wallpaper reset!");
+    });
+
+    const bgOpacityRange = document.getElementById('bg-opacity-range');
+    bgOpacityRange.value = state.bgOpacity;
+    applyBgOpacity(state.bgOpacity);
+
+    bgOpacityRange.addEventListener('input', function(e) {
+      const val = e.target.value;
+      state.bgOpacity = val;
+      localStorage.setItem('p_e621_bg_opacity', val);
+      applyBgOpacity(val);
     });
 
     const apiBaseInput = document.getElementById('api-base-url');
@@ -3163,7 +3134,9 @@
         tagFreq: state.tagFreq,
         favSearches: state.favSearches,
         history: state.history,
-        totalTime: state.totalTime
+        totalTime: state.totalTime,
+        customBg: state.customBg,
+        bgOpacity: state.bgOpacity
       };
       
       const backupStr = btoa(encodeURIComponent(JSON.stringify(backupData)));
@@ -3209,6 +3182,8 @@
           state.favSearches = decoded.favSearches || [];
           state.history = decoded.history || [];
           state.totalTime = decoded.totalTime || 0;
+          state.customBg = decoded.customBg || '';
+          state.bgOpacity = decoded.bgOpacity || '0.9';
 
           localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
           localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
@@ -3220,8 +3195,9 @@
           localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
           localStorage.setItem('p_e621_history', JSON.stringify(state.history));
           localStorage.setItem('p_e621_total_time', state.totalTime);
+          localStorage.setItem('p_e621_custom_bg', state.customBg);
+          localStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
           
-          // Save Connection properties on Import
           localStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl || 'https://e621.net');
           localStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode || 'fallback');
           localStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix || '');
@@ -3232,6 +3208,9 @@
           initRatingsCheckboxes();
           applyCustomStyles();
           applyFeedFitStyle();
+          applyCustomBackground(state.customBg);
+          applyBgOpacity(state.bgOpacity);
+          bgOpacityRange.value = state.bgOpacity;
           renderRecommendedTags();
           renderFavoriteSearches();
           initConnectionSettingsUI();
@@ -3291,9 +3270,15 @@
     }
 
     function switchView(viewName) {
-      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.color = 'var(--text-muted)';
+      });
       const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
-      if (activeBtn) activeBtn.classList.add('active');
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.color = state.customization.accent;
+      }
 
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
       const activePanel = document.getElementById(`panel-${viewName}`);
@@ -3315,7 +3300,12 @@
 
     document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        switchView(btn.getAttribute('data-view'));
+        const action = btn.getAttribute('data-action');
+        if (action === 'random') {
+          rollLuckyPost(); // Run direct silent random generation from the middle tab button
+        } else {
+          switchView(btn.getAttribute('data-view'));
+        }
       });
     });
 
@@ -3400,8 +3390,9 @@
       const enBtn = document.getElementById('eula-lang-en');
 
       if (lang === 'ru') {
-        ruBtn.className = "px-4 py-2 rounded bg-blue-600 text-white text-sm font-bold border border-blue-500 transition";
+        ruBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
         enBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        if (ruBtn) ruBtn.style.borderColor = state.customization.accent;
         
         document.getElementById('eula-main-title').textContent = "ВНИМАНИЕ";
         document.getElementById('lbl-eula-checkbox-text').textContent = translations.ru.eulaCheckbox;
@@ -3412,8 +3403,9 @@
           .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
           .join('');
       } else {
-        enBtn.className = "px-4 py-2 rounded bg-blue-600 text-white text-sm font-bold border border-blue-500 transition";
+        enBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
         ruBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        if (enBtn) enBtn.style.borderColor = state.customization.accent;
         
         document.getElementById('eula-main-title').textContent = "WARNING";
         document.getElementById('lbl-eula-checkbox-text').textContent = translations.en.eulaCheckbox;
@@ -3455,6 +3447,7 @@
     window.onload = function() {
       applyCustomStyles();
       applyFeedFitStyle();
+      applyCustomBackground(state.customBg);
       renderBlacklistChips();
       changeLayout(state.settings.layout);
       updateAuthUI();
