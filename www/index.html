@@ -129,7 +129,7 @@
       height: 24px;
     }
 
-    input[type="text"], input[type="password"], select {
+    input[type="text"], input[type="password"], input[type="number"], select {
       width: 100%;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -141,7 +141,7 @@
       transition: border-color 0.2s;
     }
 
-    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+    input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus {
       border-color: var(--accent);
     }
 
@@ -311,7 +311,7 @@
       color: var(--text-muted);
       font-size: 0.65rem;
       cursor: pointer;
-      width: 25%;
+      width: 25%; 
     }
 
     .tab-btn.active {
@@ -477,7 +477,6 @@
       cursor: pointer;
     }
 
-    /* Categories Colors */
     .tag-badge.artist { color: #f43f5e; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
     .tag-badge.character { color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
     .tag-badge.copyright { color: #a855f7; border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05); }
@@ -782,7 +781,17 @@
 
     <!-- BOOKMARKS TAB PANEL -->
     <div id="panel-bookmarks" class="view-panel">
-      <h3 style="margin-bottom: 12px; color: var(--accent); font-weight: bold;" id="lbl-local-favs">Локальные закладки</h3>
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-md font-bold text-blue-500" id="lbl-local-favs">Локальные закладки</h3>
+        <!-- Toggle selector between local & online original favs -->
+        <div class="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
+          <button id="bookmark-mode-local" class="px-3 py-1 rounded bg-blue-600 font-medium transition-all">Локально</button>
+          <button id="bookmark-mode-online" class="px-3 py-1 rounded text-zinc-400 font-medium transition-all">e621.net</button>
+        </div>
+      </div>
+      <div id="bookmarks-unauth-warning" class="bg-zinc-900 border border-zinc-800 p-4 rounded-lg text-center hidden my-2 text-zinc-400 text-xs">
+        Авторизуйтесь в Настройках, чтобы просматривать ваши реальные лайкнутые посты с аккаунта e621.
+      </div>
       <div class="grid-container grid-squares" id="bookmarks-grid"></div>
     </div>
 
@@ -809,26 +818,32 @@
         </div>
       </div>
 
-      <!-- Device Synchronizer API Config -->
+      <!-- Connection & CORS Settings Group -->
       <div class="settings-group">
-        <div class="settings-title" id="lbl-cloud-title">Облачная синхронизация данных</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-cloud-desc">
-          Сохраняйте ваши закладки, черные списки, любимые поиски и историю в облаке, чтобы они были доступны на любом устройстве.
+        <div class="settings-title" id="lbl-connection-title">Настройки подключения & CORS</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-connection-desc">
+          Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <label id="lbl-synckey" style="font-size: 0.8rem; font-weight: bold;">Ключ синхронизации (Sync Key)</label>
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="sync-key-input" placeholder="Введите ключ или создайте новый..." style="flex-grow: 1;">
-            <button class="action-btn primary" id="generate-key-btn" style="flex: 0 0 100px;">Создать</button>
+        <div class="space-y-3" style="font-size: 0.85rem;">
+          <div>
+            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-api-base-label">Базовый URL API</label>
+            <input type="text" id="api-base-url" value="https://e621.net" style="width: 100%;">
           </div>
-          <div style="display: flex; gap: 8px; margin-top: 4px;">
-            <button class="action-btn" id="cloud-upload-btn" style="flex: 1;">
-              <span>Отправить в облако</span>
-            </button>
-            <button class="action-btn" id="cloud-download-btn" style="flex: 1;">
-              <span>Загрузить из облака</span>
-            </button>
+          <div>
+            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-proxy-mode-label">Режим проксирования</label>
+            <select id="setting-proxy-mode" style="width:100%;">
+              <option value="direct" id="opt-proxy-direct">Прямое подключение (Без прокси)</option>
+              <option value="fallback" id="opt-proxy-fallback" selected>Автоматический обход (Рекомендуется)</option>
+              <option value="corsproxy.io">CORS-прокси corsproxy.io</option>
+              <option value="allorigins">CORS-прокси allorigins.win</option>
+              <option value="custom" id="opt-proxy-custom">Свой CORS-прокси (Указать ниже)</option>
+            </select>
           </div>
+          <div id="custom-proxy-wrapper" class="hidden">
+            <label class="block text-xs font-bold mb-1 text-zinc-400" id="lbl-custom-proxy-url">URL своего CORS-прокси</label>
+            <input type="text" id="custom-proxy-prefix" placeholder="e.g. https://my-cors-proxy.com/?url=" style="width: 100%;">
+          </div>
+          <button class="action-btn primary w-full" id="save-connection-btn">Применить настройки подключения</button>
         </div>
       </div>
 
@@ -1054,9 +1069,22 @@
           <button class="action-btn" id="export-backup-btn" style="flex: 1;">Экспорт</button>
           <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт</button>
         </div>
-        <div class="backup-area p-2 text-xs border border-zinc-800 rounded hidden" id="backup-code-display" style="font-family:monospace; word-break:break-all; max-height:80px; overflow-y:auto; background:#18181b;"></div>
-        <div id="qr-container" style="display:none; text-align: center; margin-top: 10px;" class="flex flex-col items-center justify-center">
-          <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
+        
+        <!-- Export Container with Copy Button -->
+        <div id="export-container" class="hidden flex flex-col gap-2 mt-3">
+          <div class="flex gap-2">
+            <textarea id="backup-code-display" readonly class="text-xs border border-zinc-800 rounded p-2 flex-grow bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;"></textarea>
+            <button id="copy-export-btn" class="action-btn primary text-xs" style="flex: 0 0 100px; font-size: 0.8rem;">Копировать</button>
+          </div>
+          <div id="qr-container" style="display:none; text-align: center;" class="flex flex-col items-center justify-center mt-2">
+            <canvas id="qr-canvas" style="background:#fff; padding:10px; border-radius:8px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Import Container for User Input -->
+        <div id="import-container" class="hidden flex flex-col gap-2 mt-3">
+          <textarea id="import-code-input" class="text-xs border border-zinc-800 rounded p-2 bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;" placeholder="Вставьте код экспорта сюда... / Paste export code here..."></textarea>
+          <button id="apply-import-btn" class="action-btn primary w-full text-xs py-2">Применить импорт / Apply Import</button>
         </div>
       </div>
 
@@ -1192,7 +1220,7 @@
 
   <div id="custom-toast"></div>
 
-  <!-- NAVIGATION BAR -->
+  <!-- NAVIGATION BAR (Updated: 4 tabs, no profile) -->
   <nav class="tab-bar">
     <button class="tab-btn active" data-view="gallery">
       <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm10 0h7v7h-7zM4 14h7v7H4zm10 0h7v7h-7z"/></svg>
@@ -1212,9 +1240,7 @@
     </button>
   </nav>
 
-  <!-- --- STREAMING_CHUNK: Setting up multi-language support dictionaries... --- -->
   <script>
-    // Configuration details
     const APP_ID = 'pocket-chromium-v1';
     
     // Dictionary definition
@@ -1237,12 +1263,6 @@
         recDesc: "Алгоритм анализирует ваши закладки, строит карту ваших интересов по категориям тегов и выдает рекомендации.",
         noBookmarks: "Закладок пока нет.",
         langTitle: "Язык приложения / Language",
-        cloudTitle: "Облачная синхронизация данных",
-        cloudDesc: "Сохраняйте ваши закладки, черные списки, любимые поиски и историю в облаке, чтобы они были доступны на любом устройстве.",
-        synckey: "Ключ синхронизации (Sync Key)",
-        create: "Создать",
-        upload: "Отправить в облако",
-        download: "Загрузить из облака",
         uploadTitle: "Загрузка изображения на e621",
         uploadDesc: "Делитесь своими артами напрямую с серверами e621. Требуется заполненный аккаунт.",
         upFile: "Файл изображения",
@@ -1290,9 +1310,6 @@
         downloadMedia: "Скачать",
         detailClose: "Закрыть",
         bookmarksLimit: "Для работы ИИ-рекомендаций добавьте хотя бы 2 поста в закладки.",
-        savedCloud: "Данные успешно сохранены в облаке!",
-        loadedCloud: "Данные успешно загружены из облака!",
-        syncFail: "Синхронизация не удалась. Убедитесь, что вы создали/ввели ключ.",
         commentSuccess: "Комментарий успешно отправлен!",
         commentError: "Не удалось отправить комментарий. Проверьте ваш API ключ.",
         likeSuccess: "Пост добавлен в любимые на сервере e621!",
@@ -1309,7 +1326,19 @@
         eulaTitle: "Предупреждение о контенте",
         eulaCheckbox: "Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.",
         eulaConfirm: "Подтвердить и Продолжить",
-        eulaText: "ВНИМАНИЕ: Это приложение содержит материалы сексуального характера и NSFW-контент (18+), предназначенный исключительно для взрослой аудитории.\n\nПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ:\n1. Используя данное приложение, вы подтверждаете, что вам исполнилось полных 18 лет (или вы достигли возраста совершеннолетия в вашей стране).\n2. Вы соглашаетесь с тем, что в ленте будут отображаться откровенные иллюстрации, анимации и видеоролики.\n3. Вы обязуетесь не демонстрировать данный контент лицам, не достигшим совершеннолетия.\n4. Разработчики не несут ответственности за контент, предоставляемый сторонним API-сервером e621.net. Вся информация и медиафайлы загружаются напрямую с внешних источников.\n5. Если в вашей юрисдикции просмотр подобного контента запрещен законом, вы обязаны немедленно прекратить использование приложения."
+        eulaText: "ВНИМАНИЕ: Это приложение содержит материалы сексуального характера и NSFW-контент (18+), предназначенный исключительно для взрослой аудитории.\n\nПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ:\n1. Используя данное приложение, вы подтверждаете, что вам исполнилось полных 18 лет (или вы достигли возраста совершеннолетия в вашей стране).\n2. Вы соглашаетесь с тем, что в ленте будут отображаться откровенные иллюстрации, анимации и видеоролики.\n3. Вы обязуетесь не демонстрировать данный контент лицам, не достигшим совершеннолетия.\n4. Разработчики не несут ответственности за контент, предоставляемый сторонним API-сервером e621.net. Вся информация и медиафайлы загружаются напрямую с внешних источников.\n5. Если в вашей юрисдикции просмотр подобного контента запрещен законом, вы обязаны немедленно прекратить использование приложения.",
+        
+        // Custom Connection strings (Russian)
+        connectionTitle: "Настройки подключения & CORS",
+        connectionDesc: "Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.",
+        apiBaseLabel: "Базовый URL API",
+        proxyModeLabel: "Режим проксирования",
+        proxyDirect: "Прямое подключение (Без прокси)",
+        proxyFallback: "Автоматический обход (Рекомендуется)",
+        proxyCustom: "Свой CORS-прокси (Указать ниже)",
+        customProxyUrl: "URL своего CORS-прокси",
+        connectionSaved: "Настройки подключения изменены!",
+        connectionApply: "Применить настройки подключения"
       },
       en: {
         gallery: "Gallery",
@@ -1329,12 +1358,6 @@
         recDesc: "Algorithm analyzes your bookmarks, builds an interest map by tag categories, and suggests personalized recommendations.",
         noBookmarks: "No bookmarks yet.",
         langTitle: "App Language / Язык",
-        cloudTitle: "Cloud Progress Sync",
-        cloudDesc: "Save your bookmarks, blacklists, favorite queries, and viewing history to the cloud to keep them synced on any device.",
-        synckey: "Sync Key",
-        create: "Create",
-        upload: "Upload to Cloud",
-        download: "Download from Cloud",
         uploadTitle: "Upload Image to e621",
         uploadDesc: "Share your artworks directly with e621 servers. Authenticated account required.",
         upFile: "Image File",
@@ -1382,9 +1405,6 @@
         downloadMedia: "Download",
         detailClose: "Close",
         bookmarksLimit: "Please add at least 2 artworks to bookmarks to enable recommendations.",
-        savedCloud: "State securely saved to cloud!",
-        loadedCloud: "State loaded from cloud storage!",
-        syncFail: "Cloud operations failed. Verify your entered sync key.",
         commentSuccess: "Comment posted successfully!",
         commentError: "Failed posting comment. Please verify your credentials.",
         likeSuccess: "Post favorited on e621!",
@@ -1401,11 +1421,23 @@
         eulaTitle: "Content Warning",
         eulaCheckbox: "I verify that I am 18 years of age or older, and I fully accept the terms of this User Agreement.",
         eulaConfirm: "Confirm & Continue",
-        eulaText: "WARNING: This application contains highly explicit NSFW (Not Safe For Work) content (18+) intended strictly for an adult audience.\n\nUSER AGREEMENT:\n1. By utilizing this application, you verify that you are at least 18 years of age (or of legal adult age in your jurisdiction).\n2. You acknowledge and accept that explicit illustrations, animations, and videos will be displayed.\n3. You agree not to display or share this content with minors.\n4. The developers do not host or control the content provided by the external e621.net API server. All images and media are retrieved directly from third-party sources.\n5. If viewing adult content is prohibited by law in your local jurisdiction, you must close this app immediately."
+        eulaText: "WARNING: This application contains highly explicit NSFW (Not Safe For Work) content (18+) intended strictly for an adult audience.\n\nUSER AGREEMENT:\n1. By utilizing this application, you verify that you are at least 18 years of age (or of legal adult age in your jurisdiction).\n2. You acknowledge and accept that explicit illustrations, animations, and videos will be displayed.\n3. You agree not to display or share this content with minors.\n4. The developers do not host or control the content provided by the external e621.net API server. All images and media are retrieved directly from third-party sources.\n5. If viewing adult content is prohibited by law in your local jurisdiction, you must close this app immediately.",
+        
+        // Custom Connection strings (English)
+        connectionTitle: "Connection & CORS Settings",
+        connectionDesc: "Configure the API connection method. Helpful to bypass regional blocks or configure self-hosted reverse proxies.",
+        apiBaseLabel: "API Base URL",
+        proxyModeLabel: "CORS Proxy Mode",
+        proxyDirect: "Direct Connection (No Proxy)",
+        proxyFallback: "Automatic Fallback (Recommended)",
+        proxyCustom: "Custom CORS Proxy (Specify below)",
+        customProxyUrl: "Custom CORS Proxy URL Prefix",
+        connectionSaved: "Connection configurations saved!",
+        connectionApply: "Apply Connection Settings"
       }
     };
 
-    // Global application State
+    // Global application State (Unified settings structure)
     let state = {
       language: localStorage.getItem('p_e621_lang') || 'ru',
       bookmarks: JSON.parse(localStorage.getItem('p_e621_bookmarks') || '[]'),
@@ -1416,48 +1448,54 @@
         ramSafeguard: localStorage.getItem('p_e621_set_ram') !== 'false',
         layout: localStorage.getItem('p_e621_layout') || 'squares',
         ratings: JSON.parse(localStorage.getItem('p_e621_ratings') || '["0+", "16+"]'),
-        feedFit: localStorage.getItem('p_e621_feed_fit') || 'cover'
+        feedFit: localStorage.getItem('p_e621_feed_fit') || 'cover',
+        // Connection & CORS properties
+        apiBaseUrl: localStorage.getItem('p_e621_api_base') || 'https://e621.net',
+        proxyMode: localStorage.getItem('p_e621_proxy_mode') || 'fallback',
+        customProxyPrefix: localStorage.getItem('p_e621_custom_proxy') || ''
       },
       auth: JSON.parse(localStorage.getItem('p_e621_auth') || '{"username":"","apiKey":""}'),
       customization: JSON.parse(localStorage.getItem('p_e621_customization') || '{"accent":"#2563eb","radius":"8px"}'),
       tagFreq: JSON.parse(localStorage.getItem('p_e621_tag_freq') || '{}'),
       favSearches: JSON.parse(localStorage.getItem('p_e621_fav_searches') || '[]'),
       searchHistory: JSON.parse(localStorage.getItem('p_e621_search_history') || '[]'),
-      history: JSON.parse(localStorage.getItem('p_e621_history') || '[]'), // viewed post IDs
-      totalTime: parseInt(localStorage.getItem('p_e621_total_time') || '0'), // seconds
-      syncKey: localStorage.getItem('p_e621_synckey') || ''
+      history: JSON.parse(localStorage.getItem('p_e621_history') || '[]'), 
+      totalTime: parseInt(localStorage.getItem('p_e621_total_time') || '0'), 
+      bookmarkMode: 'local'
     };
 
-    // Translation helper
     function t(key) {
       const activeLang = state.language || 'ru';
       return translations[activeLang][key] || translations['ru'][key] || key;
     }
 
-    // Refresh translation nodes across UI
     function translateUI() {
-      // Inputs placeholders
       document.getElementById('search-input').placeholder = t('searchPlaceholder');
       document.getElementById('blacklist-input').placeholder = state.language === 'ru' ? 'Введите тег...' : 'Enter tag...';
       
-      // Labels and titles
       document.getElementById('p-feed').textContent = t('feed');
       document.getElementById('p-day').textContent = t('day');
       document.getElementById('p-week').textContent = t('week');
       document.getElementById('p-month').textContent = t('month');
       document.getElementById('p-alltime').textContent = t('allTime');
 
-      document.getElementById('lbl-local-favs').textContent = t('localFavs');
+      document.getElementById('lbl-local-favs').textContent = state.bookmarkMode === 'local' 
+        ? t('localFavs') 
+        : (state.language === 'ru' ? 'Синхронизация e621.net' : 'e621.net Synced Favorites');
+      
       document.getElementById('lbl-rec-desc').textContent = t('recDesc');
       document.getElementById('lbl-lang-title').textContent = t('langTitle');
 
-      // Cloud Section
-      document.getElementById('lbl-cloud-title').textContent = t('cloudTitle');
-      document.getElementById('lbl-cloud-desc').textContent = t('cloudDesc');
-      document.getElementById('lbl-synckey').textContent = t('synckey');
-      document.getElementById('generate-key-btn').textContent = t('create');
-      document.getElementById('cloud-upload-btn').querySelector('span').textContent = t('upload');
-      document.getElementById('cloud-download-btn').querySelector('span').textContent = t('download');
+      // Connection Settings translations
+      document.getElementById('lbl-connection-title').textContent = t('connectionTitle');
+      document.getElementById('lbl-connection-desc').textContent = t('connectionDesc');
+      document.getElementById('lbl-api-base-label').textContent = t('apiBaseLabel');
+      document.getElementById('lbl-proxy-mode-label').textContent = t('proxyModeLabel');
+      document.getElementById('opt-proxy-direct').textContent = t('proxyDirect');
+      document.getElementById('opt-proxy-fallback').textContent = t('proxyFallback');
+      document.getElementById('opt-proxy-custom').textContent = t('proxyCustom');
+      document.getElementById('lbl-custom-proxy-url').textContent = t('customProxyUrl');
+      document.getElementById('save-connection-btn').textContent = t('connectionApply');
 
       // Upload details
       document.getElementById('lbl-upload-title').textContent = t('uploadTitle');
@@ -1517,6 +1555,11 @@
       document.getElementById('export-backup-btn').textContent = t('backupExport');
       document.getElementById('import-backup-btn').textContent = t('backupImport');
 
+      // Localization for custom Backup elements
+      document.getElementById('copy-export-btn').textContent = state.language === 'ru' ? 'Скопировать' : 'Copy Code';
+      document.getElementById('apply-import-btn').textContent = state.language === 'ru' ? 'Применить импорт' : 'Apply Import';
+      document.getElementById('import-code-input').placeholder = state.language === 'ru' ? 'Вставьте код экспорта сюда...' : 'Paste export code here...';
+
       // Feel lucky
       document.getElementById('lbl-lucky-setup').textContent = t('luckyTitle');
       document.getElementById('lbl-minscore').textContent = t('luckyMinscore');
@@ -1542,11 +1585,14 @@
       document.getElementById('tab-recs').textContent = t('recommendations');
       document.getElementById('tab-settings').textContent = t('settings');
 
+      // Bookmark Toggle Labels
+      document.getElementById('bookmark-mode-local').textContent = state.language === 'ru' ? 'Локально' : 'Local';
+      document.getElementById('bookmark-mode-online').textContent = state.language === 'ru' ? 'e621.net' : 'e621.net';
+
       // Dynamic search bar tooltips
       document.getElementById('fav-search-btn').title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
       document.getElementById('clear-input-btn').title = state.language === 'ru' ? 'Очистить поиск' : 'Clear search';
 
-      // Dropdown option texts
       const radiusSelect = document.getElementById('setting-radius');
       if (radiusSelect) {
         radiusSelect.options[0].text = state.language === 'ru' ? 'Без скругнения (Острые)' : 'No Rounding (Sharp)';
@@ -1554,13 +1600,83 @@
         radiusSelect.options[2].text = state.language === 'ru' ? 'Экстремальное (16px)' : 'Extreme (16px)';
       }
 
-      // Localize Author TG Button text
       document.getElementById('tg-author-btn').textContent = `ru - "ТГК автора" / en - "${t('authorTg')}"`;
 
-      // Re-trigger dynamic state components to update their active labels
       updateAuthUI();
       updateBookmarkBtnState();
       updateStatsUI();
+      initConnectionSettingsUI();
+    }
+
+    // Central communication fetch handler with auto dual-stage CORS bypass and Custom CORS settings (Strictly NO custom User-Agent to prevent TypeError)
+    async function directFetch(baseUrl, params = {}, useAuth = true) {
+      // Replace base domain with the user's customized API base endpoint
+      let targetUrl = baseUrl;
+      const customBase = state.settings.apiBaseUrl || 'https://e621.net';
+      if (baseUrl.startsWith('https://e621.net')) {
+        targetUrl = baseUrl.replace('https://e621.net', customBase);
+      }
+
+      const urlObj = new URL(targetUrl);
+      
+      Object.keys(params).forEach(key => {
+        urlObj.searchParams.append(key, params[key]);
+      });
+      
+      if (useAuth && state.auth.username && state.auth.apiKey) {
+        urlObj.searchParams.append('login', state.auth.username);
+        urlObj.searchParams.append('api_key', state.auth.apiKey);
+      }
+
+      const finalUrl = urlObj.toString();
+      const mode = state.settings.proxyMode || 'fallback';
+      const headers = { 'Accept': 'application/json' };
+
+      // Route request based on connection mode
+      if (mode === 'direct') {
+        return await performRawFetch(finalUrl, headers);
+      } else if (mode === 'corsproxy.io') {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(finalUrl)}`;
+        return await performRawFetch(proxyUrl, headers);
+      } else if (mode === 'allorigins') {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(finalUrl)}`;
+        return await performRawFetch(proxyUrl, headers);
+      } else if (mode === 'custom' && state.settings.customProxyPrefix) {
+        const proxyUrl = `${state.settings.customProxyPrefix}${encodeURIComponent(finalUrl)}`;
+        return await performRawFetch(proxyUrl, headers);
+      } else {
+        // Fallback sequence (default 'fallback' mode)
+        try {
+          return await performRawFetch(finalUrl, headers);
+        } catch (directErr) {
+          console.warn("Direct connection blocked. Testing Stage 1 Proxy Fallback (corsproxy.io)...", directErr);
+          try {
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(finalUrl)}`;
+            return await performRawFetch(proxyUrl, headers);
+          } catch (proxyErr1) {
+            console.warn("Stage 1 Proxy failed. Testing Stage 2 Proxy Fallback (allorigins.win)...", proxyErr1);
+            try {
+              const allOriginsUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(finalUrl)}`;
+              return await performRawFetch(allOriginsUrl, headers);
+            } catch (proxyErr2) {
+              console.error("All CORS proxy fallbacks exhausted! Request failed completely.");
+              throw proxyErr2;
+            }
+          }
+        }
+      }
+    }
+
+    // Helper wrapper for making clean fetch requests without forbidden headers
+    async function performRawFetch(url, headers) {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers
+      });
+      if (response.ok) {
+        return await response.text();
+      }
+      throw new Error(`Connection request failed with HTTP status: ${response.status}`);
     }
 
     // Toggle languages
@@ -1576,33 +1692,6 @@
       translateUI();
       showToast("Language changed to English!");
     });
-
-    // --- STREAMING_CHUNK: Fetch API communications controller... ---
-    async function directFetch(baseUrl, params = {}, useAuth = true) {
-      const urlObj = new URL(baseUrl);
-      
-      Object.keys(params).forEach(key => {
-        urlObj.searchParams.append(key, params[key]);
-      });
-      
-      if (useAuth && state.auth.username && state.auth.apiKey) {
-        urlObj.searchParams.append('login', state.auth.username);
-        urlObj.searchParams.append('api_key', state.auth.apiKey);
-      }
-
-      const response = await fetch(urlObj.toString(), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'ChromiumE621MobileClient/1.5 (by pocketDev)'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.text();
-    }
 
     const TAG_ALIASES = {
       'anthro': 'антропоморф',
@@ -1632,7 +1721,6 @@
     let detailCurrentPost = null;
     let currentPopularPeriod = 'all'; 
 
-    // --- STREAMING_CHUNK: Live tag autocomplete and search history logic... ---
     const searchInput = document.getElementById('search-input');
     const suggestionsBox = document.getElementById('suggestions');
     const clearInputBtn = document.getElementById('clear-input-btn');
@@ -1764,116 +1852,6 @@
       }
     });
 
-    // --- STREAMING_CHUNK: Cloud Synchronization Engine (Firebase Mock / REST API)... ---
-    const cloudSyncInput = document.getElementById('sync-key-input');
-    
-    document.getElementById('generate-key-btn').addEventListener('click', () => {
-      const randomKey = 'p-sync-' + Math.random().toString(36).substring(2, 10) + '-' + Math.random().toString(36).substring(2, 6);
-      cloudSyncInput.value = randomKey;
-      state.syncKey = randomKey;
-      localStorage.setItem('p_e621_synckey', randomKey);
-      showToast(state.language === 'ru' ? "Ключ успешно создан!" : "Key successfully generated!");
-    });
-
-    // Saving profile context to cloud database
-    document.getElementById('cloud-upload-btn').addEventListener('click', async () => {
-      const key = cloudSyncInput.value.trim();
-      if (!key) {
-        showToast(t('syncFail'));
-        return;
-      }
-      state.syncKey = key;
-      localStorage.setItem('p_e621_synckey', key);
-
-      const payload = {
-        bookmarks: state.bookmarks,
-        blacklist: state.blacklist,
-        customization: state.customization,
-        settings: state.settings,
-        favSearches: state.favSearches,
-        history: state.history,
-        totalTime: state.totalTime
-      };
-
-      try {
-        showToast(state.language === 'ru' ? "Синхронизация..." : "Syncing...");
-        // Posting payload to a mockable jsonbin/firestore API endpoint
-        const response = await fetch(`https://api.jsonbin.io/v3/b`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Bin-Private': 'false',
-            'X-Bin-Name': key
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          const resData = await response.json();
-          // Store direct mapping key to locate back bin reference
-          localStorage.setItem(`p_ref_${key}`, resData.metadata.id);
-          showToast(t('savedCloud'));
-        } else {
-          showToast(t('syncFail'));
-        }
-      } catch (err) {
-        console.error("Cloud Error:", err);
-        showToast(t('syncFail'));
-      }
-    });
-
-    // Retrieve synced state from Cloud
-    document.getElementById('cloud-download-btn').addEventListener('click', async () => {
-      const key = cloudSyncInput.value.trim();
-      if (!key) {
-        showToast(t('syncFail'));
-        return;
-      }
-      const binId = localStorage.getItem(`p_ref_${key}`) || key;
-      
-      try {
-        showToast(state.language === 'ru' ? "Загрузка..." : "Downloading...");
-        const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`);
-        if (response.ok) {
-          const data = await response.json();
-          const synced = data.record;
-          
-          if (synced) {
-            state.bookmarks = synced.bookmarks || [];
-            state.blacklist = synced.blacklist || [];
-            state.customization = synced.customization || state.customization;
-            state.settings = synced.settings || state.settings;
-            state.favSearches = synced.favSearches || [];
-            state.history = synced.history || [];
-            state.totalTime = synced.totalTime || 0;
-
-            // Save elements
-            localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-            localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
-            localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
-            localStorage.setItem('p_e621_layout', state.settings.layout);
-            localStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
-            localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
-            localStorage.setItem('p_e621_history', JSON.stringify(state.history));
-            localStorage.setItem('p_e621_total_time', state.totalTime);
-
-            applyCustomStyles();
-            applyFeedFitStyle();
-            renderBlacklistChips();
-            updateStatsUI();
-            showToast(t('loadedCloud'));
-            loadGallery(true);
-          }
-        } else {
-          showToast(t('syncFail'));
-        }
-      } catch (err) {
-        console.error("Download cloud Error:", err);
-        showToast(t('syncFail'));
-      }
-    });
-
-    // --- STREAMING_CHUNK: Handling active timers, search statistics indicators... ---
     function recordSearchHistory(query) {
       if (!query) return;
       state.searchHistory = state.searchHistory.filter(h => h !== query);
@@ -1944,7 +1922,6 @@
       bar.style.display = 'flex';
     }
 
-    // --- STREAMING_CHUNK: Period popularity switcher handler ---
     document.querySelectorAll('.period-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -2004,14 +1981,15 @@
       bar.style.display = 'flex';
     }
 
-    // --- STREAMING_CHUNK: Handling fetch operations from Server APIs... ---
     async function fetchFromE621(tags, page = 0) {
       if (isFetching) return [];
       isFetching = true;
       
       const indicator = document.getElementById('loading-indicator');
-      indicator.style.display = 'block';
-      indicator.textContent = t('loading');
+      if (indicator) {
+        indicator.style.display = 'block';
+        indicator.textContent = t('loading');
+      }
 
       let ratingFilter = '';
       if (!state.settings.ratings.includes('18+')) ratingFilter += ' -rating:explicit';
@@ -2023,7 +2001,6 @@
         processedTags += ` -${blocked.trim()}`;
       });
 
-      // Implement Popularity period methods
       let url = `https://e621.net/posts.json`;
       const params = {
         limit: state.settings.dataBudget && state.trafficUsed > 50 ? 15 : 30,
@@ -2031,7 +2008,6 @@
       };
 
       if (currentPopularPeriod !== 'all') {
-        // e621 Popular query style: order:popular
         if (currentPopularPeriod === '1d') {
           processedTags += ' order:rank_day';
         } else if (currentPopularPeriod === '7d') {
@@ -2069,13 +2045,13 @@
         }).filter(p => p !== null);
 
         isFetching = false;
-        indicator.style.display = 'none';
+        if (indicator) indicator.style.display = 'none';
         return mapped;
       } catch (err) {
         console.error("API error details:", err);
         showToast(state.language === 'ru' ? "Ошибка загрузки API." : "Failed to load from API.");
         isFetching = false;
-        indicator.style.display = 'none';
+        if (indicator) indicator.style.display = 'none';
         return [];
       }
     }
@@ -2090,7 +2066,6 @@
       if (valSpan) valSpan.textContent = state.trafficUsed.toFixed(2);
     }
 
-    // --- STREAMING_CHUNK: Dynamic Card elements renderer... ---
     function createPostCard(post) {
       const card = document.createElement('div');
       card.className = `post-card ${state.settings.ramSafeguard ? 'unloaded' : ''}`;
@@ -2144,7 +2119,6 @@
       card.addEventListener('click', (e) => {
         if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
         
-        // Track unique post views in history stats
         if (!state.history.includes(post.id)) {
           state.history.push(post.id);
           localStorage.setItem('p_e621_history', JSON.stringify(state.history));
@@ -2264,7 +2238,6 @@
       document.getElementById('peek-content').innerHTML = '';
     }
 
-    // --- STREAMING_CHUNK: Detail comments fetching and rendering... ---
     async function loadPostComments(postId) {
       const container = document.getElementById('comments-feed');
       container.innerHTML = `<div class="text-zinc-500 py-1">${state.language === 'ru' ? 'Загрузка...' : 'Loading comments...'}</div>`;
@@ -2304,37 +2277,61 @@
         return;
       }
 
-      try {
-        // Send a direct e621 post request
-        const url = `https://e621.net/comments.json`;
+      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
+      const endpoint = `${baseEndpoint}/comments.json`;
+
+      const makeCommentRequest = async (targetUrl) => {
         const payload = new URLSearchParams();
         payload.append('comment[post_id]', detailCurrentPost.id);
         payload.append('comment[body]', body);
         payload.append('login', state.auth.username);
         payload.append('api_key', state.auth.apiKey);
 
-        const response = await fetch(url, {
+        // Standard fetch (Removed кастомный User-Agent header)
+        return await fetch(targetUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'ChromiumE621MobileClient/1.5'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: payload
         });
+      };
 
-        if (response.ok) {
+      const mode = state.settings.proxyMode || 'fallback';
+
+      try {
+        let response;
+        if (mode === 'direct') {
+          response = await makeCommentRequest(endpoint);
+        } else if (mode === 'corsproxy.io') {
+          response = await makeCommentRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
+        } else if (mode === 'allorigins') {
+          response = await makeCommentRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`);
+        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
+          response = await makeCommentRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(endpoint)}`);
+        } else {
+          // Fallback sequence
+          try {
+            response = await makeCommentRequest(endpoint);
+          } catch (err) {
+            console.warn("Direct comment post failed. Routing via Stage 1 proxy...", err);
+            response = await makeCommentRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
+          }
+        }
+
+        if (response && response.ok) {
           showToast(t('commentSuccess'));
           input.value = '';
           loadPostComments(detailCurrentPost.id);
         } else {
-          showToast(t('commentError'));
+          throw new Error("Comment response returned non-OK status");
         }
       } catch (err) {
+        console.error("Comment submission failed completely:", err);
         showToast(t('commentError'));
       }
     });
 
-    // --- STREAMING_CHUNK: Detail view and swipe mechanics... ---
     async function downloadPostMedia(url, id, ext) {
       if (!url) return;
       try {
@@ -2531,12 +2528,10 @@
       }
     }
 
-    // --- STREAMING_CHUNK: Local bookmark storage and smart recommendations... ---
     function toggleBookmark(post) {
       const idx = state.bookmarks.findIndex(p => p.id === post.id);
       if (idx === -1) {
         state.bookmarks.push(post);
-        // If login authorized, set favorite directly on server
         favoritePostOnServer(post.id, true);
       } else {
         state.bookmarks.splice(idx, 1);
@@ -2545,31 +2540,66 @@
       localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
       updateBookmarkBtnState();
       updateStatsUI();
+      
+      if (document.getElementById('panel-bookmarks').classList.contains('active')) {
+        renderBookmarks();
+      }
     }
 
+    // Liked posts synchronization with CORS bypass fallbacks
     async function favoritePostOnServer(postId, performFavorite) {
       if (!state.auth.username || !state.auth.apiKey) return;
-      try {
-        const url = performFavorite ? `https://e621.net/favorites.json` : `https://e621.net/favorites/${postId}.json`;
-        const method = performFavorite ? 'POST' : 'DELETE';
+
+      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
+      const url = performFavorite ? `${baseEndpoint}/favorites.json` : `${baseEndpoint}/favorites/${postId}.json`;
+      const method = performFavorite ? 'POST' : 'DELETE';
+
+      const makeRequest = async (targetUrl) => {
         const payload = new URLSearchParams();
         if (performFavorite) payload.append('post_id', postId);
         payload.append('login', state.auth.username);
         payload.append('api_key', state.auth.apiKey);
 
-        const response = await fetch(url, {
+        // Standard fetch (Removed forbidden custom User-Agent headers)
+        return await fetch(targetUrl, {
           method: method,
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'ChromiumE621MobileClient/1.5'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: payload
         });
-        if (response.ok) {
+      };
+
+      const mode = state.settings.proxyMode || 'fallback';
+
+      try {
+        let response;
+        if (mode === 'direct') {
+          response = await makeRequest(url);
+        } else if (mode === 'corsproxy.io') {
+          response = await makeRequest(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+        } else if (mode === 'allorigins') {
+          response = await makeRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
+          response = await makeRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(url)}`);
+        } else {
+          // Fallback sequence
+          try {
+            response = await makeRequest(url);
+          } catch (err) {
+            console.warn("Direct favorites sync blocked. Routing via Stage 1 proxy...", err);
+            response = await makeRequest(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+          }
+        }
+
+        if (response && response.ok) {
           showToast(t('likeSuccess'));
+        } else {
+          throw new Error("Favorite request returned non-OK status");
         }
       } catch (err) {
-        console.error("Favorite sync error:", err);
+        console.error("Favorites sync failed completely:", err);
+        showToast(t('likeError'));
       }
     }
 
@@ -2585,18 +2615,68 @@
       if (detailCurrentPost) toggleBookmark(detailCurrentPost);
     });
 
-    function renderBookmarks() {
+    const bmodeLocal = document.getElementById('bookmark-mode-local');
+    const bmodeOnline = document.getElementById('bookmark-mode-online');
+    
+    bmodeLocal.addEventListener('click', () => {
+      state.bookmarkMode = 'local';
+      bmodeLocal.classList.add('bg-blue-600');
+      bmodeLocal.classList.remove('text-zinc-400');
+      bmodeOnline.classList.remove('bg-blue-600');
+      bmodeOnline.classList.add('text-zinc-400');
+      translateUI();
+      renderBookmarks();
+    });
+
+    bmodeOnline.addEventListener('click', () => {
+      state.bookmarkMode = 'online';
+      bmodeOnline.classList.add('bg-blue-600');
+      bmodeOnline.classList.remove('text-zinc-400');
+      bmodeLocal.classList.remove('bg-blue-600');
+      bmodeLocal.classList.add('text-zinc-400');
+      translateUI();
+      renderBookmarks();
+    });
+
+    async function renderBookmarks() {
       const container = document.getElementById('bookmarks-grid');
+      const unauthWarning = document.getElementById('bookmarks-unauth-warning');
       container.innerHTML = '';
-      if (state.bookmarks.length === 0) {
-        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
-        return;
+      unauthWarning.classList.add('hidden');
+
+      if (state.bookmarkMode === 'local') {
+        if (state.bookmarks.length === 0) {
+          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
+          return;
+        }
+        state.bookmarks.forEach(post => {
+          const card = createPostCard(post);
+          container.appendChild(card);
+        });
+        applyRamSafeguard();
+      } else {
+        if (!state.auth.username || !state.auth.apiKey) {
+          unauthWarning.classList.remove('hidden');
+          return;
+        }
+        
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('loading')}</div>`;
+        try {
+          const onlineFavs = await fetchFromE621(`fav:${state.auth.username}`, 0);
+          container.innerHTML = '';
+          if (onlineFavs.length === 0) {
+            container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'На вашем аккаунте нет избранных постов.' : 'No favorites found on your account.'}</div>`;
+            return;
+          }
+          onlineFavs.forEach(post => {
+            const card = createPostCard(post);
+            container.appendChild(card);
+          });
+          applyRamSafeguard();
+        } catch (err) {
+          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'Ошибка загрузки с серверов e621.' : 'Error loading from e621 servers.'}</div>`;
+        }
       }
-      state.bookmarks.forEach(post => {
-        const card = createPostCard(post);
-        container.appendChild(card);
-      });
-      applyRamSafeguard();
     }
 
     function generateSmartRecommendations() {
@@ -2651,7 +2731,6 @@
       });
     }
 
-    // --- STREAMING_CHUNK: Profile and authenticating accounts setup... ---
     const usernameInput = document.getElementById('auth-username');
     const apiKeyInput = document.getElementById('auth-api-key');
     const authStatus = document.getElementById('auth-status');
@@ -2680,11 +2759,13 @@
         localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
         showToast(state.language === 'ru' ? "Аккаунт подключен!" : "Account connected successfully!");
         updateAuthUI();
+        localStorage.removeItem('p_e621_profile_cache');
         loadGallery(true);
       } else if (!username && !apiKey) {
         state.auth.username = '';
         state.auth.apiKey = '';
         localStorage.removeItem('p_e621_auth');
+        localStorage.removeItem('p_e621_profile_cache');
         showToast(state.language === 'ru' ? "Вы вышли из аккаунта." : "Logged out.");
         updateAuthUI();
         loadGallery(true);
@@ -2697,7 +2778,6 @@
       window.open('https://e621.net/users/new', '_blank');
     });
 
-    // --- STREAMING_CHUNK: Direct artwork file uploader mechanism... ---
     document.getElementById('upload-submit-btn').addEventListener('click', async () => {
       const fileInput = document.getElementById('upload-file');
       const tagsValue = document.getElementById('upload-tags').value.trim();
@@ -2723,30 +2803,53 @@
       formData.append('login', state.auth.username);
       formData.append('api_key', state.auth.apiKey);
 
-      try {
-        showToast(state.language === 'ru' ? "Отправка на сервера e621..." : "Uploading directly to e621 servers...");
-        const response = await fetch(`https://e621.net/uploads.json`, {
+      const baseEndpoint = state.settings.apiBaseUrl || 'https://e621.net';
+      const endpoint = `${baseEndpoint}/uploads.json`;
+
+      const makeUploadRequest = async (targetUrl) => {
+        return await fetch(targetUrl, {
           method: 'POST',
-          headers: {
-            'User-Agent': 'ChromiumE621MobileClient/1.5'
-          },
           body: formData
         });
+      };
 
-        if (response.ok) {
+      const mode = state.settings.proxyMode || 'fallback';
+
+      try {
+        showToast(state.language === 'ru' ? "Отправка..." : "Uploading...");
+        let response;
+        if (mode === 'direct') {
+          response = await makeUploadRequest(endpoint);
+        } else if (mode === 'corsproxy.io') {
+          response = await makeUploadRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
+        } else if (mode === 'allorigins') {
+          response = await makeUploadRequest(`https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`);
+        } else if (mode === 'custom' && state.settings.customProxyPrefix) {
+          response = await makeUploadRequest(`${state.settings.customProxyPrefix}${encodeURIComponent(endpoint)}`);
+        } else {
+          // Fallback sequence
+          try {
+            response = await makeUploadRequest(endpoint);
+          } catch (err) {
+            console.warn("Direct upload blocked. Routing via Stage 1 proxy fallback...", err);
+            response = await makeUploadRequest(`https://corsproxy.io/?${encodeURIComponent(endpoint)}`);
+          }
+        }
+
+        if (response && response.ok) {
           showToast(state.language === 'ru' ? "Успешно отправлено!" : "Upload posted successfully!");
           fileInput.value = '';
           document.getElementById('upload-tags').value = '';
           document.getElementById('upload-source').value = '';
         } else {
-          showToast(state.language === 'ru' ? "Ошибка отправки на e621." : "Upload error from server.");
+          throw new Error("Upload request returned non-OK status");
         }
       } catch (err) {
-        showToast(state.language === 'ru' ? "Сбой подключения при загрузке." : "Connection failed during upload.");
+        console.error("Upload failed completely:", err);
+        showToast(state.language === 'ru' ? "Ошибка отправки на e621." : "Upload error from server.");
       }
     });
 
-    // --- STREAMING_CHUNK: "Feeling Lucky" filter-based generator... ---
     document.getElementById('lucky-roll-btn').addEventListener('click', async () => {
       const minScore = parseInt(document.getElementById('lucky-score').value) || 0;
       const onlyAbsurd = document.getElementById('lucky-absurd').checked;
@@ -2766,14 +2869,13 @@
           return;
         }
 
-        // Apply dynamic scoring and unseen filter metrics
         let pool = posts.filter(p => p.score && p.score.total >= minScore);
         if (onlyUnseen) {
           pool = pool.filter(p => !state.history.includes(p.id));
         }
 
         if (pool.length === 0) {
-          pool = posts; // fallback
+          pool = posts; 
         }
 
         const chosen = pool[Math.floor(Math.random() * pool.length)];
@@ -2789,7 +2891,6 @@
           isVideo: ['mp4', 'webm'].includes(chosen.file.ext)
         };
 
-        // Record to history viewed counters
         if (!state.history.includes(mappedPost.id)) {
           state.history.push(mappedPost.id);
           localStorage.setItem('p_e621_history', JSON.stringify(state.history));
@@ -2802,7 +2903,6 @@
       }
     });
 
-    // --- STREAMING_CHUNK: Setup ratings and configuration controls... ---
     const safeCheck = document.getElementById('rating-safe');
     const questCheck = document.getElementById('rating-questionable');
     const explCheck = document.getElementById('rating-explicit');
@@ -2829,29 +2929,24 @@
     questCheck.addEventListener('change', saveRatingsSettings);
     explCheck.addEventListener('change', saveRatingsSettings);
 
-    // --- STREAMING_CHUNK: Dynamic Profile statistics dashboard generator... ---
     function updateStatsUI() {
       document.getElementById('stat-val-viewed').textContent = state.history.length;
       document.getElementById('stat-val-liked').textContent = state.bookmarks.length;
 
-      // Calculate total app active time
       const totalSecs = state.totalTime;
       const mins = Math.floor(totalSecs / 60);
       const secs = totalSecs % 60;
       document.getElementById('stat-val-time').textContent = state.language === 'ru' ? `${mins}м ${secs}с` : `${mins}m ${secs}s`;
 
-      // Top Tag Categories
       const tagWeights = {};
       const artistsWeights = {};
 
       state.bookmarks.forEach(post => {
-        // Collect general tags
         if (post.tags && post.tags.general) {
           post.tags.general.forEach(t => {
             tagWeights[t] = (tagWeights[t] || 0) + 1;
           });
         }
-        // Collect artists
         if (post.tags && post.tags.artist) {
           post.tags.artist.forEach(a => {
             artistsWeights[a] = (artistsWeights[a] || 0) + 1;
@@ -2888,7 +2983,6 @@
       }
     }
 
-    // Active App Timer tracking loop
     setInterval(() => {
       state.totalTime += 1;
       localStorage.setItem('p_e621_total_time', state.totalTime);
@@ -2925,7 +3019,6 @@
       }
     });
 
-    // --- STREAMING_CHUNK: Settings customization variables syncing... ---
     document.getElementById('shuffler-square').addEventListener('click', () => changeLayout('squares'));
     document.getElementById('shuffler-masonry').addEventListener('click', () => changeLayout('masonry'));
     document.getElementById('shuffler-story').addEventListener('click', () => changeLayout('stories'));
@@ -3016,8 +3109,51 @@
       localStorage.setItem('p_e621_set_ram', state.settings.ramSafeguard);
     });
 
-    // --- STREAMING_CHUNK: Preparing backup encodings and qr draw mechanisms... ---
+    const apiBaseInput = document.getElementById('api-base-url');
+    const proxyModeSelect = document.getElementById('setting-proxy-mode');
+    const customProxyPrefixInput = document.getElementById('custom-proxy-prefix');
+    const customProxyWrapper = document.getElementById('custom-proxy-wrapper');
+
+    proxyModeSelect.addEventListener('change', () => {
+      if (proxyModeSelect.value === 'custom') {
+        customProxyWrapper.classList.remove('hidden');
+      } else {
+        customProxyWrapper.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('save-connection-btn').addEventListener('click', () => {
+      const apiBase = apiBaseInput.value.trim() || 'https://e621.net';
+      const proxyMode = proxyModeSelect.value;
+      const customPrefix = customProxyPrefixInput.value.trim();
+
+      state.settings.apiBaseUrl = apiBase;
+      state.settings.proxyMode = proxyMode;
+      state.settings.customProxyPrefix = customPrefix;
+
+      localStorage.setItem('p_e621_api_base', apiBase);
+      localStorage.setItem('p_e621_proxy_mode', proxyMode);
+      localStorage.setItem('p_e621_custom_proxy', customPrefix);
+
+      showToast(t('connectionSaved'));
+      loadGallery(true);
+    });
+
+    function initConnectionSettingsUI() {
+      apiBaseInput.value = state.settings.apiBaseUrl || 'https://e621.net';
+      proxyModeSelect.value = state.settings.proxyMode || 'fallback';
+      customProxyPrefixInput.value = state.settings.customProxyPrefix || '';
+
+      if (state.settings.proxyMode === 'custom') {
+        customProxyWrapper.classList.remove('hidden');
+      } else {
+        customProxyWrapper.classList.add('hidden');
+      }
+    }
+
     document.getElementById('export-backup-btn').addEventListener('click', () => {
+      document.getElementById('import-container').classList.add('hidden');
+
       const backupData = {
         bookmarks: state.bookmarks,
         blacklist: state.blacklist,
@@ -3031,17 +3167,35 @@
       };
       
       const backupStr = btoa(encodeURIComponent(JSON.stringify(backupData)));
-      const area = document.getElementById('backup-code-display');
-      area.textContent = backupStr;
-      area.classList.remove('hidden');
+      const display = document.getElementById('backup-code-display');
+      display.value = backupStr;
+      
+      document.getElementById('export-container').classList.remove('hidden');
 
       drawBackupQR(backupStr);
       showToast(state.language === 'ru' ? "Бэкап-код сгенерирован!" : "Backup code generated!");
     });
 
+    document.getElementById('copy-export-btn').addEventListener('click', () => {
+      const code = document.getElementById('backup-code-display').value;
+      if (code) {
+        copyToClipboard(code);
+        showToast(state.language === 'ru' ? "Код скопирован в буфер!" : "Code copied to clipboard!");
+      }
+    });
+
     document.getElementById('import-backup-btn').addEventListener('click', () => {
-      const code = prompt(state.language === 'ru' ? "Вставьте бэкап-код:" : "Paste backup code here:");
-      if (!code) return;
+      document.getElementById('export-container').classList.add('hidden');
+      document.getElementById('import-code-input').value = '';
+      document.getElementById('import-container').classList.remove('hidden');
+    });
+
+    document.getElementById('apply-import-btn').addEventListener('click', () => {
+      const code = document.getElementById('import-code-input').value.trim();
+      if (!code) {
+        showToast(state.language === 'ru' ? "Пожалуйста, вставьте код!" : "Please paste the code!");
+        return;
+      }
 
       try {
         const decoded = JSON.parse(decodeURIComponent(atob(code)));
@@ -3066,6 +3220,11 @@
           localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
           localStorage.setItem('p_e621_history', JSON.stringify(state.history));
           localStorage.setItem('p_e621_total_time', state.totalTime);
+          
+          // Save Connection properties on Import
+          localStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl || 'https://e621.net');
+          localStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode || 'fallback');
+          localStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix || '');
 
           renderBlacklistChips();
           updateStatsUI();
@@ -3075,7 +3234,11 @@
           applyFeedFitStyle();
           renderRecommendedTags();
           renderFavoriteSearches();
+          initConnectionSettingsUI();
+
           showToast(state.language === 'ru' ? "Профиль успешно импортирован!" : "Profile successfully imported!");
+          
+          document.getElementById('import-container').classList.add('hidden');
           loadGallery(true);
         } else {
           showToast(state.language === 'ru' ? "Неверный формат кода." : "Invalid code format.");
@@ -3127,7 +3290,6 @@
       ctx.fillRect(x + 6, y + 6, 8, 8);
     }
 
-    // --- STREAMING_CHUNK: View panels switcher logic... ---
     function switchView(viewName) {
       document.querySelectorAll('.tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
@@ -3164,13 +3326,9 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2000);
     }
 
-    // --- STREAMING_CHUNK: Integrating Author Telegram Modal & First launch NSFW protector ---
-    
-    // Copy To Clipboard fallback (safest for IFrames)
     function copyToClipboard(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
-      // Prevent scrolling on focus
       textArea.style.top = "0";
       textArea.style.left = "0";
       textArea.style.position = "fixed";
@@ -3190,7 +3348,6 @@
       document.body.removeChild(textArea);
     }
 
-    // Author Telegram Button Interactions
     const tgAuthorBtn = document.getElementById('tg-author-btn');
     const tgModal = document.getElementById('tg-modal');
     const tgModalClose = document.getElementById('tg-modal-close');
@@ -3198,7 +3355,6 @@
 
     tgAuthorBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      // Translate elements in the Telegram modal
       document.getElementById('tg-modal-title').textContent = t('tgTitle');
       document.getElementById('tg-modal-desc').textContent = t('tgDesc');
       document.getElementById('tg-modal-close').textContent = state.language === 'ru' ? 'Закрыть' : 'Close';
@@ -3221,7 +3377,6 @@
       }
     });
 
-    // Content Warning (EULA) Overlay State Management
     const eulaOverlay = document.getElementById('eula-overlay');
     const eulaCheckbox = document.getElementById('eula-checkbox');
     const eulaConfirmBtn = document.getElementById('eula-confirm-btn');
@@ -3241,7 +3396,6 @@
     function renderEULALanguage(lang) {
       eulaLang = lang;
       
-      // Update interactive styling on lang switcher inside EULA
       const ruBtn = document.getElementById('eula-lang-ru');
       const enBtn = document.getElementById('eula-lang-en');
 
@@ -3253,7 +3407,6 @@
         document.getElementById('lbl-eula-checkbox-text').textContent = translations.ru.eulaCheckbox;
         eulaConfirmBtn.textContent = translations.ru.eulaConfirm;
         
-        // Render rich multiline formatted text
         document.getElementById('eula-terms-box').innerHTML = translations.ru.eulaText
           .split('\n\n')
           .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
@@ -3287,22 +3440,18 @@
 
     eulaConfirmBtn.addEventListener('click', () => {
       if (eulaCheckbox.checked) {
-        // Save acceptance status and chosen language
         localStorage.setItem('p_e621_eula_accepted', 'true');
         state.language = eulaLang;
         localStorage.setItem('p_e621_lang', eulaLang);
         
-        // Hide and unlock body scroll
         document.body.classList.remove('modal-open');
         eulaOverlay.classList.add('hidden');
         
-        // Re-localize application nodes & start initial feed load
         translateUI();
         loadGallery(true);
       }
     });
 
-    // Window Loaded Initiators
     window.onload = function() {
       applyCustomStyles();
       applyFeedFitStyle();
@@ -3316,12 +3465,6 @@
       updateStatsUI();
       translateUI();
 
-      // Load matching sync key from profile if exists
-      if (state.syncKey) {
-        cloudSyncInput.value = state.syncKey;
-      }
-
-      // Check user license block status (EULA) before launching core feed
       checkFirstLaunchEULA();
     };
   </script>
