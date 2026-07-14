@@ -1,1 +1,76 @@
+name: Build Android APK
 
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Позволяет запускать вручную
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Install Capacitor
+      run: npm install @capacitor/core @capacitor/cli @capacitor/android
+    
+    - name: Build Android project
+      run: |
+        npx cap init "Chromium E621" "com.chromium.e621.client" --web-dir=www
+        npx cap add android
+        npx cap sync android
+    
+    - name: Build APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: chromium-e621-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+    
+    - name: Get APK info
+      id: apk_info
+      run: |
+        APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+        APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+        echo "APK size: $APK_SIZE"
+        echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "Chromium E621 APK"
+        tag_name: "v1.0.${{ github.run_number }}"
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
