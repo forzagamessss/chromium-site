@@ -92,11 +92,19 @@ jobs:
           exit 1
         fi
         
-        # Добавляем атрибуты иконок
-        sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|g' "$MANIFEST"
+        echo "=== Original manifest ==="
+        cat "$MANIFEST"
         
-        echo "=== Manifest fixed ==="
-        grep "application" "$MANIFEST" | head -1
+        # Проверяем, есть ли уже атрибуты иконок
+        if grep -q 'android:icon=' "$MANIFEST"; then
+          echo "✅ android:icon already exists, skipping"
+        else
+          # Если атрибутов нет, добавляем их после <application
+          sed -i 's|<application>|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">|g' "$MANIFEST"
+        fi
+        
+        echo "=== Updated manifest ==="
+        cat "$MANIFEST"
     
     - name: Sync Capacitor
       run: |
