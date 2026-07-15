@@ -82,38 +82,94 @@ jobs:
         echo "=== Verifying generated icons ==="
         ls -la android/app/src/main/res/mipmap-*/ic_launcher.png
     
-    - name: Fix Android Manifest for Icons
+    - name: Fix Android Manifest and Resources
       run: |
-        echo "=== AndroidManifest.xml location ==="
+        echo "=== Fixing AndroidManifest.xml ==="
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
         
-        echo "Checking if manifest exists at: $MANIFEST_PATH"
         if [ ! -f "$MANIFEST_PATH" ]; then
           echo "❌ ERROR: AndroidManifest.xml not found!"
           exit 1
         fi
         
-        echo "=== Current manifest content (application section) ==="
-        cat "$MANIFEST_PATH" | grep -A5 -B5 "application"
+        echo "=== Current manifest application tag ==="
+        grep "application" "$MANIFEST_PATH" | head -1
         
-        echo "=== Fixing icon attributes ==="
         # Создаем бэкап
         cp "$MANIFEST_PATH" "$MANIFEST_PATH.bak"
         
-        # Проверяем, есть ли атрибуты иконок
-        if grep -q 'android:icon=' "$MANIFEST_PATH"; then
-          echo "✅ android:icon attribute already exists"
-        else
-          echo "Adding android:icon attribute"
-          sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|g' "$MANIFEST_PATH"
-        fi
+        # Добавляем атрибуты иконок в application тег
+        sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|g' "$MANIFEST_PATH"
         
-        echo "=== Updated manifest content ==="
-        cat "$MANIFEST_PATH" | grep "application" | head -1
+        echo "=== Updated manifest application tag ==="
+        grep "application" "$MANIFEST_PATH" | head -1
         
-        # Также проверяем, что в манифесте есть правильные activity
-        echo "=== Checking main activity ==="
-        grep -A10 "activity" "$MANIFEST_PATH" | head -15
+        echo "=== Creating themes.xml to ensure icon is used ==="
+        # Создаем themes.xml для правильного отображения иконки
+        mkdir -p android/app/src/main/res/values
+        cat > android/app/src/main/res/values/themes.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowBackground">@color/colorPrimary</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+    </style>
+</resources>
+EOF
+        
+        echo "=== Creating colors.xml ==="
+        cat > android/app/src/main/res/values/colors.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+</resources>
+EOF
+        
+        echo "=== Creating Android 12+ splash screen config ==="
+        mkdir -p android/app/src/main/res/values-v31
+        cat > android/app/src/main/res/values-v31/themes.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowBackground">@color/colorPrimary</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+    </style>
+</resources>
+EOF
+    
+    - name: Create Capacitor Assets Configuration
+      run: |
+        echo "=== Creating capacitor-assets.json for better icon generation ==="
+        cat > capacitor-assets.json << 'EOF'
+{
+  "assets": {
+    "icon": {
+      "android": {
+        "dpi": {
+          "ldpi": { "width": 36, "height": 36 },
+          "mdpi": { "width": 48, "height": 48 },
+          "hdpi": { "width": 72, "height": 72 },
+          "xhdpi": { "width": 96, "height": 96 },
+          "xxhdpi": { "width": 144, "height": 144 },
+          "xxxhdpi": { "width": 192, "height": 192 }
+        }
+      }
+    }
+  }
+}
+EOF
+        
+        echo "=== Regenerating icons with explicit config ==="
+        npx @capacitor/assets generate --android --assetPath ./capacitor-assets.json
+        
+        echo "=== Verifying final icons ==="
+        find android/app/src/main/res -name "ic_launcher*.png" | sort
     
     - name: Sync Capacitor
       run: |
