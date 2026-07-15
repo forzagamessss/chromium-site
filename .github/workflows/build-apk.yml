@@ -58,28 +58,30 @@ jobs:
         
     - name: Generate App Icons (No White Background)
       run: |
+        echo "=== Preparing Assets Directory ==="
+        mkdir -p assets
+        
         echo "=== Checking for icon source ==="
-        if [ ! -f "icon-512.png" ]; then
-          echo "⚠️ icon-512.png not found in root, trying to look into assets..."
-          if [ -f "assets/icon-512.png" ]; then
-            cp assets/icon-512.png ./icon-512.png
-            echo "✅ Copied from assets/icon-512.png"
-          elif [ -f "assets/icon.png" ]; then
-            cp assets/icon.png ./icon-512.png
-            echo "✅ Copied from assets/icon.png"
-          else
-            echo "❌ ERROR: Icon file not found! Please add icon-512.png to the root folder."
-            exit 1
-          fi
+        if [ -f "icon-512.png" ]; then
+          cp icon-512.png assets/icon-only.png
+          echo "✅ Found icon-512.png in root and copied to assets/icon-only.png"
+        elif [ -f "assets/icon-512.png" ]; then
+          cp assets/icon-512.png assets/icon-only.png
+          echo "✅ Copied from assets/icon-512.png to assets/icon-only.png"
+        elif [ -f "assets/icon.png" ]; then
+          cp assets/icon.png assets/icon-only.png
+          echo "✅ Copied from assets/icon.png to assets/icon-only.png"
         else
-          echo "✅ icon-512.png found in root"
+          echo "❌ ERROR: No icon source file found (checked icon-512.png in root and assets/)"
+          exit 1
         fi
         
         echo "=== Installing sharp for image processing ==="
         npm install sharp --force
         
-        echo "=== Generating icons WITHOUT white background ==="
-        npx @capacitor/assets generate --android --iconBackgroundColor transparent
+        echo "=== Generating icons WITH transparent background ==="
+        # Указываем точный путь к иконке и задаем прозрачный фон для адаптивных иконок
+        npx @capacitor/assets generate --android --icon-only-path assets/icon-only.png --iconBackgroundColor transparent
 
     - name: Sync Capacitor
       run: |
