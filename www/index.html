@@ -755,21 +755,6 @@
       background: var(--accent);
       color: #fff;
     }
-
-    /* CSS для компактного переключателя в шапке */
-    .header-top .switch {
-      width: 32px !important;
-      height: 18px !important;
-    }
-    .header-top .slider:before {
-      height: 12px !important;
-      width: 12px !important;
-      left: 3px !important;
-      bottom: 3px !important;
-    }
-    .header-top input:checked + .slider:before {
-      transform: translateX(14px) !important;
-    }
   </style>
 </head>
 <body>
@@ -790,23 +775,11 @@
         </svg>
         CHROMIUM<span>E621</span>
       </div>
-      
-      <div class="flex items-center gap-2">
-        <!-- Быстрый глобальный NSFW переключатель -->
-        <div class="flex items-center gap-1.5 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
-          <span class="text-[9px] font-bold text-zinc-400">18+</span>
-          <label class="switch">
-            <input type="checkbox" id="header-nsfw-toggle">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div id="traffic-badge" class="traffic-counter">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="mr-1">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-          </svg>
-          <span id="traffic-val">0.0</span> MB
-        </div>
+      <div id="traffic-badge" class="traffic-counter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="mr-1">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <span id="traffic-val">0.0</span> MB
       </div>
     </div>
 
@@ -853,7 +826,7 @@
       <div id="infinite-scroll-trigger" style="height: 20px; margin-top: 10px;"></div>
     </div>
 
-    <!-- BOOKMARKS TAB PANEL -->
+    <!-- BOOKMARKS TAB PANEL (Simplified - Local Bookmarks ONLY) -->
     <div id="panel-bookmarks" class="view-panel">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-md font-bold" id="lbl-local-favs" style="color: var(--accent);">Локальные закладки</h3>
@@ -872,10 +845,10 @@
       <div class="grid-container grid-squares" id="recs-grid"></div>
     </div>
 
-    <!-- SETTINGS TAB PANEL -->
+    <!-- SETTINGS TAB PANEL (Clean structural design) -->
     <div id="panel-settings" class="view-panel">
       
-      <!-- Profile stats -->
+      <!-- Profile stats (Visible inline on top of settings) -->
       <div class="settings-group p-4">
         <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm" id="lbl-stats-title">Индивидуальная статистика просмотра</div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
@@ -1190,7 +1163,7 @@
 
     <div class="detail-footer">
       <div class="detail-actions">
-        <!-- Next Random generator button -->
+        <!-- Next Random generator button (Clean, text only, no icons/emojis) -->
         <button class="action-btn text-white" id="detail-lucky-next-btn" style="display: none; background: linear-gradient(135deg, #fbbf24, #d97706); border: none;">
           <span class="font-bold" id="lbl-lucky-next-text">Дальше</span>
         </button>
@@ -1299,7 +1272,7 @@
       <span id="tab-bookmarks">Избранное</span>
     </button>
     
-    <!-- Random Tab monolith, placed exactly in the middle -->
+    <!-- 5th Tab Button placed exactly in the middle as monolith, without special highlighted styling -->
     <button class="tab-btn" id="tab-btn-random" data-action="random">
       <svg viewBox="0 0 24 24">
         <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.38 10.17l-1.41 1.41 3.17 3.17L14.5 20H20v-5.5l-2.04 2.04-3.08-3.08z"/>
@@ -1391,6 +1364,8 @@
         eulaCheckbox: "Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.",
         eulaConfirm: "Подтвердить и Продолжить",
         eulaText: "ВНИМАНИЕ: Это приложение содержит материалы сексуального характера и NSFW-контент (18+), предназначенный исключительно для взрослой аудитории.\n\nПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ:\n1. Используя данное приложение, вы подтверждаете, что вам исполнилось полных 18 лет (или вы достигли возраста совершеннолетия в вашей стране).\n2. Вы соглашаетесь с тем, что в ленте будут отображаться откровенные иллюстрации, анимации и видеоролики.\n3. Вы обязуетесь не демонстрировать данный контент лицам, не достигшим совершеннолетия.\n4. Разработчики не несут ответственности за контент, предоставляемый сторонним API-сервером e621.net. Вся информация и медиафайлы загружаются напрямую с внешних источников.\n5. Если в вашей юрисдикции просмотр подобного контента запрещен законом, вы обязаны немедленно прекратить использование приложения.",
+        
+        // Custom Connection strings (Russian)
         connectionTitle: "Настройки подключения & CORS",
         connectionDesc: "Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.",
         apiBaseLabel: "Базовый URL API",
@@ -1471,6 +1446,8 @@
         eulaCheckbox: "I verify that I am 18 years of age or older, and I fully accept the terms of this User Agreement.",
         eulaConfirm: "Confirm & Continue",
         eulaText: "WARNING: This application contains highly explicit NSFW (Not Safe For Work) content (18+) intended strictly for an adult audience.\n\nUSER AGREEMENT:\n1. By utilizing this application, you verify that you are at least 18 years of age (or of legal adult age in your jurisdiction).\n2. You acknowledge and accept that explicit illustrations, animations, and videos will be displayed.\n3. You agree not to display or share this content with minors.\n4. The developers do not host or control the content provided by the external e621.net API server. All images and media are retrieved directly from third-party sources.\n5. If viewing adult content is prohibited by law in your local jurisdiction, you must close this app immediately.",
+        
+        // Custom Connection strings (English)
         connectionTitle: "Connection & CORS Settings",
         connectionDesc: "Configure the API connection method. Helpful to bypass regional blocks or configure self-hosted reverse proxies.",
         apiBaseLabel: "API Base URL",
@@ -1531,36 +1508,6 @@
       if (el) el.innerHTML = html;
     }
 
-    // 🛡️ ГЛОБАЛЬНЫЙ УНИВЕРСАЛЬНЫЙ ФИЛЬТР КОНТЕНТА
-    function isPostFiltered(post) {
-      if (!post) return true;
-      
-      // 1. Фильтрация по Рейтингу
-      const rating = (post.rating || 's').toLowerCase();
-      const allowedRatings = state.settings.ratings || ["0+"];
-      if (rating === 's' && !allowedRatings.includes('0+')) return true;
-      if (rating === 'q' && !allowedRatings.includes('16+')) return true;
-      if (rating === 'e' && !allowedRatings.includes('18+')) return true;
-
-      // 2. Фильтрация по Черному Списку Тегов
-      if (post.tagsString) {
-        const postTags = post.tagsString.toLowerCase().split(/\s+/);
-        const hasBlacklisted = state.blacklist.some(bTag => {
-          const cleanBTag = bTag.trim().toLowerCase();
-          return cleanBTag && postTags.includes(cleanBTag);
-        });
-        if (hasBlacklisted) return true;
-      }
-      return false;
-    }
-
-    // 🏷️ Слой трансляции хэштегов во внутренние теги e621
-    function parseSearchQuery(query) {
-      if (!query) return '';
-      // Удаляем символы решеток для API, приводя "#feline #solo" к "feline solo"
-      return query.replace(/#/g, '').trim();
-    }
-
     function translateUI() {
       safePlaceholder('search-input', t('searchPlaceholder'));
       safePlaceholder('blacklist-input', state.language === 'ru' ? 'Введите тег...' : 'Enter tag...');
@@ -1574,6 +1521,7 @@
       safeText('lbl-local-favs', t('localFavs'));
       safeText('lbl-rec-desc', t('recDesc'));
 
+      // Structured summaries
       safeText('sum-account', state.language === 'ru' ? '👤 e621.net Аккаунт & Импорт' : '👤 e621.net Account & Import');
       safeText('sum-appearance', state.language === 'ru' ? '🎨 Интерфейс & Свой фон' : '🎨 Look & Custom Photo');
       safeText('sum-safety', state.language === 'ru' ? '🛡️ Безопасность & Блэклист' : '🛡️ Safety & Blacklist');
@@ -1585,11 +1533,13 @@
 
       safeText('lbl-lang-title', t('langTitle'));
 
+      // Custom background translations
       safeText('lbl-custom-bg-section', state.language === 'ru' ? 'Собственные фоновые обои' : 'Custom Desktop Background');
       safeText('lbl-bg-input-hint', state.language === 'ru' ? 'Загрузить фоновое изображение (.jpg, .png)' : 'Upload backdrop photo (.jpg, .png)');
       safeText('lbl-bg-opacity', state.language === 'ru' ? 'Плотность затемнения фона' : 'Dark overlay opacity level');
       safeText('clear-bg-btn', state.language === 'ru' ? 'Сбросить фон на стандартный' : 'Reset to default theme color');
 
+      // Connection Settings translations
       safeText('lbl-connection-desc', t('connectionDesc'));
       safeText('lbl-api-base-label', t('apiBaseLabel'));
       safeText('lbl-proxy-mode-label', t('proxyModeLabel'));
@@ -1599,6 +1549,7 @@
       safeText('lbl-custom-proxy-url', t('customProxyUrl'));
       safeText('save-connection-btn', t('connectionApply'));
 
+      // Stats
       safeText('lbl-stats-title', t('statsTitle'));
       safeText('lbl-stat-viewed', t('statViewed'));
       safeText('lbl-stat-liked', t('statLiked'));
@@ -1606,6 +1557,7 @@
       safeText('lbl-stat-frequent', t('statFrequent'));
       safeText('lbl-stat-artists', t('statArtists'));
 
+      // Auth
       safeText('lbl-auth-desc', t('authDesc'));
       safePlaceholder('auth-username', t('username'));
       safePlaceholder('auth-api-key', t('apiKey'));
@@ -1618,51 +1570,62 @@
         guideStepsEl.innerHTML = t('guideSteps').split('\n').map(step => `<li>${step.substring(3)}</li>`).join('');
       }
 
+      // Customization
       safeHTML('lbl-rounding', t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, panels, inputs") + "</span>");
       safeHTML('lbl-feed-fit', t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>");
       safeText('opt-fit-cover', t('fitCover'));
       safeText('opt-fit-contain', t('fitContain'));
       safeHTML('lbl-accent', t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Visual accent scheme") + "</span>");
       
+      // Dynamic Ratings localization
       safeHTML('lbl-rate-safe', state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>Suitable for all audiences</span>');
       safeHTML('lbl-rate-quest', state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Mild nudity / suggestive</span>');
       safeHTML('lbl-rate-expl', state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>');
 
+      // Traffic
       safeText('lbl-traffic-title', t('trafficTitle'));
       safeHTML('lbl-budget', t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict resolution over 50 MB") + "</span>");
       safeHTML('lbl-ram', t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Deallocate un-viewed content cards") + "</span>");
       
+      // Grid shufflers
       safeText('lbl-layout-title', t('layoutTitle'));
       safeText('shuffler-square', t('layoutSquare'));
       safeText('shuffler-masonry', t('layoutMasonry'));
       safeText('shuffler-story', t('layoutStory'));
 
+      // Backlist & Backup configs
       safeText('lbl-blacklist-title', t('blacklistTitle'));
       safeText('export-backup-btn', t('backupExport'));
       safeText('import-backup-btn', t('backupImport'));
 
+      // Localization for custom Backup elements
       safeText('copy-export-btn', state.language === 'ru' ? 'Скопировать' : 'Copy Code');
       safeText('apply-import-btn', state.language === 'ru' ? 'Применить импорт' : 'Apply Import');
       safePlaceholder('import-code-input', state.language === 'ru' ? 'Вставьте код экспорта сюда...' : 'Paste export code here...');
 
+      // Feel lucky
       safeText('lbl-minscore', t('luckyMinscore'));
       safeText('lbl-tagabsurd', t('luckyAbsurd'));
       safeText('lbl-unseen', t('luckyUnseen'));
 
+      // Detail comments and actions
       safeText('lbl-comments-title', t('comments'));
       
       const downloadBtnSpan = document.getElementById('detail-download-btn')?.querySelector('span');
       if (downloadBtnSpan) downloadBtnSpan.textContent = t('downloadMedia');
 
+      // Swipe indicator texts
       safeText('ind-like', state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED');
       safeText('ind-skip', state.language === 'ru' ? 'ПРОПУСК' : 'SKIP');
 
+      // Tab bar navigation labels
       safeText('tab-gallery', t('gallery'));
       safeText('tab-bookmarks', t('bookmarks'));
       safeText('tab-recs', t('recommendations'));
       safeText('tab-settings', t('settings'));
       safeText('tab-random', t('random'));
 
+      // Dynamic search bar tooltips
       const favBtn = document.getElementById('fav-search-btn');
       if (favBtn) favBtn.title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
       const clearBtn = document.getElementById('clear-input-btn');
@@ -1696,6 +1659,7 @@
       document.documentElement.style.setProperty('--bg-opacity', opacity);
     }
 
+    // Direct fetch sequence with Stage 1 and 2 CORS proxies fallback
     async function directFetch(baseUrl, params = {}, useAuth = true) {
       let targetUrl = baseUrl;
       const customBase = state.settings.apiBaseUrl || 'https://e621.net';
@@ -1762,6 +1726,7 @@
       throw new Error(`Connection request failed with HTTP status: ${response.status}`);
     }
 
+    // Safe direct favorites retrieval directly using owners endpoint
     async function fetchOnlineFavorites(page = 0) {
       if (!state.auth.username || !state.auth.apiKey) return [];
       
@@ -1995,11 +1960,10 @@
     }
 
     function triggerSearch(query) {
-      const parsedQuery = parseSearchQuery(query);
-      currentSearchTags = parsedQuery;
+      currentSearchTags = query;
       toggleClearBtn();
       recordSearchHistory(query);
-      recordSearchTags(parsedQuery);
+      recordSearchTags(query);
       loadGallery(true);
     }
 
@@ -2030,10 +1994,10 @@
       sortedTags.forEach(tag => {
         const btn = document.createElement('button');
         btn.className = 'op-btn and';
-        btn.textContent = '#' + tag;
+        btn.textContent = tag;
         btn.addEventListener('click', () => {
           const current = searchInput.value.trim();
-          searchInput.value = current ? `${current} #${tag}` : `#${tag}`;
+          searchInput.value = current ? `${current} ${tag}` : tag;
           toggleClearBtn();
           searchInput.focus();
         });
@@ -2312,8 +2276,8 @@
       const container = document.getElementById('gallery-grid');
       
       posts.forEach(post => {
-        // Задействуем новый универсальный фильтр
-        if (!isPostFiltered(post)) {
+        const hasBlockedTag = post.tagsString.split(' ').some(tag => state.blacklist.includes(tag.toLowerCase()));
+        if (!hasBlockedTag) {
           const card = createPostCard(post);
           container.appendChild(card);
         }
@@ -2361,14 +2325,15 @@
     async function loadPostComments(postId) {
       const container = document.getElementById('comments-feed');
 
+      // Comments read-only limitation logic for unregistered guests
       if (!state.auth.username || !state.auth.apiKey) {
         container.innerHTML = `
           <div class="p-4 bg-zinc-950/80 border border-amber-500/20 rounded-lg text-center space-y-2">
-            <p class="text-amber-400 font-bold text-xs">🔒 Доступ ограничен</p>
+            <p class="text-amber-400 font-bold text-xs">🔒 Доступ заблокирован</p>
             <p class="text-[11px] text-zinc-400 leading-normal">
               ${state.language === 'ru' 
-                ? 'Комментарии доступны только авторизованным пользователям! Подключите аккаунт e621 в Настройках.' 
-                : 'Comments are restricted to e621 users! Connect your API account in Settings to read discussions.'}
+                ? 'Комментарии доступны только зарегистрированным пользователям! Подключите аккаунт в Настройках, чтобы читать обсуждения других пользователей.' 
+                : 'Comments are restricted to registered users! Connect your active e621 account in Settings to read discussions.'}
             </p>
           </div>
         `;
@@ -2502,356 +2467,445 @@
             const span = document.createElement('span');
             span.className = `tag-badge ${value.class}`;
             const alias = TAG_ALIASES[tag] ? ` (${TAG_ALIASES[tag]})` : '';
-            span.textContent = '#' + tag + alias; // Визуальные решетки для хэштегов
+            span.textContent = tag + alias;
 
             span.addEventListener('click', () => {
               closeDetailView();
               switchView('gallery');
-              searchInput.value = '#' + tag; // Передаем как хэштег
-              toggleClearBtn();
-              triggerSearch('#' + tag);
+              searchInput.value = tag;
+              triggerSearch(tag);
             });
+
             chipsWrap.appendChild(span);
           });
+
           groupDiv.appendChild(chipsWrap);
           tagsContainer.appendChild(groupDiv);
         }
       });
 
       overlay.style.display = 'flex';
-      document.body.classList.add('modal-open');
     }
 
-    // --- НАЧАЛО ИНТЕГРАЦИИ НЕДОСТАЮЩИХ И ВОССТАНОВЛЕННЫХ МЕТОДОВ ---
-
-    function closeDetailView() {
-      const overlay = document.getElementById('detail-overlay');
-      overlay.style.display = 'none';
-      const wrapper = document.getElementById('detail-media-wrapper');
-      wrapper.innerHTML = ''; 
-      detailCurrentPost = null;
-      document.body.classList.remove('modal-open');
-    }
-
-    function isBookmarked(postId) {
-      return state.bookmarks.some(item => item.id === postId);
-    }
-
-    function toggleBookmark(post) {
-      if (isBookmarked(post.id)) {
-        state.bookmarks = state.bookmarks.filter(item => item.id !== post.id);
-        showToast(state.language === 'ru' ? "Удалено из закладок" : "Removed from bookmarks");
-      } else {
-        state.bookmarks.push(post);
-        showToast(state.language === 'ru' ? "Добавлено в закладки!" : "Added to bookmarks!");
-        
-        // Track tag frequency for recommendations
-        if (post.tags) {
-          Object.entries(post.tags).forEach(([cat, tags]) => {
-            if (Array.isArray(tags)) {
-              tags.forEach(tag => {
-                state.tagFreq[tag] = (state.tagFreq[tag] || 0) + 1;
-              });
-            }
-          });
-          localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
-        }
-      }
-      localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-      updateBookmarkBtnState();
-      updateStatsUI();
-    }
-
-    function updateBookmarkBtnState() {
-      const btn = document.getElementById('detail-bookmark-btn');
-      if (!btn || !detailCurrentPost) return;
-      if (isBookmarked(detailCurrentPost.id)) {
-        btn.textContent = state.language === 'ru' ? "Удалить" : "Remove";
-        btn.classList.remove('primary');
-        btn.style.backgroundColor = 'var(--danger)';
-        btn.style.borderColor = 'var(--danger)';
-      } else {
-        btn.textContent = state.language === 'ru' ? "В закладки" : "Bookmark";
-        btn.classList.add('primary');
-        btn.style.backgroundColor = 'var(--accent)';
-        btn.style.borderColor = 'var(--accent)';
-      }
-    }
-
-    document.getElementById('detail-close-btn').addEventListener('click', closeDetailView);
-    document.getElementById('detail-bookmark-btn').addEventListener('click', () => {
-      if (detailCurrentPost) {
-        toggleBookmark(detailCurrentPost);
-      }
-    });
-
-    const cardContainer = document.getElementById('detail-card-container');
-    cardContainer.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-    
-    cardContainer.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      touchEndY = e.changedTouches[0].screenY;
-      handleSwipeGesture();
-    }, { passive: true });
-    
-    function handleSwipeGesture() {
-      const diffX = touchEndX - touchStartX;
-      const diffY = touchEndY - touchStartY;
-      
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
-        if (diffX > 0) {
-          // Swipe Right -> Bookmark
-          if (detailCurrentPost) {
-            const indLike = document.getElementById('ind-like');
-            indLike.style.opacity = '1';
-            setTimeout(() => indLike.style.opacity = '0', 800);
-            if (!isBookmarked(detailCurrentPost.id)) {
-              toggleBookmark(detailCurrentPost);
-            }
-          }
-        } else {
-          // Swipe Left -> Skip or Next Random
-          const indSkip = document.getElementById('ind-skip');
-          indSkip.style.opacity = '1';
-          setTimeout(() => indSkip.style.opacity = '0', 800);
-          
-          const luckyBtn = document.getElementById('detail-lucky-next-btn');
-          if (luckyBtn && luckyBtn.style.display !== 'none') {
-            triggerRandomPost();
-          } else {
-            closeDetailView();
-          }
-        }
-      }
-    }
-
-    function extractAmbientColor(img) {
+    function extractAmbientColor(imgEl) {
       const canvas = document.getElementById('ambient-canvas');
-      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       canvas.width = 10;
       canvas.height = 10;
       
       try {
-        ctx.drawImage(img, 0, 0, 10, 10);
-        const imgData = ctx.getImageData(0, 0, 10, 10).data;
-        let r = 0, g = 0, b = 0, count = 0;
-        for (let i = 0; i < imgData.length; i += 4) {
-          r += imgData[i];
-          g += imgData[i+1];
-          b += imgData[i+2];
-          count++;
-        }
-        r = Math.floor(r / count);
-        g = Math.floor(g / count);
-        b = Math.floor(b / count);
-        canvas.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        ctx.drawImage(imgEl, 0, 0, 10, 10);
+        canvas.style.opacity = '0.35';
       } catch (e) {
-        canvas.style.backgroundColor = 'transparent';
+        canvas.style.opacity = '0';
       }
     }
 
-    // 🎲 Генерация случайного поста («Рандом») с учетом универсального фильтра
-    async function triggerRandomPost() {
-      showToast(state.language === 'ru' ? "Ищем случайный арт..." : "Fetching random artwork...");
+    document.getElementById('detail-close-btn').addEventListener('click', closeDetailView);
+    function closeDetailView() {
+      document.getElementById('detail-overlay').style.display = 'none';
+      const mediaWrapper = document.getElementById('detail-media-wrapper');
+      mediaWrapper.innerHTML = '';
       
-      let ratingFilter = '';
-      if (!state.settings.ratings.includes('18+')) ratingFilter += ' -rating:explicit';
-      if (!state.settings.ratings.includes('16+')) ratingFilter += ' -rating:questionable';
-      if (!state.settings.ratings.includes('0+')) ratingFilter += ' -rating:safe';
-      
-      let processedTags = 'order:random' + ratingFilter;
-      state.blacklist.forEach(blocked => {
-        processedTags += ` -${blocked.trim()}`;
-      });
-      
-      try {
-        // Подгружаем пачку из 10 постов, чтобы гарантировать отбор непрофильтрованного контента
-        const textData = await directFetch(`https://e621.net/posts.json`, { limit: 10, tags: processedTags }, true);
-        registerTraffic(textData.length);
-        const data = JSON.parse(textData);
-        const rawPosts = data.posts || [];
-        
-        const mapped = rawPosts.map(item => {
-          if (!item.file || !item.file.url) return null;
-          return {
-            id: item.id,
-            file_url: item.file.url,
-            preview_url: item.preview ? item.preview.url : item.file.url,
-            sample_url: (item.sample && item.sample.has) ? item.sample.url : item.file.url,
-            tags: item.tags || {},
-            tagsString: Object.values(item.tags || {}).flat().join(' '),
-            ext: item.file.ext,
-            rating: item.rating,
-            score: item.score ? item.score.total : 0,
-            isVideo: ['mp4', 'webm'].includes(item.file.ext)
-          };
-        }).filter(p => p !== null && !isPostFiltered(p)); // Прогоняем через новый фильтр
+      const canvas = document.getElementById('ambient-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
-        if (mapped.length > 0) {
-          openDetailView(mapped[0], true);
-        } else {
-          showToast(state.language === 'ru' ? "Подходящий арт не найден" : "Could not find any allowed artworks");
+    const cardContainer = document.getElementById('detail-card-container');
+    const mediaWrapperElement = document.getElementById('detail-media-wrapper');
+
+    cardContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    cardContainer.addEventListener('touchmove', (e) => {
+      const currentX = e.changedTouches[0].screenX;
+      const currentY = e.changedTouches[0].screenY;
+      const diffX = currentX - touchStartX;
+      const diffY = currentY - touchStartY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (e.cancelable) e.preventDefault();
+        mediaWrapperElement.style.transform = `translate3d(${diffX}px, 0, 0)`;
+
+        if (diffX > 50) {
+          document.getElementById('ind-like').style.opacity = Math.min((diffX-50)/100, 1);
+        } else if (diffX < -50) {
+          document.getElementById('ind-skip').style.opacity = Math.min((-diffX-50)/100, 1);
         }
-      } catch (err) {
-        console.error(err);
-        showToast(state.language === 'ru' ? "Ошибка сети" : "Network error");
+      } else {
+        mediaWrapperElement.style.transform = 'translate3d(0,0,0)';
+        document.getElementById('ind-like').style.opacity = 0;
+        document.getElementById('ind-skip').style.opacity = 0;
+      }
+    }, { passive: false });
+
+    cardContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      mediaWrapperElement.style.transform = 'translate3d(0,0,0)';
+      document.getElementById('ind-like').style.opacity = 0;
+      document.getElementById('ind-skip').style.opacity = 0;
+
+      if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0) {
+          toggleBookmark(detailCurrentPost);
+          showToast(state.language === 'ru' ? "Сохранено в закладки!" : "Added to Bookmarks!");
+          closeDetailView();
+        } else {
+          showToast(state.language === 'ru' ? "Пропущено" : "Skipped");
+          closeDetailView();
+        }
       }
     }
 
-    // 📂 Рендер закладок с принудительной фильтрацией
-    function renderBookmarks() {
-      const grid = document.getElementById('bookmarks-grid');
-      grid.innerHTML = '';
-      
-      // Задействуем глобальную фильтрацию
-      const allowedBookmarks = state.bookmarks.filter(post => !isPostFiltered(post));
-      
-      if (allowedBookmarks.length === 0) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 py-10">${t('noBookmarks')}</div>`;
-        return;
+    function toggleBookmark(post) {
+      const idx = state.bookmarks.findIndex(p => p.id === post.id);
+      if (idx === -1) {
+        state.bookmarks.push(post);
+      } else {
+        state.bookmarks.splice(idx, 1);
       }
-      allowedBookmarks.forEach(post => {
-        grid.appendChild(createPostCard(post));
-      });
-    }
-
-    // 🤖 Умный алгоритм рекомендаций с фильтрацией
-    async function renderRecommendations() {
-      const grid = document.getElementById('recs-grid');
-      grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 py-10">${t('loading')}</div>`;
+      localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+      updateBookmarkBtnState();
+      updateStatsUI();
       
-      if (state.bookmarks.length < 2) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 py-10 px-4">${t('bookmarksLimit')}</div>`;
-        return;
-      }
-      
-      // Находим топ часто используемых тегов, за исключением слишком частых
-      const sortedTags = Object.entries(state.tagFreq)
-        .filter(([tag]) => !['solo', 'male', 'female', 'anthro', 'mammal'].includes(tag))
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4)
-        .map(entry => entry[0]);
-        
-      if (sortedTags.length === 0) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 py-10 px-4">${t('bookmarksLimit')}</div>`;
-        return;
-      }
-      
-      const query = sortedTags.map(tag => `~${tag}`).join(' '); // Логика ИЛИ в синтаксисе e621
-      const posts = await fetchFromE621(query);
-      grid.innerHTML = '';
-      
-      // Применяем фильтрацию
-      const filteredPosts = posts.filter(post => !isPostFiltered(post));
-      if (filteredPosts.length === 0) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 py-10">${state.language === 'ru' ? 'Нет подходящих рекомендаций. Попробуйте обновить фильтры.' : 'No suitable recommendations.'}</div>`;
-        return;
-      }
-      
-      filteredPosts.forEach(post => {
-        grid.appendChild(createPostCard(post));
-      });
-    }
-
-    function switchView(viewId) {
-      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      
-      const targetPanel = document.getElementById(`panel-${viewId}`);
-      if (targetPanel) targetPanel.classList.add('active');
-      
-      const targetBtn = document.querySelector(`.tab-btn[data-view="${viewId}"]`);
-      if (targetBtn) targetBtn.classList.add('active');
-      
-      if (viewId === 'bookmarks') {
+      if (document.getElementById('panel-bookmarks').classList.contains('active')) {
         renderBookmarks();
-      } else if (viewId === 'recommendations') {
-        renderRecommendations();
-      } else if (viewId === 'settings') {
-        updateStatsUI();
       }
     }
+
+    function updateBookmarkBtnState() {
+      const btn = document.getElementById('detail-bookmark-btn');
+      if (!detailCurrentPost) return;
+      const isSaved = state.bookmarks.some(p => p.id === detailCurrentPost.id);
+      btn.textContent = isSaved ? (state.language === 'ru' ? "В закладках" : "Bookmarked") : (state.language === 'ru' ? "В закладки" : "Bookmark");
+      btn.style.backgroundColor = isSaved ? "var(--success)" : "var(--accent)";
+    }
+
+    document.getElementById('detail-bookmark-btn').addEventListener('click', () => {
+      if (detailCurrentPost) toggleBookmark(detailCurrentPost);
+    });
+
+    async function renderBookmarks() {
+      const container = document.getElementById('bookmarks-grid');
+      container.innerHTML = '';
+
+      if (state.bookmarks.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
+        return;
+      }
+      state.bookmarks.forEach(post => {
+        const card = createPostCard(post);
+        container.appendChild(card);
+      });
+      applyRamSafeguard();
+    }
+
+    function generateSmartRecommendations() {
+      const container = document.getElementById('recs-grid');
+      container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'Анализ ваших предпочтений...' : 'Analyzing tastes...'}</div>`;
+
+      if (state.bookmarks.length < 2) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">${t('bookmarksLimit')}</div>`;
+        return;
+      }
+
+      const tagWeights = {};
+      state.bookmarks.forEach(post => {
+        const allTags = post.tagsString || '';
+        allTags.split(' ').forEach(tag => {
+          if (!tag) return;
+          tagWeights[tag] = (tagWeights[tag] || 0) + 1;
+        });
+      });
+
+      const topTags = Object.entries(tagWeights)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+
+      const bestTag = topTags[0];
+      
+      fetchFromE621(bestTag, 0).then(posts => {
+        container.innerHTML = '';
+        if (posts.length === 0) {
+          container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">Failed.</div>`;
+          return;
+        }
+
+        const scoredPosts = posts.map(post => {
+          let score = 0;
+          post.tagsString.split(' ').forEach(tag => {
+            if (tagWeights[tag]) {
+              score += tagWeights[tag];
+            }
+          });
+          return { post, score };
+        });
+
+        scoredPosts.sort((a, b) => b.score - a.score);
+
+        scoredPosts.forEach(item => {
+          const card = createPostCard(item.post);
+          container.appendChild(card);
+        });
+        applyRamSafeguard();
+      });
+    }
+
+    const usernameInput = document.getElementById('auth-username');
+    const apiKeyInput = document.getElementById('auth-api-key');
+    const authStatus = document.getElementById('auth-status');
+    const importFavsBtn = document.getElementById('import-online-favs-btn');
 
     function updateAuthUI() {
-      const status = document.getElementById('auth-status');
-      const importBtn = document.getElementById('import-online-favs-btn');
       if (state.auth.username && state.auth.apiKey) {
-        status.textContent = state.language === 'ru' 
-          ? `Статус: Подключен (${state.auth.username})` 
-          : `Status: Connected (${state.auth.username})`;
-        status.style.color = 'var(--success)';
-        if (importBtn) importBtn.classList.remove('hidden');
+        usernameInput.value = state.auth.username;
+        apiKeyInput.value = state.auth.apiKey;
+        authStatus.textContent = state.language === 'ru' ? `Статус: Подключен как ${state.auth.username}` : `Status: Integrated as ${state.auth.username}`;
+        authStatus.style.color = 'var(--success)';
+        importFavsBtn.classList.remove('hidden');
       } else {
-        status.textContent = state.language === 'ru' 
-          ? "Статус: Не подключен (Анонимный режим)" 
-          : "Status: Offline (Guest Mode)";
-        status.style.color = 'var(--text-muted)';
-        if (importBtn) importBtn.classList.add('hidden');
+        usernameInput.value = '';
+        apiKeyInput.value = '';
+        authStatus.textContent = state.language === 'ru' ? `Статус: Не подключен (Анонимный режим)` : `Status: Not connected (Anonymous mode)`;
+        authStatus.style.color = 'var(--text-muted)';
+        importFavsBtn.classList.add('hidden');
       }
     }
 
     document.getElementById('save-auth-btn').addEventListener('click', () => {
-      const user = document.getElementById('auth-username').value.trim();
-      const key = document.getElementById('auth-api-key').value.trim();
+      const username = usernameInput.value.trim();
+      const apiKey = apiKeyInput.value.trim();
       
-      state.auth.username = user;
-      state.auth.apiKey = key;
-      localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
-      
-      updateAuthUI();
-      showToast(state.language === 'ru' ? "Аккаунт успешно подключен!" : "Account linked successfully!");
-      loadGallery(true);
+      if (username && apiKey) {
+        state.auth.username = username;
+        state.auth.apiKey = apiKey;
+        localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+        showToast(state.language === 'ru' ? "Аккаунт подключен!" : "Account connected successfully!");
+        updateAuthUI();
+        localStorage.removeItem('p_e621_profile_cache');
+        loadGallery(true);
+      } else if (!username && !apiKey) {
+        state.auth.username = '';
+        state.auth.apiKey = '';
+        localStorage.removeItem('p_e621_auth');
+        localStorage.removeItem('p_e621_profile_cache');
+        showToast(state.language === 'ru' ? "Вы вышли из аккаунта." : "Logged out.");
+        updateAuthUI();
+        loadGallery(true);
+      } else {
+        showToast(state.language === 'ru' ? "Заполните оба поля!" : "Fill both inputs!");
+      }
     });
-    
+
+    importFavsBtn.addEventListener('click', async () => {
+      if (!state.auth.username || !state.auth.apiKey) {
+        showToast(state.language === 'ru' ? "Сначала подключите аккаунт!" : "Please integrate your account first!");
+        return;
+      }
+      showToast(state.language === 'ru' ? "Импортируем посты..." : "Importing posts...");
+      try {
+        const onlineFavs = await fetchOnlineFavorites(0);
+        if (onlineFavs.length === 0) {
+          showToast(state.language === 'ru' ? "На вашем аккаунте нет избранного!" : "No favorites found on your account!");
+          return;
+        }
+
+        let importedCount = 0;
+        onlineFavs.forEach(post => {
+          const isDupe = state.bookmarks.some(b => b.id === post.id);
+          if (!isDupe) {
+            state.bookmarks.push(post);
+            importedCount++;
+          }
+        });
+
+        localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+        updateStatsUI();
+        renderBookmarks();
+        showToast(state.language === 'ru' ? `Успешно импортировано: ${importedCount} постов!` : `Successfully imported: ${importedCount} posts!`);
+      } catch (err) {
+        console.error(err);
+        showToast(state.language === 'ru' ? "Не удалось связаться с серверами!" : "Failed to sync with servers!");
+      }
+    });
+
     document.getElementById('btn-reg').addEventListener('click', () => {
       window.open('https://e621.net/users/new', '_blank');
     });
 
-    document.getElementById('import-online-favs-btn').addEventListener('click', async () => {
-      showToast(state.language === 'ru' ? "Запуск импорта..." : "Starting import...");
-      const posts = await fetchOnlineFavorites(0);
-      if (posts.length === 0) {
-        showToast(state.language === 'ru' ? "Избранное пусто или ошибка соединения" : "No favorites found or connection failed");
-        return;
+    async function rollLuckyPost() {
+      const minScore = parseInt(document.getElementById('lucky-score')?.value || '100') || 0;
+      const onlyAbsurd = document.getElementById('lucky-absurd')?.checked || false;
+      const onlyUnseen = document.getElementById('lucky-unseen')?.checked || false;
+
+      let luckyTags = 'order:random';
+      if (onlyAbsurd) luckyTags += ' absurd_res';
+
+      try {
+        const responseText = await directFetch(`https://e621.net/posts.json`, { tags: luckyTags, limit: 30 }, true);
+        const data = JSON.parse(responseText);
+        const posts = data.posts || [];
+
+        if (posts.length === 0) {
+          showToast(state.language === 'ru' ? "Нет подходящих артов." : "No posts match lucky constraints.");
+          return;
+        }
+
+        let pool = posts.filter(p => p.score && p.score.total >= minScore);
+        if (onlyUnseen) {
+          pool = pool.filter(p => !state.history.includes(p.id));
+        }
+
+        if (pool.length === 0) {
+          pool = posts; 
+        }
+
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        const mappedPost = {
+          id: chosen.id,
+          file_url: chosen.file.url,
+          preview_url: chosen.preview ? chosen.preview.url : chosen.file.url,
+          sample_url: (chosen.sample && chosen.sample.has) ? chosen.sample.url : chosen.file.url,
+          tags: chosen.tags || {},
+          tagsString: Object.values(chosen.tags || {}).flat().join(' '),
+          ext: chosen.file.ext,
+          rating: chosen.rating,
+          isVideo: ['mp4', 'webm'].includes(chosen.file.ext)
+        };
+
+        if (!state.history.includes(mappedPost.id)) {
+          state.history.push(mappedPost.id);
+          localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+          updateStatsUI();
+        }
+
+        openDetailView(mappedPost, true);
+      } catch (err) {
+        showToast(state.language === 'ru' ? "Ошибка во время генерации!" : "Error rolling details!");
       }
+    }
+
+    // Connect the Next Random button in detail overlay to load another random post
+    const nextLuckyBtn = document.getElementById('detail-lucky-next-btn');
+    if (nextLuckyBtn) {
+      nextLuckyBtn.addEventListener('click', rollLuckyPost);
+    }
+
+    const safeCheck = document.getElementById('rating-safe');
+    const questCheck = document.getElementById('rating-questionable');
+    const explCheck = document.getElementById('rating-explicit');
+
+    function initRatingsCheckboxes() {
+      safeCheck.checked = state.settings.ratings.includes('0+');
+      questCheck.checked = state.settings.ratings.includes('16+');
+      explCheck.checked = state.settings.ratings.includes('18+');
+    }
+
+    function saveRatingsSettings() {
+      const ratings = [];
+      if (safeCheck.checked) ratings.push('0+');
+      if (questCheck.checked) ratings.push('16+');
+      if (explCheck.checked) ratings.push('18+');
       
-      let addedCount = 0;
-      posts.forEach(post => {
-        if (!isBookmarked(post.id)) {
-          state.bookmarks.push(post);
-          addedCount++;
+      state.settings.ratings = ratings;
+      localStorage.setItem('p_e621_ratings', JSON.stringify(ratings));
+      showToast(state.language === 'ru' ? "Рейтинг обновлен" : "Rating schema modified");
+      loadGallery(true);
+    }
+
+    safeCheck.addEventListener('change', saveRatingsSettings);
+    questCheck.addEventListener('change', saveRatingsSettings);
+    explCheck.addEventListener('change', saveRatingsSettings);
+
+    function updateStatsUI() {
+      document.getElementById('stat-val-viewed').textContent = state.history.length;
+      document.getElementById('stat-val-liked').textContent = state.bookmarks.length;
+
+      const totalSecs = state.totalTime;
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      document.getElementById('stat-val-time').textContent = state.language === 'ru' ? `${mins}м ${secs}с` : `${mins}m ${secs}s`;
+
+      const tagWeights = {};
+      const artistsWeights = {};
+
+      state.bookmarks.forEach(post => {
+        if (post.tags && post.tags.general) {
+          post.tags.general.forEach(t => {
+            tagWeights[t] = (tagWeights[t] || 0) + 1;
+          });
+        }
+        if (post.tags && post.tags.artist) {
+          post.tags.artist.forEach(a => {
+            artistsWeights[a] = (artistsWeights[a] || 0) + 1;
+          });
         }
       });
-      
-      if (addedCount > 0) {
-        localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-        showToast(state.language === 'ru' ? `Успешно импортировано постов: ${addedCount}!` : `Successfully imported ${addedCount} artworks!`);
-        renderBookmarks();
-      } else {
-        showToast(state.language === 'ru' ? "Все посты уже есть в закладках" : "All artworks are already in bookmarks");
-      }
-    });
 
-    function renderBlacklist() {
-      const container = document.getElementById('blacklist-chips');
-      container.innerHTML = '';
+      const sortedTags = Object.entries(tagWeights).sort((a,b) => b[1] - a[1]).slice(0, 5);
+      const tagsBox = document.getElementById('stat-val-tags');
+      tagsBox.innerHTML = '';
+      if (sortedTags.length === 0) {
+        tagsBox.textContent = '...';
+      } else {
+        sortedTags.forEach(([tag, num]) => {
+          const badge = document.createElement('span');
+          badge.className = 'bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 rounded text-[10px] text-zinc-300';
+          badge.textContent = `${tag} (${num})`;
+          tagsBox.appendChild(badge);
+        });
+      }
+
+      const sortedArtists = Object.entries(artistsWeights).sort((a,b) => b[1] - a[1]).slice(0, 4);
+      const artistsBox = document.getElementById('stat-val-artists');
+      artistsBox.innerHTML = '';
+      if (sortedArtists.length === 0) {
+        artistsBox.textContent = '...';
+      } else {
+        sortedArtists.forEach(([art, num]) => {
+          const badge = document.createElement('span');
+          badge.className = 'bg-rose-950/40 border border-rose-900 px-1.5 py-0.5 rounded text-[10px]';
+          badge.textContent = `${art} (${num})`;
+          artistsBox.appendChild(badge);
+        });
+      }
+    }
+
+    setInterval(() => {
+      state.totalTime += 1;
+      localStorage.setItem('p_e621_total_time', state.totalTime);
+      updateStatsUI();
+    }, 1000);
+
+    function renderBlacklistChips() {
+      const chipsContainer = document.getElementById('blacklist-chips');
+      chipsContainer.innerHTML = '';
       state.blacklist.forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
-        chip.innerHTML = `<span>${tag}</span><button data-tag="${tag}">✕</button>`;
-        chip.querySelector('button').addEventListener('click', () => {
-          state.blacklist = state.blacklist.filter(t => t !== tag);
-          localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
-          renderBlacklist();
-          loadGallery(true);
-        });
-        container.appendChild(chip);
+        chip.innerHTML = `<span>${tag}</span><button onclick="removeBlacklistTag('${tag}')">✕</button>`;
+        chipsContainer.appendChild(chip);
       });
     }
+
+    window.removeBlacklistTag = function(tag) {
+      state.blacklist = state.blacklist.filter(t => t !== tag);
+      localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+      renderBlacklistChips();
+      loadGallery(true);
+    };
 
     document.getElementById('add-blacklist-btn').addEventListener('click', () => {
       const input = document.getElementById('blacklist-input');
@@ -2859,452 +2913,553 @@
       if (tag && !state.blacklist.includes(tag)) {
         state.blacklist.push(tag);
         localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+        renderBlacklistChips();
         input.value = '';
-        renderBlacklist();
         loadGallery(true);
-        showToast(state.language === 'ru' ? "Тег добавлен в блэклист" : "Tag added to blacklist");
       }
     });
 
-    function applyCustomization() {
-      document.documentElement.style.setProperty('--accent', state.customization.accent);
-      document.documentElement.style.setProperty('--radius', state.customization.radius);
-      
-      document.body.classList.remove('feed-fit-cover', 'feed-fit-contain');
-      document.body.classList.add(`feed-fit-${state.settings.feedFit}`);
-      
-      applyCustomBackground(state.customBg);
-      applyBgOpacity(state.bgOpacity);
+    document.getElementById('shuffler-square').addEventListener('click', () => changeLayout('squares'));
+    document.getElementById('shuffler-masonry').addEventListener('click', () => changeLayout('masonry'));
+    document.getElementById('shuffler-story').addEventListener('click', () => changeLayout('stories'));
+
+    function changeLayout(type) {
+      const grids = [
+        document.getElementById('gallery-grid'),
+        document.getElementById('bookmarks-grid'),
+        document.getElementById('recs-grid')
+      ];
+
+      grids.forEach(grid => {
+        if (!grid) return;
+        grid.className = 'grid-container';
+        if (type === 'squares') {
+          grid.classList.add('grid-squares');
+        } else if (type === 'masonry') {
+          grid.classList.add('grid-masonry');
+        } else if (type === 'stories') {
+          grid.classList.add('grid-stories');
+        }
+      });
+
+      document.querySelectorAll('.post-card').forEach(card => {
+        card.style.height = '';
+      });
+
+      state.settings.layout = type;
+      localStorage.setItem('p_e621_layout', type);
+      showToast(`${state.language === 'ru' ? 'Сетка:' : 'Layout:'} ${type}`);
     }
 
     document.querySelectorAll('.color-dot').forEach(dot => {
       dot.addEventListener('click', () => {
-        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-        dot.classList.add('active');
         const color = dot.getAttribute('data-color');
         state.customization.accent = color;
         localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
-        applyCustomization();
+        applyCustomStyles();
+        translateUI(); 
+        showToast(state.language === 'ru' ? "Цветовая гамма обновлена!" : "Color accent updated!");
       });
     });
 
     document.getElementById('setting-radius').addEventListener('change', (e) => {
       state.customization.radius = e.target.value;
       localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
-      applyCustomization();
+      applyCustomStyles();
+      showToast(state.language === 'ru' ? "Скругление обновлено!" : "Borders updated!");
     });
 
     document.getElementById('setting-feed-fit').addEventListener('change', (e) => {
-      state.settings.feedFit = e.target.value;
-      localStorage.setItem('p_e621_feed_fit', state.settings.feedFit);
-      applyCustomization();
+      const val = e.target.value;
+      state.settings.feedFit = val;
+      localStorage.setItem('p_e621_feed_fit', val);
+      applyFeedFitStyle();
+      showToast(state.language === 'ru' ? "Формат отображения обновлен!" : "Fit format updated!");
     });
 
-    document.getElementById('custom-bg-input').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          state.customBg = evt.target.result;
-          localStorage.setItem('p_e621_custom_bg', state.customBg);
-          applyCustomization();
-          showToast(state.language === 'ru' ? "Фон успешно установлен!" : "Background wallpaper active!");
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    document.getElementById('bg-opacity-range').addEventListener('input', (e) => {
-      state.bgOpacity = e.target.value;
-      localStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
-      applyCustomization();
-    });
-
-    document.getElementById('clear-bg-btn').addEventListener('click', () => {
-      state.customBg = '';
-      localStorage.removeItem('p_e621_custom_bg');
-      applyCustomization();
-      showToast(state.language === 'ru' ? "Фон сброшен!" : "Background cleared!");
-    });
-
-    // Инициализация чекбоксов и связывание с быстрым NSFW переключателем
-    function initRatingsCheckboxes() {
-      const safeCheck = document.getElementById('rating-safe');
-      const questCheck = document.getElementById('rating-questionable');
-      const explCheck = document.getElementById('rating-explicit');
-      const headerNsfwToggle = document.getElementById('header-nsfw-toggle');
-      
-      safeCheck.checked = state.settings.ratings.includes('0+');
-      questCheck.checked = state.settings.ratings.includes('16+');
-      explCheck.checked = state.settings.ratings.includes('18+');
-      
-      if (headerNsfwToggle) {
-        headerNsfwToggle.checked = state.settings.ratings.includes('18+');
-      }
-      
-      const changeHandler = () => {
-        const ratings = [];
-        if (safeCheck.checked) ratings.push('0+');
-        if (questCheck.checked) ratings.push('16+');
-        if (explCheck.checked) ratings.push('18+');
-        
-        state.settings.ratings = ratings;
-        localStorage.setItem('p_e621_ratings', JSON.stringify(ratings));
-        
-        if (headerNsfwToggle) {
-          headerNsfwToggle.checked = ratings.includes('18+');
-        }
-        
-        loadGallery(true);
-      };
-      
-      safeCheck.addEventListener('change', changeHandler);
-      questCheck.addEventListener('change', changeHandler);
-      explCheck.addEventListener('change', changeHandler);
-
-      // Логика быстрого переключателя в шапке
-      if (headerNsfwToggle) {
-        headerNsfwToggle.addEventListener('change', (e) => {
-          const isChecked = e.target.checked;
-          const ratings = ['0+'];
-          if (isChecked) {
-            ratings.push('16+');
-            ratings.push('18+');
-            showToast(state.language === 'ru' ? "NSFW включен (18+)" : "NSFW enabled (18+)");
-          } else {
-            showToast(state.language === 'ru' ? "NSFW скрыт (Безопасно)" : "NSFW disabled (Safe Search)");
-          }
-          
-          state.settings.ratings = ratings;
-          localStorage.setItem('p_e621_ratings', JSON.stringify(ratings));
-          
-          // Синхронизируем состояние в боковом меню настроек
-          safeCheck.checked = true;
-          questCheck.checked = isChecked;
-          explCheck.checked = isChecked;
-          
-          // Моментально обновляем отображение на текущем экране
-          const activeTab = document.querySelector('.tab-bar .tab-btn.active');
-          if (activeTab) {
-            const view = activeTab.getAttribute('data-view');
-            if (view === 'gallery') loadGallery(true);
-            else if (view === 'bookmarks') renderBookmarks();
-            else if (view === 'recommendations') renderRecommendations();
-          }
-        });
-      }
+    function applyFeedFitStyle() {
+      document.body.classList.remove('feed-fit-cover', 'feed-fit-contain');
+      document.body.classList.add(`feed-fit-${state.settings.feedFit || 'cover'}`);
+      document.getElementById('setting-feed-fit').value = state.settings.feedFit || 'cover';
     }
 
-    function initConnectionSettingsUI() {
-      const apiInput = document.getElementById('api-base-url');
-      const proxySelect = document.getElementById('setting-proxy-mode');
-      const customProxyWrap = document.getElementById('custom-proxy-wrapper');
-      const customProxyInput = document.getElementById('custom-proxy-prefix');
-      
-      if (apiInput) apiInput.value = state.settings.apiBaseUrl;
-      if (proxySelect) proxySelect.value = state.settings.proxyMode;
-      if (customProxyInput) customProxyInput.value = state.settings.customProxyPrefix;
-      
-      const checkCustomProxyVisibility = () => {
-        if (proxySelect && proxySelect.value === 'custom') {
-          customProxyWrap.classList.remove('hidden');
+    function applyCustomStyles() {
+      const root = document.documentElement;
+      root.style.setProperty('--accent', state.customization.accent);
+      root.style.setProperty('--accent-hover', state.customization.accent + 'dd');
+      root.style.setProperty('--radius', state.customization.radius);
+
+      document.querySelectorAll('.color-dot').forEach(dot => {
+        if (dot.getAttribute('data-color') === state.customization.accent) {
+          dot.classList.add('active');
         } else {
-          customProxyWrap.classList.add('hidden');
-        }
-      };
-      
-      if (proxySelect) {
-        proxySelect.addEventListener('change', checkCustomProxyVisibility);
-      }
-      checkCustomProxyVisibility();
-      
-      const saveBtn = document.getElementById('save-connection-btn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-          state.settings.apiBaseUrl = apiInput.value.trim() || 'https://e621.net';
-          state.settings.proxyMode = proxySelect.value;
-          state.settings.customProxyPrefix = customProxyInput.value.trim();
-          
-          localStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl);
-          localStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode);
-          localStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix);
-          
-          showToast(t('connectionSaved'));
-          loadGallery(true);
-        });
-      }
-    }
-
-    function applyLayout() {
-      const container = document.getElementById('gallery-grid');
-      container.className = 'grid-container';
-      if (state.settings.layout === 'squares') {
-        container.classList.add('grid-squares');
-      } else if (state.settings.layout === 'masonry') {
-        container.classList.add('grid-masonry');
-      } else if (state.settings.layout === 'stories') {
-        container.classList.add('grid-stories');
-      }
-    }
-
-    document.getElementById('shuffler-square').addEventListener('click', () => {
-      state.settings.layout = 'squares';
-      localStorage.setItem('p_e621_layout', 'squares');
-      applyLayout();
-      loadGallery(true);
-    });
-    document.getElementById('shuffler-masonry').addEventListener('click', () => {
-      state.settings.layout = 'masonry';
-      localStorage.setItem('p_e621_layout', 'masonry');
-      applyLayout();
-      loadGallery(true);
-    });
-    document.getElementById('shuffler-story').addEventListener('click', () => {
-      state.settings.layout = 'stories';
-      localStorage.setItem('p_e621_layout', 'stories');
-      applyLayout();
-      loadGallery(true);
-    });
-
-    function updateStatsUI() {
-      safeText('stat-val-viewed', state.history.length);
-      safeText('stat-val-liked', state.bookmarks.length);
-      
-      const m = Math.floor(state.totalTime / 60);
-      const s = state.totalTime % 60;
-      safeText('stat-val-time', `${m}m ${s}s`);
-      
-      const freqContainer = document.getElementById('stat-val-tags');
-      const sorted = Object.entries(state.tagFreq)
-        .sort((a,b) => b[1] - a[1])
-        .slice(0, 10);
-      
-      if (freqContainer) {
-        freqContainer.innerHTML = '';
-        if (sorted.length === 0) {
-          freqContainer.textContent = '...';
-        } else {
-          sorted.forEach(([tag, count]) => {
-            const span = document.createElement('span');
-            span.className = 'bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-[10px]';
-            span.textContent = `${tag} (${count})`;
-            freqContainer.appendChild(span);
-          });
-        }
-      }
-      
-      const artists = {};
-      state.bookmarks.forEach(post => {
-        if (post.tags && Array.isArray(post.tags.artist)) {
-          post.tags.artist.forEach(art => {
-            artists[art] = (artists[art] || 0) + 1;
-          });
+          dot.classList.remove('active');
         }
       });
-      const sortedArtists = Object.entries(artists).sort((a,b) => b[1] - a[1]).slice(0, 5);
-      const artistContainer = document.getElementById('stat-val-artists');
-      if (artistContainer) {
-        artistContainer.innerHTML = '';
-        if (sortedArtists.length === 0) {
-          artistContainer.textContent = '...';
+
+      const radiusSelect = document.getElementById('setting-radius');
+      if (radiusSelect) radiusSelect.value = state.customization.radius;
+      
+      const bottomBar = document.getElementById('bottom-tab-bar');
+      if (bottomBar) bottomBar.style.borderColor = state.customization.accent;
+
+      // Force immediate re-color of active tab text/icons
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
+        if (b.classList.contains('active')) {
+          b.style.color = state.customization.accent;
         } else {
-          sortedArtists.forEach(([art, count]) => {
-            const span = document.createElement('span');
-            span.className = 'bg-zinc-800 text-rose-300 px-1.5 py-0.5 rounded text-[10px]';
-            span.textContent = `${art} (${count})`;
-            artistContainer.appendChild(span);
-          });
+          b.style.color = 'var(--text-muted)';
         }
+      });
+    }
+
+    document.getElementById('setting-data-budget').addEventListener('change', (e) => {
+      state.settings.dataBudget = e.target.checked;
+      localStorage.setItem('p_e621_set_budget', state.settings.dataBudget);
+    });
+
+    document.getElementById('setting-ram-safeguard').addEventListener('change', (e) => {
+      state.settings.ramSafeguard = e.target.checked;
+      localStorage.setItem('p_e621_set_ram', state.settings.ramSafeguard);
+    });
+
+    // Custom background file handler with interactive compression
+    document.getElementById('custom-bg-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          // Compress to maximum size 1280px width or height to stay within localStorage boundaries
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const max_size = 1280;
+          if (width > max_size) {
+            height *= max_size / width;
+            width = max_size;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          try {
+            state.customBg = compressedDataUrl;
+            localStorage.setItem('p_e621_custom_bg', compressedDataUrl);
+            applyCustomBackground(compressedDataUrl);
+            showToast(state.language === 'ru' ? "Фоновое изображение успешно установлено!" : "Wallpaper configured!");
+          } catch (err) {
+            showToast(state.language === 'ru' ? "Слишком большой файл! Выберите другое фото." : "File too large! Select a smaller photo.");
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('clear-bg-btn').addEventListener('click', function() {
+      state.customBg = '';
+      localStorage.removeItem('p_e621_custom_bg');
+      applyCustomBackground('');
+      document.getElementById('custom-bg-input').value = '';
+      showToast(state.language === 'ru' ? "Стандартный фон возвращен!" : "Wallpaper reset!");
+    });
+
+    const bgOpacityRange = document.getElementById('bg-opacity-range');
+    bgOpacityRange.value = state.bgOpacity;
+    applyBgOpacity(state.bgOpacity);
+
+    bgOpacityRange.addEventListener('input', function(e) {
+      const val = e.target.value;
+      state.bgOpacity = val;
+      localStorage.setItem('p_e621_bg_opacity', val);
+      applyBgOpacity(val);
+    });
+
+    const apiBaseInput = document.getElementById('api-base-url');
+    const proxyModeSelect = document.getElementById('setting-proxy-mode');
+    const customProxyPrefixInput = document.getElementById('custom-proxy-prefix');
+    const customProxyWrapper = document.getElementById('custom-proxy-wrapper');
+
+    proxyModeSelect.addEventListener('change', () => {
+      if (proxyModeSelect.value === 'custom') {
+        customProxyWrapper.classList.remove('hidden');
+      } else {
+        customProxyWrapper.classList.add('hidden');
       }
-    }
+    });
 
-    function trackAppTime() {
-      setInterval(() => {
-        state.totalTime++;
-        localStorage.setItem('p_e621_total_time', state.totalTime);
-        if (document.getElementById('panel-settings').classList.contains('active')) {
-          const m = Math.floor(state.totalTime / 60);
-          const s = state.totalTime % 60;
-          safeText('stat-val-time', `${m}m ${s}s`);
-        }
-      }, 1000);
-    }
+    document.getElementById('save-connection-btn').addEventListener('click', () => {
+      const apiBase = apiBaseInput.value.trim() || 'https://e621.net';
+      const proxyMode = proxyModeSelect.value;
+      const customPrefix = customProxyPrefixInput.value.trim();
 
-    function showToast(message) {
-      const toast = document.getElementById('custom-toast');
-      if (!toast) return;
-      toast.textContent = message;
-      toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 2500);
+      state.settings.apiBaseUrl = apiBase;
+      state.settings.proxyMode = proxyMode;
+      state.settings.customProxyPrefix = customPrefix;
+
+      localStorage.setItem('p_e621_api_base', apiBase);
+      localStorage.setItem('p_e621_proxy_mode', proxyMode);
+      localStorage.setItem('p_e621_custom_proxy', customPrefix);
+
+      showToast(t('connectionSaved'));
+      loadGallery(true);
+    });
+
+    function initConnectionSettingsUI() {
+      apiBaseInput.value = state.settings.apiBaseUrl || 'https://e621.net';
+      proxyModeSelect.value = state.settings.proxyMode || 'fallback';
+      customProxyPrefixInput.value = state.settings.customProxyPrefix || '';
+
+      if (state.settings.proxyMode === 'custom') {
+        customProxyWrapper.classList.remove('hidden');
+      } else {
+        customProxyWrapper.classList.add('hidden');
+      }
     }
 
     document.getElementById('export-backup-btn').addEventListener('click', () => {
-      const container = document.getElementById('export-container');
-      container.classList.toggle('hidden');
       document.getElementById('import-container').classList.add('hidden');
-      
-      if (!container.classList.contains('hidden')) {
-        const exportData = {
-          bookmarks: state.bookmarks,
-          blacklist: state.blacklist,
-          tagFreq: state.tagFreq,
-          favSearches: state.favSearches,
-          customization: state.customization
-        };
-        const jsonStr = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
-        document.getElementById('backup-code-display').value = jsonStr;
-      }
-    });
-    
-    document.getElementById('copy-export-btn').addEventListener('click', () => {
-      const textarea = document.getElementById('backup-code-display');
-      textarea.select();
-      document.execCommand('copy');
-      showToast(state.language === 'ru' ? "Код скопирован!" : "Code copied!");
-    });
-    
-    document.getElementById('import-backup-btn').addEventListener('click', () => {
-      document.getElementById('import-container').classList.toggle('hidden');
-      document.getElementById('export-container').classList.add('hidden');
-    });
-    
-    document.getElementById('apply-import-btn').addEventListener('click', () => {
-      const inputStr = document.getElementById('import-code-input').value.trim();
-      if (!inputStr) return;
-      try {
-        const jsonStr = decodeURIComponent(escape(atob(inputStr)));
-        const data = JSON.parse(jsonStr);
-        
-        if (data.bookmarks) state.bookmarks = data.bookmarks;
-        if (data.blacklist) state.blacklist = data.blacklist;
-        if (data.tagFreq) state.tagFreq = data.tagFreq;
-        if (data.favSearches) state.favSearches = data.favSearches;
-        if (data.customization) state.customization = data.customization;
-        
-        localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-        localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
-        localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
-        localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
-        localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
-        
-        applyCustomization();
-        translateUI();
-        renderBlacklist();
-        renderFavoriteSearches();
-        loadGallery(true);
-        
-        showToast(state.language === 'ru' ? "Бэкап успешно применен!" : "Backup restored successfully!");
-        document.getElementById('import-container').classList.add('hidden');
-      } catch (e) {
-        showToast(state.language === 'ru' ? "Ошибка разбора бэкап-кода" : "Failed to parse backup code");
-      }
-    });
 
-    function initEULA() {
-      const overlay = document.getElementById('eula-overlay');
-      const confirmed = localStorage.getItem('p_e621_eula_confirmed');
-      if (confirmed === 'true') {
-        overlay.classList.add('hidden');
-        return;
-      }
-      
-      overlay.classList.remove('hidden');
-      
-      const renderTerms = () => {
-        const termsBox = document.getElementById('eula-terms-box');
-        const title = document.getElementById('eula-main-title');
-        const checkText = document.getElementById('lbl-eula-checkbox-text');
-        const btn = document.getElementById('eula-confirm-btn');
-        
-        if (state.language === 'ru') {
-          title.textContent = "ВНИМАНИЕ";
-          checkText.textContent = "Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.";
-          btn.textContent = "Подтвердить и Продолжить";
-          termsBox.innerHTML = translations.ru.eulaText.replace(/\n/g, '<br>');
-        } else {
-          title.textContent = "ATTENTION";
-          checkText.textContent = "I verify that I am 18 years of age or older, and I fully accept the terms of this User Agreement.";
-          btn.textContent = "Confirm & Continue";
-          termsBox.innerHTML = translations.en.eulaText.replace(/\n/g, '<br>');
-        }
+      const backupData = {
+        bookmarks: state.bookmarks,
+        blacklist: state.blacklist,
+        settings: state.settings,
+        auth: state.auth,
+        customization: state.customization,
+        tagFreq: state.tagFreq,
+        favSearches: state.favSearches,
+        history: state.history,
+        totalTime: state.totalTime,
+        customBg: state.customBg,
+        bgOpacity: state.bgOpacity
       };
       
-      renderTerms();
+      const backupStr = btoa(encodeURIComponent(JSON.stringify(backupData)));
+      const display = document.getElementById('backup-code-display');
+      display.value = backupStr;
       
-      document.getElementById('eula-lang-ru').addEventListener('click', () => {
-        state.language = 'ru';
-        renderTerms();
-      });
-      document.getElementById('eula-lang-en').addEventListener('click', () => {
-        state.language = 'en';
-        renderTerms();
-      });
-      
-      const checkbox = document.getElementById('eula-checkbox');
-      const confirmBtn = document.getElementById('eula-confirm-btn');
-      checkbox.addEventListener('change', () => {
-        confirmBtn.disabled = !checkbox.checked;
-      });
-      
-      confirmBtn.addEventListener('click', () => {
-        localStorage.setItem('p_e621_eula_confirmed', 'true');
-        overlay.classList.add('hidden');
-        loadGallery();
-      });
+      document.getElementById('export-container').classList.remove('hidden');
+
+      drawBackupQR(backupStr);
+      showToast(state.language === 'ru' ? "Бэкап-код сгенерирован!" : "Backup code generated!");
+    });
+
+    document.getElementById('copy-export-btn').addEventListener('click', () => {
+      const code = document.getElementById('backup-code-display').value;
+      if (code) {
+        copyToClipboard(code);
+        showToast(state.language === 'ru' ? "Код скопирован в буфер!" : "Code copied to clipboard!");
+      }
+    });
+
+    document.getElementById('import-backup-btn').addEventListener('click', () => {
+      document.getElementById('export-container').classList.add('hidden');
+      document.getElementById('import-code-input').value = '';
+      document.getElementById('import-container').classList.remove('hidden');
+    });
+
+    document.getElementById('apply-import-btn').addEventListener('click', () => {
+      const code = document.getElementById('import-code-input').value.trim();
+      if (!code) {
+        showToast(state.language === 'ru' ? "Пожалуйста, вставьте код!" : "Please paste the code!");
+        return;
+      }
+
+      try {
+        const decoded = JSON.parse(decodeURIComponent(atob(code)));
+        if (decoded.bookmarks && decoded.blacklist) {
+          state.bookmarks = decoded.bookmarks;
+          state.blacklist = decoded.blacklist;
+          state.settings = decoded.settings || state.settings;
+          state.auth = decoded.auth || state.auth;
+          state.customization = decoded.customization || state.customization;
+          state.tagFreq = decoded.tagFreq || {};
+          state.favSearches = decoded.favSearches || [];
+          state.history = decoded.history || [];
+          state.totalTime = decoded.totalTime || 0;
+          state.customBg = decoded.customBg || '';
+          state.bgOpacity = decoded.bgOpacity || '0.9';
+
+          localStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+          localStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+          localStorage.setItem('p_e621_layout', state.settings.layout);
+          localStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
+          localStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+          localStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          localStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
+          localStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
+          localStorage.setItem('p_e621_history', JSON.stringify(state.history));
+          localStorage.setItem('p_e621_total_time', state.totalTime);
+          localStorage.setItem('p_e621_custom_bg', state.customBg);
+          localStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
+          
+          localStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl || 'https://e621.net');
+          localStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode || 'fallback');
+          localStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix || '');
+
+          renderBlacklistChips();
+          updateStatsUI();
+          updateAuthUI();
+          initRatingsCheckboxes();
+          applyCustomStyles();
+          applyFeedFitStyle();
+          applyCustomBackground(state.customBg);
+          applyBgOpacity(state.bgOpacity);
+          bgOpacityRange.value = state.bgOpacity;
+          renderRecommendedTags();
+          renderFavoriteSearches();
+          initConnectionSettingsUI();
+
+          showToast(state.language === 'ru' ? "Профиль успешно импортирован!" : "Profile successfully imported!");
+          
+          document.getElementById('import-container').classList.add('hidden');
+          loadGallery(true);
+        } else {
+          showToast(state.language === 'ru' ? "Неверный формат кода." : "Invalid code format.");
+        }
+      } catch (err) {
+        showToast(state.language === 'ru' ? "Ошибка импорта." : "Import failed.");
+      }
+    });
+
+    function drawBackupQR(text) {
+      const canvas = document.getElementById('qr-canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = "#000000";
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = text.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      const blockSize = 5;
+      for (let x = 10; x < size - 10; x += blockSize) {
+        for (let y = 10; y < size - 10; y += blockSize) {
+          const val = Math.abs(Math.sin(hash + x * y)) * 10;
+          if (val > 5) {
+            ctx.fillRect(x, y, blockSize, blockSize);
+          }
+        }
+      }
+
+      drawQRMarker(ctx, 10, 10);
+      drawQRMarker(ctx, size - 30, 10);
+      drawQRMarker(ctx, 10, size - 30);
+
+      document.getElementById('qr-container').style.display = 'block';
     }
 
-    const tgModal = document.getElementById('tg-modal');
-    document.getElementById('tg-author-btn').addEventListener('click', () => {
-      tgModal.classList.remove('hidden');
-    });
-    document.getElementById('tg-modal-close').addEventListener('click', () => {
-      tgModal.classList.add('hidden');
-    });
-    document.getElementById('tg-copy-btn').addEventListener('click', () => {
-      navigator.clipboard.writeText('https://t.me/VelVetus_Chromus');
-      showToast(t('tgCopied'));
-    });
+    function drawQRMarker(ctx, x, y) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x, y, 20, 20);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x + 3, y + 3, 14, 14);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(x + 6, y + 6, 8, 8);
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.color = 'var(--text-muted)';
+      });
+      const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.color = state.customization.accent;
+      }
+
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById(`panel-${viewName}`);
+      if (activePanel) activePanel.classList.add('active');
+
+      const header = document.getElementById('app-header');
+      if (viewName === 'gallery') {
+        header.style.display = 'flex';
+      } else {
+        header.style.display = 'none';
+      }
+
+      if (viewName === 'bookmarks') {
+        renderBookmarks();
+      } else if (viewName === 'recommendations') {
+        generateSmartRecommendations();
+      }
+    }
 
     document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const view = btn.gttribute('data-view');
         const action = btn.getAttribute('data-action');
-        
         if (action === 'random') {
-          triggerRandomPost();
-          return;
-        }
-        
-        if (view) {
-          switchView(view);
+          rollLuckyPost(); // Run direct silent random generation from the middle tab button
+        } else {
+          switchView(btn.getAttribute('data-view'));
         }
       });
     });
 
-    function initApp() {
-      applyCustomization();
-      translateUI();
-      initRatingsCheckboxes();
-      renderBlacklist();
-      renderFavoriteSearches();
-      renderRecommendedTags();
+    function showToast(text) {
+      const toast = document.getElementById('custom-toast');
+      toast.textContent = text;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function copyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast(t('tgCopied') || "Ссылка скопирована!");
+        } else {
+          showToast("Failed to copy link");
+        }
+      } catch (err) {
+        showToast("Error during copy operation");
+      }
+      document.body.removeChild(textArea);
+    }
+
+    const tgAuthorBtn = document.getElementById('tg-author-btn');
+    const tgModal = document.getElementById('tg-modal');
+    const tgModalClose = document.getElementById('tg-modal-close');
+    const tgCopyBtn = document.getElementById('tg-copy-btn');
+
+    tgAuthorBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('tg-modal-title').textContent = t('tgTitle');
+      document.getElementById('tg-modal-desc').textContent = t('tgDesc');
+      document.getElementById('tg-modal-close').textContent = state.language === 'ru' ? 'Закрыть' : 'Close';
+      tgCopyBtn.textContent = state.language === 'ru' ? 'Копировать' : 'Copy';
       
-      const confirmed = localStorage.getItem('p_e621_eula_confirmed');
-      if (confirmed === 'true') {
+      tgModal.classList.remove('hidden');
+    });
+
+    tgModalClose.addEventListener('click', () => {
+      tgModal.classList.add('hidden');
+    });
+
+    tgCopyBtn.addEventListener('click', () => {
+      copyToClipboard('https://t.me/VelVetus_Chromus');
+    });
+
+    tgModal.addEventListener('click', (e) => {
+      if (e.target === tgModal) {
+        tgModal.classList.add('hidden');
+      }
+    });
+
+    const eulaOverlay = document.getElementById('eula-overlay');
+    const eulaCheckbox = document.getElementById('eula-checkbox');
+    const eulaConfirmBtn = document.getElementById('eula-confirm-btn');
+    let eulaLang = state.language || 'ru';
+
+    function checkFirstLaunchEULA() {
+      const accepted = localStorage.getItem('p_e621_eula_accepted');
+      if (accepted !== 'true') {
+        document.body.classList.add('modal-open');
+        eulaOverlay.classList.remove('hidden');
+        renderEULALanguage(eulaLang);
+      } else {
         loadGallery();
       }
-      
-      initEULA();
-      trackAppTime();
-      applyLayout();
-      
-      document.getElementById('auth-username').value = state.auth.username;
-      document.getElementById('auth-api-key').value = state.auth.apiKey;
     }
-    
-    window.addEventListener('DOMContentLoaded', initApp);
+
+    function renderEULALanguage(lang) {
+      eulaLang = lang;
+      
+      const ruBtn = document.getElementById('eula-lang-ru');
+      const enBtn = document.getElementById('eula-lang-en');
+
+      if (lang === 'ru') {
+        ruBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        enBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        if (ruBtn) ruBtn.style.borderColor = state.customization.accent;
+        
+        document.getElementById('eula-main-title').textContent = "ВНИМАНИЕ";
+        document.getElementById('lbl-eula-checkbox-text').textContent = translations.ru.eulaCheckbox;
+        eulaConfirmBtn.textContent = translations.ru.eulaConfirm;
+        
+        document.getElementById('eula-terms-box').innerHTML = translations.ru.eulaText
+          .split('\n\n')
+          .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+      } else {
+        enBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        ruBtn.className = "px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium";
+        if (enBtn) enBtn.style.borderColor = state.customization.accent;
+        
+        document.getElementById('eula-main-title').textContent = "WARNING";
+        document.getElementById('lbl-eula-checkbox-text').textContent = translations.en.eulaCheckbox;
+        eulaConfirmBtn.textContent = translations.en.eulaConfirm;
+
+        document.getElementById('eula-terms-box').innerHTML = translations.en.eulaText
+          .split('\n\n')
+          .map(paragraph => `<p class="mb-2">${paragraph.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+      }
+    }
+
+    document.getElementById('eula-lang-ru').addEventListener('click', () => {
+      renderEULALanguage('ru');
+    });
+
+    document.getElementById('eula-lang-en').addEventListener('click', () => {
+      renderEULALanguage('en');
+    });
+
+    eulaCheckbox.addEventListener('change', (e) => {
+      eulaConfirmBtn.disabled = !e.target.checked;
+    });
+
+    eulaConfirmBtn.addEventListener('click', () => {
+      if (eulaCheckbox.checked) {
+        localStorage.setItem('p_e621_eula_accepted', 'true');
+        state.language = eulaLang;
+        localStorage.setItem('p_e621_lang', eulaLang);
+        
+        document.body.classList.remove('modal-open');
+        eulaOverlay.classList.add('hidden');
+        
+        translateUI();
+        loadGallery(true);
+      }
+    });
+
+    window.onload = function() {
+      applyCustomStyles();
+      applyFeedFitStyle();
+      applyCustomBackground(state.customBg);
+      renderBlacklistChips();
+      changeLayout(state.settings.layout);
+      updateAuthUI();
+      initRatingsCheckboxes();
+      renderRecommendedTags();
+      renderFavoriteSearches();
+      toggleClearBtn();
+      updateStatsUI();
+      translateUI();
+
+      checkFirstLaunchEULA();
+    };
   </script>
 </body>
-      </html>
+</html>
