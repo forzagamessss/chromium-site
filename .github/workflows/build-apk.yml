@@ -56,34 +56,35 @@ jobs:
         npx cap init "Chromium E621" "com.chromium.e621.client" --web-dir=www
         npx cap add android
         
-    - name: Generate App Icons (No White Background)
+    - name: Generate App Icons
       run: |
         echo "=== Preparing Assets Directory ==="
         mkdir -p assets
         
         echo "=== Checking for icon source ==="
+        # Копируем иконку в assets/icon-only.png, так как это стандартное имя, 
+        # которое @capacitor/assets ищет автоматически для генерации
         if [ -f "icon-512.png" ]; then
           cp icon-512.png assets/icon-only.png
-          cp icon-512.png assets/icon.png
-          echo "✅ Found icon-512.png in root and copied to assets"
+          echo "✅ Found icon-512.png in root, prepared as assets/icon-only.png"
         elif [ -f "assets/icon-512.png" ]; then
           cp assets/icon-512.png assets/icon-only.png
-          cp assets/icon-512.png assets/icon.png
-          echo "✅ Copied from assets/icon-512.png to assets"
+          echo "✅ Found assets/icon-512.png, prepared as assets/icon-only.png"
         elif [ -f "assets/icon.png" ]; then
           cp assets/icon.png assets/icon-only.png
-          echo "✅ Copied from assets/icon.png to assets/icon-only.png"
+          echo "✅ Found assets/icon.png, prepared as assets/icon-only.png"
         else
-          echo "❌ ERROR: No icon source file found (checked icon-512.png in root and assets/)"
+          echo "❌ ERROR: No icon source file found. Please ensure you have icon-512.png or icon.png."
           exit 1
         fi
         
-        echo "=== Installing sharp for image processing ==="
+        echo "=== Installing sharp ==="
         npm install sharp --force
         
-        echo "=== Generating icons WITH transparent background ==="
-        # Исправлено: используем --icon-path вместо несуществующего --icon-only-path
-        npx @capacitor/assets generate --android --icon-path assets/icon-only.png --iconBackgroundColor transparent
+        echo "=== Generating icons ==="
+        # Запускаем генерацию без лишних флагов. 
+        # Инструмент сам найдет assets/icon-only.png и создаст нужные иконки.
+        npx @capacitor/assets generate --android
 
     - name: Sync Capacitor
       run: |
@@ -118,4 +119,4 @@ jobs:
       with:
         name: chromium-e621-release-apk
         path: chromium-e621-app.apk
-        retention-days: 30ы
+        retention-days: 30
