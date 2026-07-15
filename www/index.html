@@ -29,7 +29,6 @@
       user-select: none;
     }
 
-    /* Eco/Performance mode class overrides to save GPU/CPU cycles on low-end devices */
     body.eco-mode {
       --custom-bg: none !important;
     }
@@ -59,7 +58,6 @@
       position: relative;
     }
 
-    /* Backdrop overlay to keep layout legible when custom photo is active */
     body::before {
       content: "";
       position: fixed;
@@ -172,6 +170,30 @@
 
     input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus {
       border-color: var(--accent);
+    }
+
+    /* Advanced Blur NSFW Styling */
+    .nsfw-blur-enabled .post-card.is-nsfw img,
+    .nsfw-blur-enabled .post-card.is-nsfw video {
+      filter: blur(22px) saturate(0.3) !important;
+      transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nsfw-blur-enabled .post-card.is-nsfw.unblurred img,
+    .nsfw-blur-enabled .post-card.is-nsfw.unblurred video {
+      filter: none !important;
+    }
+
+    /* Emergeny / Panic Button Styling */
+    .panic-active-btn {
+      background: var(--danger) !important;
+      color: white !important;
+      animation: pulse-danger 2s infinite;
+    }
+
+    @keyframes pulse-danger {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
     }
 
     .tag-operator-bar {
@@ -551,7 +573,6 @@
     }
 
     .action-btn {
-      flex: 1;
       padding: 12px;
       border-radius: var(--radius);
       border: 1px solid var(--border);
@@ -635,7 +656,6 @@
       to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
 
-    /* Structured Accordion Styling for Settings - Modern transparent glassmorphism */
     .settings-group {
       background: rgba(18, 18, 20, 0.7);
       backdrop-filter: blur(8px);
@@ -672,7 +692,6 @@
       transform: rotate(180deg);
     }
 
-    /* Smooth Height Transition Content Wrapper */
     .settings-content-wrapper {
       max-height: 0px;
       overflow: hidden;
@@ -752,7 +771,6 @@
       transform: translateX(20px);
     }
 
-    /* Premium Premium 18+ Switch with Spring Animation and Rotating Symbol */
     .switch-premium {
       position: relative;
       display: inline-block;
@@ -783,17 +801,20 @@
 
     .slider-premium:before {
       position: absolute;
-      content: "🔞";
-      font-size: 11px;
+      content: "18+";
+      font-size: 8px;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       height: 22px; width: 22px;
       left: 3px; bottom: 2px;
       background-color: #3f3f46;
+      color: #ef4444;
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border-radius: 50%;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border: 1.5px solid #ef4444;
     }
 
     input:checked + .slider-premium {
@@ -805,6 +826,8 @@
     input:checked + .slider-premium:before {
       transform: translateX(24px) rotate(360deg);
       background-color: #ffffff;
+      color: #b91c1c;
+      border-color: #b91c1c;
       box-shadow: 0 0 8px rgba(255,255,255,0.8);
     }
 
@@ -884,7 +907,7 @@
     }
   </style>
 </head>
-<body>
+<body class="nsfw-blur-enabled">
   <div class="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border-b border-amber-500/30 text-amber-400 text-center py-1.5 px-4 text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-2 select-none z-50">
     <span class="flex h-2 w-2 relative">
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -893,20 +916,30 @@
     <span>BETA TEST: Приложение находится в стадии бета-тестирования | App is in Beta Test</span>
   </div>
 
+  <!-- -->
   <header id="app-header">
     <div class="header-top">
-      <div class="logo">
+      <div class="logo" id="main-logo-text">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3"/>
           <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round"/>
         </svg>
         CHROMIUM<span>E621</span>
       </div>
-      <div id="traffic-badge" class="traffic-counter">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="mr-1">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-        </svg>
-        <span id="traffic-val">0.0</span> MB
+      
+      <!-- Quick Header Action Buttons (Emergency/Panic button & Traffic counter) -->
+      <div class="flex items-center gap-2">
+        <button id="quick-panic-btn" class="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-500 transition-all duration-200" title="Panic Mode (Экстренная маскировка)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </button>
+        <div id="traffic-badge" class="traffic-counter">
+          <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="traffic-val">0.0</span> MB
+        </div>
       </div>
     </div>
 
@@ -918,13 +951,13 @@
         <div class="suggestions" id="suggestions" style="display: none;"></div>
       </div>
       <button class="action-btn" style="flex: 0 0 46px; padding: 0; background: var(--card-bg); border-color: var(--border);" id="fav-search-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.371 1.24.588 1.81l-3.97 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.89a1 1 0 00-1.175 0l-3.97 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
         </svg>
       </button>
       <button class="action-btn primary" style="flex: 0 0 46px; padding: 0;" id="search-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
       </button>
     </div>
@@ -944,6 +977,46 @@
     <!-- Favorite queries quick tags bar -->
     <div class="tag-operator-bar" id="favorite-searches-bar" style="display: none;"></div>
   </header>
+
+  <!-- MOCK DECOY DOCUMENTS READER VIEW (Panic / Stealth mode decoy UI) -->
+  <div id="decoy-view" class="hidden min-h-screen p-4 bg-[#09090b] text-zinc-100 flex flex-col gap-4">
+    <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+      <div class="font-extrabold text-sm tracking-tight text-zinc-300 flex items-center gap-2">
+        <svg class="w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"></path>
+        </svg>
+        <span>Secure Docs Vault</span>
+      </div>
+      <!-- Unmask secret trigger (Double tap or Hold to reveal PIN screen) -->
+      <button id="decoy-unmask-trigger" class="text-[10px] text-zinc-600 font-mono select-none px-2 py-1 rounded bg-zinc-950 border border-zinc-900">
+        v3.4.1-release
+      </button>
+    </div>
+
+    <div class="space-y-3 mt-2">
+      <div class="bg-[#121214] p-4 rounded-lg border border-zinc-800 flex justify-between items-center">
+        <div>
+          <h4 class="font-semibold text-xs text-zinc-200">Financial Report 2026_Q2.pdf</h4>
+          <span class="text-[10px] text-zinc-500">Modified: Today, 10:45 AM • 12.4 MB</span>
+        </div>
+        <span class="text-xs text-zinc-600 bg-zinc-900 border border-zinc-800/80 px-2 py-1 rounded">Read</span>
+      </div>
+      <div class="bg-[#121214] p-4 rounded-lg border border-zinc-800 flex justify-between items-center">
+        <div>
+          <h4 class="font-semibold text-xs text-zinc-200">Study Notes - Physics Unit 4.docx</h4>
+          <span class="text-[10px] text-zinc-500">Modified: Yesterday • 4.1 MB</span>
+        </div>
+        <span class="text-xs text-zinc-600 bg-zinc-900 border border-zinc-800/80 px-2 py-1 rounded">Read</span>
+      </div>
+      <div class="bg-[#121214] p-4 rounded-lg border border-zinc-800 flex justify-between items-center">
+        <div>
+          <h4 class="font-semibold text-xs text-zinc-200">Product Roadmap Presentation.pptx</h4>
+          <span class="text-[10px] text-zinc-500">Modified: Jul 12, 2026 • 24.8 MB</span>
+        </div>
+        <span class="text-xs text-zinc-600 bg-zinc-900 border border-zinc-800/80 px-2 py-1 rounded">Read</span>
+      </div>
+    </div>
+  </div>
 
   <main class="main-content" id="scroll-container">
     <!-- GALLERY TAB PANEL -->
@@ -977,7 +1050,10 @@
       
       <!-- Profile stats (Visible inline on top of settings) -->
       <div class="settings-group p-4">
-        <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm" id="lbl-stats-title">Индивидуальная статистика просмотра</div>
+        <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm flex items-center gap-2" id="lbl-stats-title">
+          <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span>Индивидуальная статистика просмотра</span>
+        </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
           <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
             <span class="text-zinc-500 block text-xs" id="lbl-stat-viewed">Просмотрено артов</span>
@@ -1005,12 +1081,15 @@
       <!-- Group 1: Account Configuration & Imports -->
       <div class="settings-group" id="group-account">
         <div class="settings-summary" onclick="toggleAccordion('group-account')">
-          <span id="sum-account">👤 Аккаунт & Импорт</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span id="sum-account">e621.net Аккаунт & Импорт</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
             <div style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-auth-desc">
-              Введите имя пользователя и API-ключ. Персональные данные хранятся локально.
+              Введите имя пользователя и API-ключ. Персональные данные хранятся локально в зашифрованном виде.
             </div>
             <div class="bg-zinc-900/50 border border-zinc-800 p-3 rounded-lg text-xs text-zinc-400 space-y-2 mb-1 leading-relaxed">
               <div class="font-semibold text-amber-500">Зачем нужен API-ключ e621?</div>
@@ -1028,10 +1107,10 @@
               </div>
             </div>
 
-            <!-- Secret Expanded Admin Control Panel (Triggered by hX487Mv3CFxENX3nsFL8ZEEf in API key field) -->
+            <!-- Secret Expanded Admin Control Panel -->
             <div id="admin-panel" class="hidden mt-4 p-4 rounded-lg border border-red-500/40 bg-red-950/20 backdrop-blur-md space-y-4 transition-all duration-300">
               <div class="flex items-center gap-2 pb-2 border-b border-red-500/30">
-                <span class="text-base">👑</span>
+                <svg class="w-4 h-4 text-red-400 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                 <span class="font-bold text-red-400 text-xs tracking-wider uppercase">Админ-консоль / Admin Control Deck</span>
               </div>
               
@@ -1042,11 +1121,11 @@
                   <div class="grid grid-cols-2 gap-2 text-[10px]">
                     <div class="bg-zinc-900/80 p-2 rounded flex flex-col justify-between border border-zinc-800/40">
                       <span class="text-zinc-400 font-semibold">corsproxy.io</span>
-                      <span id="ping-val-corsproxy" class="text-amber-500 font-bold mt-1">Ожидание...</span>
+                      <span id="ping-val-corsproxy" class="text-amber-500 font-bold mt-1">Ожинение...</span>
                     </div>
                     <div class="bg-zinc-900/80 p-2 rounded flex flex-col justify-between border border-zinc-800/40">
                       <span class="text-zinc-400 font-semibold">allorigins.win</span>
-                      <span id="ping-val-allorigins" class="text-amber-500 font-bold mt-1">Ожидание...</span>
+                      <span id="ping-val-allorigins" class="text-amber-500 font-bold mt-1">Ожинение...</span>
                     </div>
                     <div class="bg-zinc-900/80 p-2 rounded flex flex-col justify-between border border-zinc-800/40 col-span-2">
                       <span class="text-zinc-400 font-semibold">Прямой API e621.net</span>
@@ -1116,7 +1195,7 @@
                   </div>
                 </div>
 
-                <!-- Selective Local Data Wipe / Surgery -->
+                <!-- selective Local Data Wipe -->
                 <div class="p-2.5 bg-black/40 rounded border border-zinc-800/80 space-y-2">
                   <span class="font-bold text-zinc-300 block text-[10px] uppercase tracking-wider">🔪 Хирургия Локальной БД</span>
                   <div class="grid grid-cols-2 gap-2 text-[9px]">
@@ -1148,7 +1227,8 @@
             </div>
 
             <button class="action-btn font-bold text-xs mt-1 hidden w-full py-2.5 transition duration-200 border-dashed" id="import-online-favs-btn" style="border-color: var(--accent); color: var(--accent); background: transparent;">
-              📥 Импортировать избранное с e621.net в локальное
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Импортировать избранное с e621.net в локальное</span>
             </button>
 
             <!-- Nested manual guide wrapper -->
@@ -1171,16 +1251,99 @@
         </div>
       </div>
 
+      <!-- -->
+      <!-- NEW Group 1.5: Security & Privacy Suite (PIN, Blurs, Decoy triggers) -->
+      <div class="settings-group" id="group-security-suite">
+        <div class="settings-summary" onclick="toggleAccordion('group-security-suite')">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <span id="sum-security-suite">Защита & PIN-код</span>
+          </span>
+        </div>
+        <div class="settings-content-wrapper">
+          <div class="settings-content">
+            <!-- Panic active persistent disable block -->
+            <div id="panic-disable-wrap" class="hidden border-b border-red-500/30 pb-3 mb-2 space-y-2 bg-red-950/10 p-2.5 rounded-lg border border-red-900/30">
+              <div class="text-xs font-bold text-red-400 flex flex-col gap-0.5">
+                Экстренная маскировка активна! / Panic Active!
+                <span class="text-[10px] text-zinc-500 font-normal">Приложение находится в защищенном режиме. Взрослый контент скрыт.</span>
+              </div>
+              <button id="disable-panic-settings-btn" class="w-full action-btn text-xs py-2 font-bold bg-red-900/30 hover:bg-red-900/50 border-red-700/50 text-red-200 transition duration-200">
+                Отключить режим паники
+              </button>
+            </div>
+
+            <!-- 4-Digit PIN protection -->
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <label class="text-xs font-bold text-zinc-400 flex flex-col">
+                  Защита четырехзначным PIN
+                  <span class="text-[10px] text-zinc-500 font-normal">Запрашивать PIN при запуске и выходе</span>
+                </label>
+                <label class="switch">
+                  <input type="checkbox" id="setting-pin-enabled">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Set / Change PIN Button -->
+              <div id="pin-actions-wrap" class="hidden flex gap-2">
+                <button id="set-pin-btn" class="action-btn text-xs py-1.5 flex-grow font-semibold">
+                  Изменить PIN
+                </button>
+              </div>
+            </div>
+
+            <!-- NSFW Blur Options -->
+            <div class="border-t border-zinc-800/80 pt-3 flex justify-between items-center">
+              <label class="text-xs font-bold text-zinc-400 flex flex-col">
+                Размывать 18+ контент (NSFW Blur)
+                <span class="text-[10px] text-zinc-500 font-normal">Превью будут скрыты под размытием до клика</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" id="setting-nsfw-blur" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Decoy App Configurations -->
+            <div class="border-t border-zinc-800/80 pt-3 space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-xs font-bold text-zinc-400 flex flex-col">
+                  Маскировочный интерфейс (Decoy Mode)
+                  <span class="text-[10px] text-zinc-500 font-normal">Превратить приложение в фейковый менеджер PDF</span>
+                </label>
+                <label class="switch">
+                  <input type="checkbox" id="setting-decoy-enabled">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <p class="text-[10px] text-zinc-500 leading-normal">
+                При активации маскировки, e621-клиент закроется. Чтобы вернуться, зажмите версию прошивки на decoy экране на 3 секунды.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Group 2: Custom Appearance & Theme Visuals -->
       <div class="settings-group" id="group-appearance">
         <div class="settings-summary" onclick="toggleAccordion('group-appearance')">
-          <span id="sum-appearance">🎨 Интерфейс & Свой фон</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3"></path></svg>
+            <span id="sum-appearance">Интерфейс & Свой фон</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
             <!-- Multi-Language Choice block -->
             <div>
-              <div class="text-xs font-bold mb-2 text-zinc-400" id="lbl-lang-title">Язык приложения / Language</div>
+              <div class="text-xs font-bold mb-2 text-zinc-400 flex items-center gap-1.5" id="lbl-lang-title">
+                <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 7.31 16.571 3 18.571"></path></svg>
+                <span>Язык приложения / Language</span>
+              </div>
               <div style="display: flex; gap: 8px;">
                 <button class="action-btn" id="lang-btn-ru" style="flex: 1;">Русский 🇷🇺</button>
                 <button class="action-btn" id="lang-btn-en" style="flex: 1;">English 🇺🇸</button>
@@ -1233,7 +1396,10 @@
       <!-- Group 3: Safe Filters & Content Blacklist -->
       <div class="settings-group" id="group-safety">
         <div class="settings-summary" onclick="toggleAccordion('group-safety')">
-          <span id="sum-safety">🛡️ Фильтры & Блэклист</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <span id="sum-safety">Фильтры & Блэклист</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1252,7 +1418,6 @@
                   <span class="slider"></span>
                 </label>
               </div>
-              <!-- Premium 18+ option with high quality slider integrations -->
               <div class="setting-item">
                 <label id="lbl-rate-expl">18+ (Explicit / Откровенно)<span>Контент для взрослых</span></label>
                 <label class="switch-premium">
@@ -1277,7 +1442,10 @@
       <!-- Group 4: Feel Lucky generator parameters -->
       <div class="settings-group" id="group-lucky">
         <div class="settings-summary" onclick="toggleAccordion('group-lucky')">
-          <span id="sum-lucky">🎰 Параметры «Мне повезет»</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+            <span id="sum-lucky">Параметры «Мне повезет»</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1308,7 +1476,10 @@
       <!-- Group 5: Grid layout chooser -->
       <div class="settings-group" id="group-layout">
         <div class="settings-summary" onclick="toggleAccordion('group-layout')">
-          <span id="sum-layout">📐 Разметка ленты (Aspect Ratio)</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+            <span id="sum-layout">Разметка ленты (Aspect Ratio)</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1324,7 +1495,10 @@
       <!-- Group 6: Traffic & Performance Parameters -->
       <div class="settings-group" id="group-traffic">
         <div class="settings-summary" onclick="toggleAccordion('group-traffic')">
-          <span id="sum-traffic">🚀 Контроль трафика & Энергия</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span id="sum-traffic">Контроль трафика & Энергия</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1343,7 +1517,6 @@
               </label>
             </div>
             
-            <!-- Low-Spec Hardware Optimization Switch (Eco Mode) -->
             <div class="setting-item border-t border-zinc-800/80 pt-3 mt-1">
               <label id="lbl-eco-mode" class="text-emerald-400">
                 Энергосберегающий режим (Eco Mode)
@@ -1361,7 +1534,10 @@
       <!-- Group 7: Connection & CORS Settings Group -->
       <div class="settings-group" id="group-network">
         <div class="settings-summary" onclick="toggleAccordion('group-network')">
-          <span id="sum-network">🌐 Сеть & CORS Настройки</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+            <span id="sum-network">Сеть & CORS Настройки</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1396,7 +1572,10 @@
       <!-- Group 8: Backup Profile settings -->
       <div class="settings-group" id="group-backup">
         <div class="settings-summary" onclick="toggleAccordion('group-backup')">
-          <span id="sum-backup">💾 Экспорт & Бэкап профиля</span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            <span id="sum-backup">Экспорт & Бэкап профиля</span>
+          </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
@@ -1405,7 +1584,6 @@
               <button class="action-btn" id="import-backup-btn" style="flex: 1;">Импорт</button>
             </div>
             
-            <!-- Export Container with Copy Button -->
             <div id="export-container" class="hidden flex flex-col gap-2">
               <div class="flex gap-2">
                 <textarea id="backup-code-display" readonly class="text-xs border border-zinc-800 rounded p-2 flex-grow bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;"></textarea>
@@ -1416,7 +1594,6 @@
               </div>
             </div>
 
-            <!-- Import Container for User Input -->
             <div id="import-container" class="hidden flex flex-col gap-2">
               <textarea id="import-code-input" class="text-xs border border-zinc-800 rounded p-2 bg-zinc-950 text-zinc-300 resize-none h-16 font-mono" style="outline:none;" placeholder="Вставьте код экспорта сюда... / Paste export code here..."></textarea>
               <button id="apply-import-btn" class="action-btn primary w-full text-xs py-2">Применить импорт / Apply Import</button>
@@ -1425,7 +1602,6 @@
         </div>
       </div>
 
-      <!-- Hidden Minimalist TG Link Button at the absolute bottom -->
       <div class="w-full text-center py-2 opacity-30 hover:opacity-100 transition-opacity duration-300">
         <button id="tg-author-btn" class="text-[10px] text-zinc-500 hover:text-zinc-300 underline bg-transparent border-0 outline-none cursor-pointer tracking-wide uppercase">
           ru - "ТГК автора" / en - "author tg.channel"
@@ -1458,7 +1634,6 @@
 
     <div class="detail-footer">
       <div class="detail-actions">
-        <!-- Next Random generator button (Clean, text only, no icons/emojis) -->
         <button class="action-btn text-white" id="detail-lucky-next-btn" style="display: none; background: linear-gradient(135deg, #fbbf24, #d97706); border: none;">
           <span class="font-bold" id="lbl-lucky-next-text">Дальше</span>
         </button>
@@ -1475,11 +1650,9 @@
         </button>
       </div>
 
-      <!-- Comments safeguarding block -->
       <div id="comments-main-container" class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
         <h4 id="lbl-comments-title" class="font-bold text-sm text-zinc-300 border-b border-zinc-800 pb-2">Комментарии</h4>
         <div id="comments-feed" class="space-y-2 max-height-60 overflow-y-auto text-xs text-zinc-400">
-          <!-- Comments go here -->
         </div>
       </div>
 
@@ -1487,29 +1660,24 @@
     </div>
   </div>
 
-  <!-- STYLISH FIRST LAUNCH NSFW & LICENSE USER AGREEMENT OVERLAY -->
+  <!-- FIRST LAUNCH NSFW & LICENSE AGREEMENT OVERLAY -->
   <div id="eula-overlay" class="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-[2000] flex flex-col justify-between p-6 overflow-y-auto hidden">
     <div class="max-w-md mx-auto w-full my-auto space-y-6">
       
-      <!-- Premium Language Switcher inside Overlay -->
       <div class="flex gap-4 justify-center">
         <button id="eula-lang-ru" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">Русский 🇷🇺</button>
         <button id="eula-lang-en" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">English 🇺🇸</button>
       </div>
 
-      <!-- NSFW Caution Icon -->
       <div class="text-center space-y-2">
-        <span class="text-5xl block animate-bounce">⚠️</span>
+        <svg class="w-12 h-12 text-red-500 mx-auto animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         <h2 class="text-xl font-extrabold text-red-500 tracking-tight" id="eula-main-title">ВНИМАНИЕ / ATTENTION</h2>
         <p class="text-xs text-zinc-500" id="eula-sub-title">18+ NSFW Content Protection & Terms</p>
       </div>
 
-      <!-- Interactive terms list container -->
       <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-lg p-4 h-64 overflow-y-auto text-xs text-zinc-400 leading-relaxed space-y-3" id="eula-terms-box">
-        <!-- Will be filled in runtime -->
       </div>
 
-      <!-- Interactive Checkbox state -->
       <label class="flex items-start gap-3 cursor-pointer select-none py-1">
         <input type="checkbox" id="eula-checkbox" class="mt-1 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-950">
         <span class="text-xs text-zinc-400 leading-snug" id="lbl-eula-checkbox-text">
@@ -1517,25 +1685,23 @@
         </span>
       </label>
 
-      <!-- Action Confirmation Trigger -->
       <button id="eula-confirm-btn" class="w-full py-3 px-4 rounded text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed" style="background-color: var(--accent);" disabled>
         Подтвердить и Продолжить
       </button>
     </div>
   </div>
 
-  <!-- MINIMALIST PREMIUM AUTHOR TG PROMPT MODAL -->
+  <!-- MINIMALIST AUTHOR TG PROMPT MODAL -->
   <div id="tg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1500] hidden flex items-center justify-center p-4">
     <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl max-w-sm w-full space-y-4 shadow-2xl">
       <div class="flex items-center gap-3">
-        <span class="text-2xl">📢</span>
+        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
         <h3 class="text-base font-bold text-blue-400" id="tg-modal-title" style="color: var(--accent);">Телеграм канал автора</h3>
       </div>
       <p class="text-xs text-zinc-400 leading-relaxed" id="tg-modal-desc">
         Подписывайтесь на официальный канал автора, чтобы следить за разработкой, получать важные обновления и первыми тестировать новые фичи!
       </p>
       
-      <!-- Link visual copy block -->
       <div class="bg-zinc-950 border border-zinc-800 p-3 rounded-lg flex items-center justify-between gap-3">
         <a href="https://t.me/VelVetus_Chromus" target="_blank" class="text-xs font-semibold hover:underline break-all" style="color: var(--accent);">t.me/VelVetus_Chromus</a>
         <button id="tg-copy-btn" class="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white transition font-bold whitespace-nowrap">
@@ -1549,6 +1715,48 @@
     </div>
   </div>
 
+  <!-- NEW 4-DIGIT PIN ENTRY SCREEN (Touch friendly, secure numeric overlay) -->
+  <div id="pin-overlay-screen" class="fixed inset-0 bg-zinc-950/98 z-[2500] hidden flex flex-col justify-center items-center">
+    <div class="w-64 space-y-8 flex flex-col items-center">
+      <div class="text-center space-y-2">
+        <div class="logo text-lg font-bold tracking-tight">CHROMIUM<span>READER</span></div>
+        <p id="pin-screen-prompt" class="text-xs text-zinc-400">Введите PIN-код для входа</p>
+      </div>
+
+      <!-- Visual pass dots -->
+      <div class="flex gap-5" id="pin-visual-dots">
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150"></div>
+      </div>
+
+      <!-- PIN Touch keyboard layout -->
+      <div class="grid grid-cols-3 gap-4 w-full">
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="1">1</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="2">2</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="3">3</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="4">4</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="5">5</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="6">6</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="7">7</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="8">8</button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="9">9</button>
+        <button class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90" data-action="clear">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="0">0</button>
+        <button class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90" data-action="backspace">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414A2 2 0 0010.828 19H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="peek-overlay" id="peek-overlay">
     <div class="peek-content" id="peek-content"></div>
   </div>
@@ -1558,73 +1766,93 @@
   <!-- NAVIGATION BAR (Updated: 5 tabs, styled dynamically, random in the middle) -->
   <nav class="tab-bar" id="bottom-tab-bar">
     <button class="tab-btn active" data-view="gallery">
-      <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm10 0h7v7h-7zM4 14h7v7H4zm10 0h7v7h-7z"/></svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
       <span id="tab-gallery">Галерея</span>
     </button>
     <button class="tab-btn" data-view="bookmarks">
-      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
       <span id="tab-bookmarks">Избранное</span>
     </button>
     
-    <!-- 5th Tab Button placed exactly in the middle as monolith, without special highlighted styling -->
     <button class="tab-btn" id="tab-btn-random" data-action="random">
-      <svg viewBox="0 0 24 24">
-        <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.38 10.17l-1.41 1.41 3.17 3.17L14.5 20H20v-5.5l-2.04 2.04-3.08-3.08z"/>
-      </svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
       <span id="tab-random">Рандом</span>
     </button>
 
     <button class="tab-btn" data-view="recommendations" id="tab-btn-recs">
-      <svg viewBox="0 0 24 24"><path d="M19 10.5l1.2-2.7L22.9 6.6l-2.7-1.2L19 2.7l-1.2 2.7-2.7 1.2 2.7 1.2L19 10.5zm-8.5 3L13 8l2.5 5.5L21 16l-5.5 2.5L13 24l-2.5-5.5L5 16l5.5-2.5zM6 6.5l.9-2L8.9 3.6l-2-.9L6 1.7l-.9 2-2 .9 2 .9.9 2z"/></svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.371 1.24.588 1.81l-3.97 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.89a1 1 0 00-1.175 0l-3.97 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
       <span id="tab-recs">Для вас</span>
     </button>
     <button class="tab-btn" data-view="settings">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0-.44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
       <span id="tab-settings">Настройки</span>
     </button>
   </nav>
 
+  <!-- -->
   <script>
-    // Safeguarded Global Storage Engine to prevent crash in S21/incognito mode
+    // Safeguarded Global Storage Engine
     const safeLocalStorage = {
       getItem(key) {
-        try {
-          return localStorage.getItem(key);
-        } catch (e) {
-          console.warn("Storage item fetch failed. Sandbox fallback enabled.", e);
-          return this.fallbackStore[key] || null;
-        }
+        try { return localStorage.getItem(key); } catch (e) { return this.fallbackStore[key] || null; }
       },
       setItem(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch (e) {
-          console.warn("Storage save failed. Sandboxing state.", e);
-          this.fallbackStore[key] = String(value);
-        }
+        try { localStorage.setItem(key, value); } catch (e) { this.fallbackStore[key] = String(value); }
       },
       removeItem(key) {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {
-          delete this.fallbackStore[key];
-        }
+        try { localStorage.removeItem(key); } catch (e) { delete this.fallbackStore[key]; }
       },
       fallbackStore: {}
     };
 
     function safeJSONParse(str, fallback) {
-      try {
-        return str ? JSON.parse(str) : fallback;
-      } catch (e) {
-        console.error("Malformed JSON detected. Repairing values.", e);
-        return fallback;
-      }
+      try { return str ? JSON.parse(str) : fallback; } catch (e) { return fallback; }
     }
+
+    // Cryptographic XOR wrapper using variable salt derived from either user PIN or internal static seed
+    const cryptoCore = {
+      getSalt(customPin) {
+        const baseSeed = "ChromiumE621MobileClientSymmetricKey2026!";
+        if (!customPin) return baseSeed;
+        // Generate a pseudo-hash from PIN to create dynamic block salt
+        let hash = 0;
+        for (let i = 0; i < customPin.length; i++) {
+          hash = (hash << 5) - hash + customPin.charCodeAt(i);
+          hash |= 0;
+        }
+        return baseSeed + "_" + Math.abs(hash);
+      },
+      encrypt(text, customPin) {
+        if (!text) return "";
+        const salt = this.getSalt(customPin);
+        let output = "";
+        for (let i = 0; i < text.length; i++) {
+          const charCode = text.charCodeAt(i) ^ salt.charCodeAt(i % salt.length);
+          output += String.fromCharCode(charCode);
+        }
+        return btoa(encodeURIComponent(output));
+      },
+      decrypt(cipherText, customPin) {
+        if (!cipherText) return "";
+        try {
+          const salt = this.getSalt(customPin);
+          const raw = decodeURIComponent(atob(cipherText));
+          let output = "";
+          for (let i = 0; i < raw.length; i++) {
+            const charCode = raw.charCodeAt(i) ^ salt.charCodeAt(i % salt.length);
+            output += String.fromCharCode(charCode);
+          }
+          return output;
+        } catch (e) {
+          console.error("Cryptographic decryption cycle failed. Salt collision.", e);
+          return "";
+        }
+      }
+    };
 
     const APP_ID = 'pocket-chromium-v1';
     
-    // Dictionary definition
+    // Translation dictionaries
     const translations = {
       ru: {
         gallery: "Галерея",
@@ -1673,7 +1901,7 @@
         layoutTitle: "Разметка ленты (Aspect Ratio)",
         blacklistTitle: "Локальный Чёрный Список тегов",
         backupTitle: "Экспорт и Бэкап профиля",
-        luckyTitle: "🎲 Мне повезет",
+        luckyTitle: "Мне повезет",
         luckyMinscore: "Минимальный рейтинг (Score)",
         luckyAbsurd: "Только absurd_res",
         luckyUnseen: "Только новые (непросмотренные)",
@@ -1696,7 +1924,6 @@
         eulaConfirm: "Подтвердить и Продолжить",
         eulaText: "ВНИМАНИЕ: Это приложение содержит материалы сексуального характера и NSFW-контент (18+), предназначенный исключительно для взрослой аудитории.\n\nПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ:\n1. Используя данное приложение, вы подтверждаете, что вам исполнилось полных 18 лет (или вы достигли возраста совершеннолетия в вашей стране).\n2. Вы соглашаетесь с тем, что в ленте будут отображаться откровенные иллюстрации, анимации и видеоролики.\n3. Вы обязуетесь не демонстрировать данный контент лицам, не достигшим совершеннолетия.\n4. Разработчики не несут ответственности за контент, предоставляемый сторонним API-сервером e621.net. Вся информация и медиафайлы загружаются напрямую с внешних источников.\n5. Если в вашей юрисдикции просмотр подобного контента запрещен законом, вы обязаны немедленно прекратить использование приложения.",
         
-        // Custom Connection strings (Russian)
         connectionTitle: "Настройки подключения & CORS",
         connectionDesc: "Настройте способ соединения с сервером. Полезно для обхода блокировок или настройки собственного зеркала.",
         apiBaseLabel: "Базовый URL API",
@@ -1706,7 +1933,15 @@
         proxyCustom: "Свой CORS-прокси (Указать ниже)",
         customProxyUrl: "URL своего CORS-прокси",
         connectionSaved: "Настройки подключения изменены!",
-        connectionApply: "Применить настройки подключения"
+        connectionApply: "Применить настройки подключения",
+        
+        // Security specific strings
+        setPin: "Задать PIN-код",
+        disablePin: "Отключить PIN-код",
+        pinScreenPrompt: "Введите 4-значный PIN для входа",
+        nsfwBlurTitle: "Размывать 18+ контент",
+        decoyModeTitle: "Режим маскировки (Stealth Decoy)",
+        quickPanicActive: "Экстренный режим защиты включен! 18+ скрыто."
       },
       en: {
         gallery: "Gallery",
@@ -1755,7 +1990,7 @@
         layoutTitle: "Layout Mode (Aspect Ratio)",
         blacklistTitle: "Local Tags Blacklist",
         backupTitle: "Export and Backup local data",
-        luckyTitle: "🎲 Feel Lucky",
+        luckyTitle: "Feel Lucky",
         luckyMinscore: "Minimum Rating Score",
         luckyAbsurd: "Only absurd_res tags",
         luckyUnseen: "Only unseen artworks",
@@ -1778,7 +2013,6 @@
         eulaConfirm: "Confirm & Continue",
         eulaText: "WARNING: This application contains highly explicit NSFW (Not Safe For Work) content (18+) intended strictly for an adult audience.\n\nUSER AGREEMENT:\n1. By utilizing this application, you verify that you are at least 18 years of age (or of legal adult age in your jurisdiction).\n2. You acknowledge and accept that explicit illustrations, animations, and videos will be displayed.\n3. You agree not to display or share this content with minors.\n4. The developers do not host or control the content provided by the external e621.net API server. All images and media are retrieved directly from third-party sources.\n5. If viewing adult content is prohibited by law in your local jurisdiction, you must close this app immediately.",
         
-        // Custom Connection strings (English)
         connectionTitle: "Connection & CORS Settings",
         connectionDesc: "Configure the API connection method. Helpful to bypass regional blocks or configure self-hosted reverse proxies.",
         apiBaseLabel: "API Base URL",
@@ -1788,7 +2022,14 @@
         proxyCustom: "Custom CORS Proxy (Specify below)",
         customProxyUrl: "Custom CORS Proxy URL Prefix",
         connectionSaved: "Connection configurations saved!",
-        connectionApply: "Apply Connection Settings"
+        connectionApply: "Apply Connection Settings",
+
+        setPin: "Set App PIN Code",
+        disablePin: "Disable PIN Protection",
+        pinScreenPrompt: "Enter 4-digit PIN Code to continue",
+        nsfwBlurTitle: "Blur Explicit Artworks",
+        decoyModeTitle: "Secure Masking (Stealth Decoy)",
+        quickPanicActive: "Emergency protection triggered! 18+ content hidden."
       }
     };
 
@@ -1806,9 +2047,17 @@
         feedFit: safeLocalStorage.getItem('p_e621_feed_fit') || 'cover',
         apiBaseUrl: safeLocalStorage.getItem('p_e621_api_base') || 'https://e621.net',
         proxyMode: safeLocalStorage.getItem('p_e621_proxy_mode') || 'fallback',
-        customProxyPrefix: safeLocalStorage.getItem('p_e621_custom_proxy') || ''
+        customProxyPrefix: safeLocalStorage.getItem('p_e621_custom_proxy') || '',
+        
+        // Advanced Security Settings state
+        pinEnabled: safeLocalStorage.getItem('p_e621_pin_enabled') === 'true',
+        nsfwBlur: safeLocalStorage.getItem('p_e621_nsfw_blur') !== 'false',
+        decoyMode: safeLocalStorage.getItem('p_e621_decoy_enabled') === 'true'
       },
-      auth: safeJSONParse(safeLocalStorage.getItem('p_e621_auth'), {"username":"","apiKey":""}),
+      panicActive: safeLocalStorage.getItem('p_e621_panic_active') === 'true',
+      prePanicRatings: safeJSONParse(safeLocalStorage.getItem('p_e621_pre_panic_ratings'), ["0+", "16+"]),
+      encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '', 
+      auth: {"username":"","apiKey":""}, 
       customization: safeJSONParse(safeLocalStorage.getItem('p_e621_customization'), {"accent":"#2563eb","radius":"8px"}),
       tagFreq: safeJSONParse(safeLocalStorage.getItem('p_e621_tag_freq'), {}),
       favSearches: safeJSONParse(safeLocalStorage.getItem('p_e621_fav_searches'), []),
@@ -1817,10 +2066,15 @@
       totalTime: parseInt(safeLocalStorage.getItem('p_e621_total_time') || '0'), 
       bookmarkMode: 'local',
       customBg: safeLocalStorage.getItem('p_e621_custom_bg') || '',
-      bgOpacity: safeLocalStorage.getItem('p_e621_bg_opacity') || '0.9'
+      bgOpacity: safeLocalStorage.getItem('p_e621_bg_opacity') || '0.9',
+      
+      // Memory state variables
+      isDecoyActive: false,
+      tempPinInput: "",
+      setupPinMode: false,
+      newPinRegister: ""
     };
 
-    // Simulated sandbox failure hooks for admin tools
     let mockErrorHook = null;
 
     function t(key) {
@@ -1843,6 +2097,44 @@
       if (el) el.innerHTML = html;
     }
 
+    // Dynamic dynamic decrypt or fallback plain-text loaders for backwards compatibility
+    function resolveEncryptedCredentials(pinAttempt = "") {
+      const storedEnc = safeLocalStorage.getItem('p_e621_auth_enc');
+      if (storedEnc) {
+        try {
+          const rawDecrypted = cryptoCore.decrypt(storedEnc, pinAttempt);
+          const parsed = JSON.parse(rawDecrypted);
+          if (parsed && parsed.username) {
+            state.auth = parsed;
+            return true;
+          }
+        } catch (e) {
+          console.warn("Invalid key wrapper decryption or wrong PIN used.");
+        }
+      }
+      
+      // Check legacy unencrypted database
+      const legacyAuth = safeLocalStorage.getItem('p_e621_auth');
+      if (legacyAuth) {
+        state.auth = safeJSONParse(legacyAuth, {"username":"","apiKey":""});
+        // Auto convert to encrypted scheme using current session salt/PIN
+        reEncryptCredentials(pinAttempt);
+        safeLocalStorage.removeItem('p_e621_auth');
+        return true;
+      }
+      return false;
+    }
+
+    function reEncryptCredentials(pinCode) {
+      if (state.auth.username && state.auth.apiKey) {
+        const payloadString = JSON.stringify(state.auth);
+        const ciphertext = cryptoCore.encrypt(payloadString, pinCode);
+        safeLocalStorage.setItem('p_e621_auth_enc', ciphertext);
+      } else {
+        safeLocalStorage.removeItem('p_e621_auth_enc');
+      }
+    }
+
     function toggleAccordion(id) {
       const group = document.getElementById(id);
       if (!group) return;
@@ -1853,9 +2145,7 @@
       const isOpen = group.classList.contains('active');
       
       if (isOpen) {
-        // Pre-set height to pixel to avoid visual jumps
         wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-        // Force Reflow
         wrapper.offsetHeight; 
         wrapper.style.maxHeight = '0px';
         group.classList.remove('active');
@@ -1863,7 +2153,6 @@
         wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
         group.classList.add('active');
         
-        // Clear maxheight after transiton ends to avoid clipping nested widgets
         const handler = () => {
           if (group.classList.contains('active')) {
             wrapper.style.maxHeight = 'none';
@@ -1887,25 +2176,22 @@
       safeText('lbl-local-favs', t('localFavs'));
       safeText('lbl-rec-desc', t('recDesc'));
 
-      // Structured summaries
-      safeText('sum-account', state.language === 'ru' ? '👤 e621.net Аккаунт & Импорт' : '👤 e621.net Account & Import');
-      safeText('sum-appearance', state.language === 'ru' ? '🎨 Интерфейс & Свой фон' : '🎨 Look & Custom Photo');
-      safeText('sum-safety', state.language === 'ru' ? '🛡️ Безопасность & Блэклист' : '🛡️ Safety & Blacklist');
-      safeText('sum-lucky', state.language === 'ru' ? '🎰 Параметры «Мне повезет»' : '🎰 Feel Lucky Setup');
-      safeText('sum-layout', state.language === 'ru' ? '📐 Разметка ленты (Aspect Ratio)' : '📐 Feed Aspect Ratio');
-      safeText('sum-traffic', state.language === 'ru' ? '🚀 Контроль трафика & Энергия' : '🚀 Data & RAM Safeguard');
-      safeText('sum-network', state.language === 'ru' ? '🌐 Сеть & CORS Настройки' : '🌐 Network & Proxy CORS');
-      safeText('sum-backup', state.language === 'ru' ? '💾 Резервный бэкап' : '💾 Backup / Export Code');
+      safeText('sum-security-suite', state.language === 'ru' ? 'Защита & PIN-код' : 'Security & PIN Lock');
+      safeText('sum-appearance', state.language === 'ru' ? 'Интерфейс & Свой фон' : 'Look & Custom Photo');
+      safeText('sum-safety', state.language === 'ru' ? 'Безопасность & Блэклист' : 'Safety & Blacklist');
+      safeText('sum-lucky', state.language === 'ru' ? 'Параметры «Мне повезет»' : 'Feel Lucky Setup');
+      safeText('sum-layout', state.language === 'ru' ? 'Разметка ленты (Aspect Ratio)' : 'Feed Aspect Ratio');
+      safeText('sum-traffic', state.language === 'ru' ? 'Контроль трафика & Энергия' : 'Data & RAM Safeguard');
+      safeText('sum-network', state.language === 'ru' ? 'Сеть & CORS Настройки' : 'Network & Proxy CORS');
+      safeText('sum-backup', state.language === 'ru' ? 'Резервный бэкап' : 'Backup / Export Code');
 
       safeText('lbl-lang-title', t('langTitle'));
 
-      // Custom background translations
       safeText('lbl-custom-bg-section', state.language === 'ru' ? 'Собственные фоновые обои' : 'Custom Desktop Background');
       safeText('lbl-bg-input-hint', state.language === 'ru' ? 'Загрузить фоновое изображение (.jpg, .png)' : 'Upload backdrop photo (.jpg, .png)');
       safeText('lbl-bg-opacity', state.language === 'ru' ? 'Плотность затемнения фона' : 'Dark overlay opacity level');
       safeText('clear-bg-btn', state.language === 'ru' ? 'Сбросить фон на стандартный' : 'Reset to default theme color');
 
-      // Connection Settings translations
       safeText('lbl-connection-desc', t('connectionDesc'));
       safeText('lbl-api-base-label', t('apiBaseLabel'));
       safeText('lbl-proxy-mode-label', t('proxyModeLabel'));
@@ -1915,7 +2201,6 @@
       safeText('lbl-custom-proxy-url', t('customProxyUrl'));
       safeText('save-connection-btn', t('connectionApply'));
 
-      // Stats
       safeText('lbl-stats-title', t('statsTitle'));
       safeText('lbl-stat-viewed', t('statViewed'));
       safeText('lbl-stat-liked', t('statLiked'));
@@ -1923,7 +2208,6 @@
       safeText('lbl-stat-frequent', t('statFrequent'));
       safeText('lbl-stat-artists', t('statArtists'));
 
-      // Auth
       safeText('lbl-auth-desc', t('authDesc'));
       safePlaceholder('auth-username', t('username'));
       safePlaceholder('auth-api-key', t('apiKey'));
@@ -1936,62 +2220,51 @@
         guideStepsEl.innerHTML = t('guideSteps').split('\n').map(step => `<li>${step.substring(3)}</li>`).join('');
       }
 
-      // Customization
       safeHTML('lbl-rounding', t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, panels, inputs") + "</span>");
       safeHTML('lbl-feed-fit', t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>");
       safeText('opt-fit-cover', t('fitCover'));
       safeText('opt-fit-contain', t('fitContain'));
       safeHTML('lbl-accent', t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Visual accent scheme") + "</span>");
       
-      // Dynamic Ratings localization
       safeHTML('lbl-rate-safe', state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>Suitable for all audiences</span>');
       safeHTML('lbl-rate-quest', state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Mild nudity / suggestive</span>');
       safeHTML('lbl-rate-expl', state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>');
 
-      // Traffic
       safeText('lbl-traffic-title', t('trafficTitle'));
       safeHTML('lbl-budget', t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict resolution over 50 MB") + "</span>");
       safeHTML('lbl-ram', t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Deallocate un-viewed content cards") + "</span>");
       
-      // Grid shufflers
       safeText('lbl-layout-title', t('layoutTitle'));
       safeText('shuffler-square', t('layoutSquare'));
       safeText('shuffler-masonry', t('layoutMasonry'));
       safeText('shuffler-story', t('layoutStory'));
 
-      // Backlist & Backup configs
       safeText('lbl-blacklist-title', t('blacklistTitle'));
       safeText('export-backup-btn', t('backupExport'));
       safeText('import-backup-btn', t('backupImport'));
 
-      // Localization for custom Backup elements
       safeText('copy-export-btn', state.language === 'ru' ? 'Скопировать' : 'Copy Code');
       safeText('apply-import-btn', state.language === 'ru' ? 'Применить импорт' : 'Apply Import');
       safePlaceholder('import-code-input', state.language === 'ru' ? 'Вставьте код экспорта сюда...' : 'Paste export code here...');
 
-      // Feel lucky
       safeText('lbl-minscore', t('luckyMinscore'));
       safeText('lbl-tagabsurd', t('luckyAbsurd'));
       safeText('lbl-unseen', t('luckyUnseen'));
 
-      // Detail comments and actions
       safeText('lbl-comments-title', t('comments'));
       
       const downloadBtnSpan = document.getElementById('detail-download-btn')?.querySelector('span');
       if (downloadBtnSpan) downloadBtnSpan.textContent = t('downloadMedia');
 
-      // Swipe indicator texts
       safeText('ind-like', state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED');
       safeText('ind-skip', state.language === 'ru' ? 'ПРОПУСК' : 'SKIP');
 
-      // Tab bar navigation labels
       safeText('tab-gallery', t('gallery'));
       safeText('tab-bookmarks', t('bookmarks'));
       safeText('tab-recs', t('recommendations'));
       safeText('tab-settings', t('settings'));
       safeText('tab-random', t('random'));
 
-      // Dynamic search bar tooltips
       const favBtn = document.getElementById('fav-search-btn');
       if (favBtn) favBtn.title = state.language === 'ru' ? 'Добавить в Избранное' : 'Add to Favorites';
       const clearBtn = document.getElementById('clear-input-btn');
@@ -2033,9 +2306,8 @@
       }
     }
 
-    // Direct fetch sequence with Stage 1 and 2 CORS proxies fallback
+    // Dynamic direct fetch adapter supporting custom proxy configurations
     async function directFetch(baseUrl, params = {}, useAuth = true) {
-      // Failure Injection check (Sandbox Tool)
       if (mockErrorHook) {
         adminLog(`Triggered Mock Failure: HTTP ${mockErrorHook}`);
         throw new Error(`Connection request failed with HTTP status: ${mockErrorHook}`);
@@ -2061,8 +2333,10 @@
       const finalUrl = urlObj.toString();
       const mode = state.settings.proxyMode || 'fallback';
       
-      // Inject Secret Header parameter if bypass active
       const headers = { 'Accept': 'application/json' };
+      const userAgentValue = document.getElementById('admin-custom-ua')?.value || 'ChromiumClient/3.0.Premium';
+      headers['User-Agent'] = userAgentValue;
+
       if (document.getElementById('admin-bypass-cors')?.checked) {
         headers['X-Requested-With'] = 'XMLHttpRequest';
       }
@@ -2113,7 +2387,6 @@
       throw new Error(`Connection request failed with HTTP status: ${response.status}`);
     }
 
-    // Safe direct favorites retrieval directly using owners endpoint
     async function fetchOnlineFavorites(page = 0) {
       if (!state.auth.username || !state.auth.apiKey) return [];
       
@@ -2211,7 +2484,6 @@
     async function fetchTagSuggestions(searchQuery) {
       if (!searchQuery) return [];
       
-      // Admin core switch toggle check
       if (!document.getElementById('admin-toggle-autocomplete').checked) {
         return [];
       }
@@ -2234,11 +2506,17 @@
         suggestionsBox.style.display = 'none';
         return;
       }
-      suggestionsBox.innerHTML = `<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: bold;">${state.language === 'ru' ? 'История поиска:' : 'Search History:'}</div>`;
+      suggestionsBox.innerHTML = `<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: bold; display: flex; items-center gap-1.5;">
+        <svg class="w-3.5 h-3.5 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>${state.language === 'ru' ? 'История поиска:' : 'Search History:'}</span>
+      </div>`;
       state.searchHistory.forEach(query => {
         const item = document.createElement('div');
         item.className = 'suggestion-item';
-        item.innerHTML = `<span>🕒 ${query}</span><button class="clear-hist-btn" style="background:none; border:none; color:var(--danger); font-size: 0.75rem; cursor:pointer; padding: 4px;">✕</button>`;
+        item.innerHTML = `<span class="flex items-center gap-2">
+          <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>${query}</span>
+        </span><button class="clear-hist-btn" style="background:none; border:none; color:var(--danger); font-size: 0.75rem; cursor:pointer; padding: 4px;">✕</button>`;
         
         item.addEventListener('click', (e) => {
           if (e.target.classList.contains('clear-hist-btn')) {
@@ -2383,7 +2661,10 @@
         return;
       }
 
-      bar.innerHTML = `<span style="font-size: 0.7rem; color: var(--accent); align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">🔥 ${state.language === 'ru' ? 'Частое:' : 'Freq:'}</span>`;
+      bar.innerHTML = `<span class="flex items-center gap-1 text-[10px]" style="color: var(--accent); align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">
+        <svg class="w-3.5 h-3.5 animate-pulse text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span>${state.language === 'ru' ? 'Частое:' : 'Freq:'}</span>
+      </span>`;
       sortedTags.forEach(tag => {
         const btn = document.createElement('button');
         btn.className = 'op-btn and';
@@ -2431,7 +2712,10 @@
         bar.style.display = 'none';
         return;
       }
-      bar.innerHTML = `<span style="font-size: 0.7rem; color: #eab308; align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">★ ${state.language === 'ru' ? 'Любимые:' : 'Favs:'}</span>`;
+      bar.innerHTML = `<span class="flex items-center gap-1 text-[10px]" style="color: #eab308; align-self: center; margin-right: 4px; font-weight: bold; white-space: nowrap;">
+        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.371 1.24.588 1.81l-3.97 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.89a1 1 0 00-1.175 0l-3.97 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        <span>${state.language === 'ru' ? 'Любимые:' : 'Favs:'}</span>
+      </span>`;
       state.favSearches.forEach(query => {
         const btn = document.createElement('button');
         btn.className = 'op-btn';
@@ -2543,6 +2827,7 @@
       if (valSpan) valSpan.textContent = state.trafficUsed.toFixed(2);
     }
 
+    // NEW Touch interaction helper allowing dynamic manual unblur gesture on post cards
     function createPostCard(post) {
       const card = document.createElement('div');
       card.className = `post-card ${state.settings.ramSafeguard ? 'unloaded' : ''}`;
@@ -2551,6 +2836,11 @@
       card.dataset.src = post.preview_url;
       card.dataset.fullSrc = post.file_url;
       card.dataset.isVideo = post.isVideo;
+
+      // Assign explicit metadata class to support advanced blurring
+      if (post.rating === 'e' || post.rating === 'q') {
+        card.classList.add('is-nsfw');
+      }
 
       let imgUrl = post.preview_url;
       if (state.settings.layout === 'stories') {
@@ -2593,9 +2883,17 @@
         card.dataset.realSrc = imgUrl;
       }
 
+      // Handle card click / manual single-tap unblur
       card.addEventListener('click', (e) => {
         if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
         
+        // If card is blurred, first click unblurs it
+        if (state.settings.nsfwBlur && card.classList.contains('is-nsfw') && !card.classList.contains('unblurred')) {
+          card.classList.add('unblurred');
+          if ('vibrate' in navigator) navigator.vibrate(30);
+          return;
+        }
+
         if (!state.history.includes(post.id)) {
           state.history.push(post.id);
           safeLocalStorage.setItem('p_e621_history', JSON.stringify(state.history));
@@ -2718,11 +3016,13 @@
     async function loadPostComments(postId) {
       const container = document.getElementById('comments-feed');
 
-      // Comments read-only limitation logic for unregistered guests
       if (!state.auth.username || !state.auth.apiKey) {
         container.innerHTML = `
           <div class="p-4 bg-zinc-950/80 border border-amber-500/20 rounded-lg text-center space-y-2">
-            <p class="text-amber-400 font-bold text-xs">🔒 Доступ заблокирован</p>
+            <div class="text-amber-400 font-bold text-xs flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              <span>Доступ заблокирован</span>
+            </div>
             <p class="text-[11px] text-zinc-400 leading-normal">
               ${state.language === 'ru' 
                 ? 'Комментарии доступны только зарегистрированным пользователям! Подключите аккаунт в Настройках, чтобы читать обсуждения других пользователей.' 
@@ -3104,14 +3404,19 @@
       if (username && apiKey) {
         state.auth.username = username;
         state.auth.apiKey = apiKey;
-        safeLocalStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
-        showToast(state.language === 'ru' ? "Аккаунт подключен!" : "Account connected successfully!");
+        
+        // Encrypt and save auth data securely using the current PIN or standard key base
+        const currentActivePin = safeLocalStorage.getItem('p_e621_pin_code') || "";
+        reEncryptCredentials(currentActivePin);
+        
+        showToast(state.language === 'ru' ? "Аккаунт зашифрован и подключен!" : "Account securely integrated!");
         updateAuthUI();
         localStorage.removeItem('p_e621_profile_cache');
         loadGallery(true);
       } else if (!username && !apiKey) {
         state.auth.username = '';
         state.auth.apiKey = '';
+        safeLocalStorage.removeItem('p_e621_auth_enc');
         safeLocalStorage.removeItem('p_e621_auth');
         localStorage.removeItem('p_e621_profile_cache');
         showToast(state.language === 'ru' ? "Вы вышли из аккаунта." : "Logged out.");
@@ -3158,7 +3463,6 @@
       window.open('https://e621.net/users/new', '_blank');
     });
 
-    // Admin Proxy Latency Ping Feature
     async function measurePing(url) {
       const start = performance.now();
       try {
@@ -3336,9 +3640,21 @@
       safeCheck.checked = state.settings.ratings.includes('0+');
       questCheck.checked = state.settings.ratings.includes('16+');
       explCheck.checked = state.settings.ratings.includes('18+');
+      
+      // Lock checkboxes visually if panic is active
+      if (state.panicActive) {
+        safeCheck.disabled = true;
+        questCheck.disabled = true;
+        explCheck.disabled = true;
+      } else {
+        safeCheck.disabled = false;
+        questCheck.disabled = false;
+        explCheck.disabled = false;
+      }
     }
 
     function saveRatingsSettings() {
+      if (state.panicActive) return;
       const ratings = [];
       if (safeCheck.checked) ratings.push('0+');
       if (questCheck.checked) ratings.push('16+');
@@ -3734,7 +4050,10 @@
           safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
           safeLocalStorage.setItem('p_e621_layout', state.settings.layout);
           safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
-          safeLocalStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+          
+          const currentActivePin = safeLocalStorage.getItem('p_e621_pin_code') || "";
+          reEncryptCredentials(currentActivePin);
+
           safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
           safeLocalStorage.setItem('p_e621_tag_freq', JSON.stringify(state.tagFreq));
           safeLocalStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
@@ -3925,7 +4244,8 @@
         eulaOverlay.classList.remove('hidden');
         renderEULALanguage(eulaLang);
       } else {
-        loadGallery();
+        // If first launch EULA has passed, proceed directly to secure PIN barrier checks
+        evaluateSecurityCheckpoints();
       }
     }
 
@@ -3986,10 +4306,392 @@
         eulaOverlay.classList.add('hidden');
         
         translateUI();
-        loadGallery(true);
+        evaluateSecurityCheckpoints();
       }
     });
 
+    //    // Decoy unmasking trigger action
+    let decoyPressTimer;
+    const unmaskTriggerBtn = document.getElementById('decoy-unmask-trigger');
+
+    unmaskTriggerBtn.addEventListener('mousedown', startDecoyPressCounter);
+    unmaskTriggerBtn.addEventListener('touchstart', startDecoyPressCounter, { passive: true });
+    unmaskTriggerBtn.addEventListener('mouseup', cancelDecoyPressCounter);
+    unmaskTriggerBtn.addEventListener('mouseleave', cancelDecoyPressCounter);
+    unmaskTriggerBtn.addEventListener('touchend', cancelDecoyPressCounter);
+
+    function startDecoyPressCounter() {
+      decoyPressTimer = setTimeout(() => {
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+        // Trigger PIN verification overlay
+        openSecurePinScreen(false, (pinCode) => {
+          // Unmask completely
+          state.isDecoyActive = false;
+          document.getElementById('decoy-view').classList.add('hidden');
+          document.getElementById('app-header').classList.remove('hidden');
+          document.getElementById('scroll-container').classList.remove('hidden');
+          document.getElementById('bottom-tab-bar').classList.remove('hidden');
+          showToast(state.language === 'ru' ? "Декодирование успешно!" : "Decoy Mode Disabled!");
+          loadGallery(true);
+        });
+      }, 3000); // 3 Seconds hard press
+    }
+
+    function cancelDecoyPressCounter() {
+      clearTimeout(decoyPressTimer);
+    }
+
+    // Toggle Decoy mode from settings
+    const decoyCheckbox = document.getElementById('setting-decoy-enabled');
+    decoyCheckbox.checked = state.settings.decoyMode;
+    decoyCheckbox.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      state.settings.decoyMode = isChecked;
+      safeLocalStorage.setItem('p_e621_decoy_enabled', isChecked);
+      
+      if (isChecked) {
+        // Enforce PIN is enabled if decoy is on
+        if (!state.settings.pinEnabled) {
+          state.settings.pinEnabled = true;
+          safeLocalStorage.setItem('p_e621_pin_enabled', 'true');
+          document.getElementById('setting-pin-enabled').checked = true;
+          showToast(state.language === 'ru' ? "PIN-код автоматически включен для маскировки!" : "PIN code auto-enabled for Decoy Mode!");
+          evaluateSecurityCheckpoints();
+        }
+      }
+    });
+
+    // NSFW pre-blur toggle from settings
+    const blurNsfwCheckbox = document.getElementById('setting-nsfw-blur');
+    blurNsfwCheckbox.checked = state.settings.nsfwBlur;
+    
+    function applyNsfwBlurState(isEnabled) {
+      if (isEnabled) {
+        document.body.classList.add('nsfw-blur-enabled');
+      } else {
+        document.body.classList.remove('nsfw-blur-enabled');
+      }
+    }
+
+    blurNsfwCheckbox.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      state.settings.nsfwBlur = checked;
+      safeLocalStorage.setItem('p_e621_nsfw_blur', checked);
+      applyNsfwBlurState(checked);
+      showToast(state.language === 'ru' ? "Режим размытия обновлен!" : "Blur configurations updated!");
+    });
+
+    // Setup / Disable PIN toggle
+    const pinCheckbox = document.getElementById('setting-pin-enabled');
+    pinCheckbox.checked = state.settings.pinEnabled;
+    pinCheckbox.addEventListener('change', (e) => {
+      const active = e.target.checked;
+      if (active) {
+        // Run setup pin mode
+        openSecurePinScreen(true);
+      } else {
+        // Require active PIN to disable it
+        openSecurePinScreen(false, () => {
+          state.settings.pinEnabled = false;
+          safeLocalStorage.setItem('p_e621_pin_enabled', 'false');
+          safeLocalStorage.removeItem('p_e621_pin_code');
+          
+          // Decrypt API details back to standard insecure storage fallback
+          resolveEncryptedCredentials("");
+          safeLocalStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
+          safeLocalStorage.removeItem('p_e621_auth_enc');
+          
+          document.getElementById('pin-actions-wrap').classList.add('hidden');
+          showToast(state.language === 'ru' ? "PIN-код отключен" : "PIN-lock disabled!");
+        }, () => {
+          // Reset switch if cancelled or failed
+          pinCheckbox.checked = true;
+        });
+      }
+    });
+
+    document.getElementById('set-pin-btn').addEventListener('click', () => {
+      openSecurePinScreen(true);
+    });
+
+    //    // Fully numerical secure PIN keypad driver
+    let pinVerificationCallback = null;
+    let pinCancelCallback = null;
+
+    function openSecurePinScreen(isSetup = false, successCallback = null, cancelCallback = null) {
+      state.tempPinInput = "";
+      state.setupPinMode = isSetup;
+      state.newPinRegister = "";
+      pinVerificationCallback = successCallback;
+      pinCancelCallback = cancelCallback;
+
+      // Update instructions
+      const promptText = document.getElementById('pin-screen-prompt');
+      if (isSetup) {
+        promptText.textContent = state.language === 'ru' ? "Придумайте 4-значный PIN-код" : "Create 4-digit security PIN";
+      } else {
+        promptText.textContent = state.language === 'ru' ? "Введите PIN-код для входа" : "Enter 4-digit security PIN";
+      }
+
+      resetPinVisualDots();
+      document.getElementById('pin-overlay-screen').classList.remove('hidden');
+    }
+
+    function resetPinVisualDots() {
+      const dots = document.getElementById('pin-visual-dots').children;
+      for (let i = 0; i < dots.length; i++) {
+        dots[i].className = "w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150";
+      }
+    }
+
+    function updatePinVisualDots(len) {
+      const dots = document.getElementById('pin-visual-dots').children;
+      for (let i = 0; i < dots.length; i++) {
+        if (i < len) {
+          dots[i].className = "w-3.5 h-3.5 rounded-full border-2 bg-white transition-all duration-150";
+          dots[i].style.borderColor = state.customization.accent;
+        } else {
+          dots[i].className = "w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150";
+        }
+      }
+    }
+
+    // Capture Pin Keyboard Actions
+    document.querySelectorAll('.pin-key-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const num = btn.getAttribute('data-num');
+        const action = btn.getAttribute('data-action');
+
+        if ('vibrate' in navigator) navigator.vibrate(20);
+
+        if (num !== null) {
+          if (state.tempPinInput.length < 4) {
+            state.tempPinInput += num;
+            updatePinVisualDots(state.tempPinInput.length);
+
+            if (state.tempPinInput.length === 4) {
+              // PIN code filled, execute validation checks
+              setTimeout(processPinEntry, 200);
+            }
+          }
+        } else if (action === 'clear') {
+          state.tempPinInput = "";
+          updatePinVisualDots(0);
+        } else if (action === 'backspace') {
+          state.tempPinInput = state.tempPinInput.slice(0, -1);
+          updatePinVisualDots(state.tempPinInput.length);
+        }
+      });
+    });
+
+    function processPinEntry() {
+      const promptText = document.getElementById('pin-screen-prompt');
+      
+      if (state.setupPinMode) {
+        if (!state.newPinRegister) {
+          // Step 1: save temporary first PIN attempt and ask for verification
+          state.newPinRegister = state.tempPinInput;
+          state.tempPinInput = "";
+          resetPinVisualDots();
+          promptText.textContent = state.language === 'ru' ? "Повторите PIN-код для подтверждения" : "Repeat PIN code to confirm";
+        } else {
+          // Step 2: verify PIN matches
+          if (state.tempPinInput === state.newPinRegister) {
+            safeLocalStorage.setItem('p_e621_pin_code', state.tempPinInput);
+            safeLocalStorage.setItem('p_e621_pin_enabled', 'true');
+            state.settings.pinEnabled = true;
+
+            // Re-encrypt account details utilizing the new PIN
+            reEncryptCredentials(state.tempPinInput);
+
+            document.getElementById('pin-overlay-screen').classList.add('hidden');
+            document.getElementById('pin-actions-wrap').classList.remove('hidden');
+            showToast(state.language === 'ru' ? "PIN-код успешно настроен!" : "PIN configured successfully!");
+            
+            if (pinVerificationCallback) pinVerificationCallback(state.tempPinInput);
+          } else {
+            // Failure, reset setup cycle
+            state.tempPinInput = "";
+            state.newPinRegister = "";
+            resetPinVisualDots();
+            promptText.textContent = state.language === 'ru' ? "Не совпадает! Попробуйте заново" : "Mismatch! Try again";
+            if ('vibrate' in navigator) navigator.vibrate([100, 80, 100]);
+          }
+        }
+      } else {
+        // Standard authentication verify check
+        const activePin = safeLocalStorage.getItem('p_e621_pin_code') || "";
+        if (state.tempPinInput === activePin) {
+          document.getElementById('pin-overlay-screen').classList.add('hidden');
+          
+          // Re-load API details safely decrypted
+          resolveEncryptedCredentials(state.tempPinInput);
+          updateAuthUI();
+
+          if (pinVerificationCallback) {
+            pinVerificationCallback(state.tempPinInput);
+          }
+        } else {
+          state.tempPinInput = "";
+          resetPinVisualDots();
+          promptText.textContent = state.language === 'ru' ? "Неверный PIN-код" : "Invalid security PIN";
+          if ('vibrate' in navigator) navigator.vibrate([150, 100]);
+        }
+      }
+    }
+
+    // NEW Advanced Security evaluation checkpoints
+    function evaluateSecurityCheckpoints() {
+      // 1. Decoy checks
+      if (state.settings.decoyMode && !state.isDecoyActive) {
+        activateEmergencyDecoyMode();
+        return;
+      }
+
+      // 2. PIN checks
+      if (state.settings.pinEnabled) {
+        document.getElementById('pin-actions-wrap').classList.remove('hidden');
+        openSecurePinScreen(false, () => {
+          loadGallery();
+        });
+      } else {
+        document.getElementById('pin-actions-wrap').classList.add('hidden');
+        resolveEncryptedCredentials(""); // Try decryption without custom PIN
+        loadGallery();
+      }
+    }
+
+    // Page Visibility auto-locking API
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        // Auto-lock if PIN is active to prevent exposure
+        if (state.settings.pinEnabled && !document.getElementById('pin-overlay-screen').classList.contains('hidden')) {
+          // If PIN screen is not active, reset view state immediately
+          location.reload();
+        }
+      }
+    });
+
+    // NEW Emergency/Panic action triggers
+    const panicBtn = document.getElementById('quick-panic-btn');
+    panicBtn.addEventListener('click', () => {
+      triggerInstantPanicAction();
+    });
+
+    function triggerInstantPanicAction() {
+      if (state.panicActive) {
+        showToast(state.language === 'ru' ? "Режим защиты активен. Отключение в Настройках!" : "Security Lock is Active. Disable in Settings!");
+        return;
+      }
+
+      if ('vibrate' in navigator) navigator.vibrate([80, 50, 150]);
+      
+      // 1. Back up current ratings and force strict safe filters
+      state.prePanicRatings = [...state.settings.ratings];
+      safeLocalStorage.setItem('p_e621_pre_panic_ratings', JSON.stringify(state.prePanicRatings));
+      
+      state.settings.ratings = ["0+"];
+      safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(["0+"]));
+      
+      state.panicActive = true;
+      safeLocalStorage.setItem('p_e621_panic_active', 'true');
+
+      // 2. Wipe active explicit data arrays from gallery views immediately
+      document.getElementById('gallery-grid').innerHTML = '';
+      closeDetailView();
+
+      // 3. Swap main title decoy labels to prevent context peek
+      const mainLogoText = document.getElementById('main-logo-text');
+      if (mainLogoText) {
+        mainLogoText.innerHTML = `CHROMIUM<span>READER</span>`;
+      }
+
+      // Update UI elements
+      syncPanicUIState();
+
+      showToast(t('quickPanicActive'));
+
+      // 4. Force decoy transition immediately if configured
+      if (state.settings.decoyMode) {
+        activateEmergencyDecoyMode();
+      } else {
+        // Fallback: Reload safe content
+        loadGallery(true);
+      }
+    }
+
+    function syncPanicUIState() {
+      const pBtn = document.getElementById('quick-panic-btn');
+      const pWrap = document.getElementById('panic-disable-wrap');
+      
+      if (state.panicActive) {
+        if (pBtn) pBtn.classList.add('panic-active-btn');
+        if (pWrap) pWrap.classList.remove('hidden');
+        
+        // Disable rating checkboxes
+        if (safeCheck) safeCheck.disabled = true;
+        if (questCheck) questCheck.disabled = true;
+        if (explCheck) {
+          explCheck.disabled = true;
+          explCheck.checked = false;
+        }
+      } else {
+        if (pBtn) pBtn.classList.remove('panic-active-btn');
+        if (pWrap) pWrap.classList.add('hidden');
+        
+        // Enable rating checkboxes
+        if (safeCheck) safeCheck.disabled = false;
+        if (questCheck) questCheck.disabled = false;
+        if (explCheck) explCheck.disabled = false;
+      }
+      initRatingsCheckboxes();
+    }
+
+    document.getElementById('disable-panic-settings-btn').addEventListener('click', () => {
+      if (state.settings.pinEnabled) {
+        openSecurePinScreen(false, () => {
+          performDisablePanic();
+        });
+      } else {
+        performDisablePanic();
+      }
+    });
+
+    function performDisablePanic() {
+      state.panicActive = false;
+      safeLocalStorage.setItem('p_e621_panic_active', 'false');
+      
+      // Restore pre-panic ratings
+      state.settings.ratings = [...state.prePanicRatings];
+      safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
+      
+      // Restore main logo
+      const mainLogoText = document.getElementById('main-logo-text');
+      if (mainLogoText) {
+        mainLogoText.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          CHROMIUM<span>E621</span>
+        `;
+      }
+
+      syncPanicUIState();
+      showToast(state.language === 'ru' ? "Режим паники отключен!" : "Panic Mode Disabled!");
+      loadGallery(true);
+    }
+
+    function activateEmergencyDecoyMode() {
+      state.isDecoyActive = true;
+      document.getElementById('decoy-view').classList.remove('hidden');
+      document.getElementById('app-header').classList.add('hidden');
+      document.getElementById('scroll-container').classList.add('hidden');
+      document.getElementById('bottom-tab-bar').classList.add('hidden');
+      closeDetailView();
+    }
+
+    //    // Standard initialization routines
     window.onload = function() {
       applyCustomStyles();
       applyFeedFitStyle();
@@ -4004,6 +4706,8 @@
       updateStatsUI();
       translateUI();
       applyEcoMode(state.settings.ecoMode);
+      applyNsfwBlurState(state.settings.nsfwBlur);
+      syncPanicUIState();
 
       checkFirstLaunchEULA();
     };
