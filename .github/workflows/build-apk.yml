@@ -64,10 +64,12 @@ jobs:
         echo "=== Checking for icon source ==="
         if [ -f "icon-512.png" ]; then
           cp icon-512.png assets/icon-only.png
-          echo "✅ Found icon-512.png in root and copied to assets/icon-only.png"
+          cp icon-512.png assets/icon.png
+          echo "✅ Found icon-512.png in root and copied to assets"
         elif [ -f "assets/icon-512.png" ]; then
           cp assets/icon-512.png assets/icon-only.png
-          echo "✅ Copied from assets/icon-512.png to assets/icon-only.png"
+          cp assets/icon-512.png assets/icon.png
+          echo "✅ Copied from assets/icon-512.png to assets"
         elif [ -f "assets/icon.png" ]; then
           cp assets/icon.png assets/icon-only.png
           echo "✅ Copied from assets/icon.png to assets/icon-only.png"
@@ -80,8 +82,8 @@ jobs:
         npm install sharp --force
         
         echo "=== Generating icons WITH transparent background ==="
-        # Указываем точный путь к иконке и задаем прозрачный фон для адаптивных иконок
-        npx @capacitor/assets generate --android --icon-only-path assets/icon-only.png --iconBackgroundColor transparent
+        # Исправлено: используем --icon-path вместо несуществующего --icon-only-path
+        npx @capacitor/assets generate --android --icon-path assets/icon-only.png --iconBackgroundColor transparent
 
     - name: Sync Capacitor
       run: |
@@ -116,4 +118,4 @@ jobs:
       with:
         name: chromium-e621-release-apk
         path: chromium-e621-app.apk
-        retention-days: 30
+        retention-days: 30ы
