@@ -717,6 +717,26 @@
       color: #fff;
     }
 
+    .language-choice-btn {
+      min-height: 42px;
+    }
+
+    .language-choice-btn.is-active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--card-bg));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+
+    .language-flag-icon {
+      width: 20px;
+      height: 14px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
     .color-presets {
       display: flex;
       flex-wrap: wrap;
@@ -1123,14 +1143,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        <span>Все</span>
+        <span id="media-type-label-all">Все</span>
       </button>
       
       <button type="button" class="media-type-btn" id="media-type-btn-photo" data-mode="photo" aria-pressed="false">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
-        <span>Фото</span>
+        <span id="media-type-label-photo">Фото</span>
       </button>
       
       <button type="button" class="media-type-btn" id="media-type-btn-video" data-mode="video" aria-pressed="false">
@@ -1138,7 +1158,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 2.25-4.5 2.25V9.75z" />
         </svg>
-        <span>Видео</span>
+        <span id="media-type-label-video">Видео</span>
       </button>
     </div>
 
@@ -1234,9 +1254,9 @@
 
       <!-- Вся группа статистики свернута -->
       <div class="settings-group p-4" id="group-stats">
-        <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm flex items-center gap-2" id="lbl-stats-title">
+        <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm flex items-center gap-2">
           <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          <span>Статистика просмотра</span>
+          <span id="lbl-stats-title">Статистика просмотра</span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
           <div class="bg-zinc-900 p-2 rounded border border-zinc-800">
@@ -1351,9 +1371,9 @@
             <div class="setting-item">
               <label id="lbl-proxy-mode" class="text-xs font-bold text-zinc-400">Режим подключения</label>
               <select id="setting-proxy-mode" class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
-                <option value="direct">Прямое подключение</option>
-                <option value="fallback" selected>CORS Прокси</option>
-                <option value="custom">Свой прокси-префикс</option>
+                <option value="direct" id="opt-proxy-direct">Прямое подключение</option>
+                <option value="fallback" id="opt-proxy-fallback" selected>CORS Прокси</option>
+                <option value="custom" id="opt-proxy-custom">Свой прокси-префикс</option>
               </select>
             </div>
             <div id="custom-proxy-wrap" class="setting-item flex-col !items-start gap-2 hidden">
@@ -1378,14 +1398,14 @@
         <div class="settings-content-wrapper">
           <div class="settings-content">
             <div id="panic-disable-wrap" class="hidden border border-red-500/40 pb-3 p-3 rounded-lg bg-gradient-to-br from-red-950/40 via-red-900/10 to-red-950/20 shadow-md mb-3 space-y-2">
-              <div id="panic-warning-text" class="text-xs font-bold text-red-400 flex items-center gap-2">
+              <div class="text-xs font-bold text-red-400 flex items-center gap-2">
                 <span class="flex h-2 w-2 relative">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
-                <span>Экстренная маскировка активна!</span>
+                <span id="panic-warning-text">Экстренная маскировка активна!</span>
               </div>
-              <p class="text-[10px] text-zinc-400 leading-relaxed">Взрослый контент (18+) скрыт в целях защиты конфиденциальности. Вы можете деактивировать этот режим кнопкой ниже.</p>
+              <p id="panic-description" class="text-[10px] text-zinc-400 leading-relaxed">Взрослый контент (18+) скрыт в целях защиты конфиденциальности. Вы можете деактивировать этот режим кнопкой ниже.</p>
               <button id="disable-panic-settings-btn" class="w-full py-2 px-3 rounded text-white font-bold text-xs bg-red-600 hover:bg-red-500 border border-red-500 active:scale-95 transition-all duration-150 shadow-sm shadow-red-900/50">
                 Отключить режим паники
               </button>
@@ -1438,8 +1458,27 @@
                 <span>Язык интерфейса</span>
               </div>
               <div style="display: flex; gap: 8px;">
-                <button class="action-btn" id="lang-btn-ru" style="flex: 1;">Русский 🇷🇺</button>
-                <button class="action-btn" id="lang-btn-en" style="flex: 1;">English 🇺🇸</button>
+                <button class="action-btn language-choice-btn" id="lang-btn-ru" style="flex: 1;">
+                  <svg class="language-flag-icon" viewBox="0 0 24 16" aria-hidden="true">
+                    <path fill="#fff" d="M0 0h24v5.34H0z"></path>
+                    <path fill="#2563eb" d="M0 5.33h24v5.34H0z"></path>
+                    <path fill="#dc2626" d="M0 10.66h24V16H0z"></path>
+                  </svg>
+                  <span>Русский</span>
+                </button>
+                <button class="action-btn language-choice-btn" id="lang-btn-en" style="flex: 1;">
+                  <svg class="language-flag-icon" viewBox="0 0 24 16" aria-hidden="true">
+                    <path fill="#fff" d="M0 0h24v16H0z"></path>
+                    <path fill="#dc2626" d="M0 0h24v2H0v2h24v2H0v2h24v2H0v2h24v2H0z"></path>
+                    <path fill="#1d4ed8" d="M0 0h10v8H0z"></path>
+                    <g fill="#fff">
+                      <circle cx="2" cy="2" r=".6"></circle><circle cx="5" cy="2" r=".6"></circle><circle cx="8" cy="2" r=".6"></circle>
+                      <circle cx="3.5" cy="4" r=".6"></circle><circle cx="6.5" cy="4" r=".6"></circle>
+                      <circle cx="2" cy="6" r=".6"></circle><circle cx="5" cy="6" r=".6"></circle><circle cx="8" cy="6" r=".6"></circle>
+                    </g>
+                  </svg>
+                  <span>English</span>
+                </button>
               </div>
             </div>
 
@@ -1464,9 +1503,9 @@
             <div class="setting-item">
               <label id="lbl-rounding">Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
               <select id="setting-radius" class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
-                <option value="0px">Без скругнения</option>
-                <option value="8px" selected>Стандартное (8px)</option>
-                <option value="16px">Экстремальное (16px)</option>
+                <option value="0px" id="opt-radius-none">Без скругнения</option>
+                <option value="8px" id="opt-radius-standard" selected>Стандартное (8px)</option>
+                <option value="16px" id="opt-radius-extreme">Экстремальное (16px)</option>
               </select>
             </div>
 
@@ -1579,7 +1618,7 @@
         <div class="settings-content-wrapper">
           <div class="settings-content">
             <div class="flex flex-col gap-2">
-              <span class="text-xs font-bold text-zinc-400">Формат сетки</span>
+              <span class="text-xs font-bold text-zinc-400" id="lbl-grid-format">Формат сетки</span>
               <div style="display: flex; gap: 8px;">
                 <button class="action-btn" id="shuffler-square" style="flex: 1;">Квадраты</button>
                 <button class="action-btn" id="shuffler-masonry" style="flex: 1;">Мозаика</button>
@@ -1642,7 +1681,7 @@
       
       <div style="color: var(--text-color); font-size: 0.8rem; font-weight: bold;" id="swipe-hint" class="flex gap-2 items-center">
         <button id="detail-slideshow-btn" class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-amber-500 hover:text-amber-400 transition-all duration-150 flex items-center gap-1">
-          <span>▶ Слайдшоу</span>
+          <span id="detail-slideshow-label">▶ Слайдшоу</span>
         </button>
         <button id="detail-fit-toggle" class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-[var(--accent)] transition-all duration-150">Заполнить</button>
       </div>
@@ -1711,8 +1750,27 @@
   <div id="eula-overlay" class="fixed inset-0 bg-zinc-950/98 backdrop-blur-md z-[2000] flex flex-col justify-between p-6 overflow-y-auto hidden">
     <div class="max-w-md mx-auto w-full my-auto space-y-6">
       <div class="flex gap-4 justify-center">
-        <button id="eula-lang-ru" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">Русский 🇷🇺</button>
-        <button id="eula-lang-en" class="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-sm hover:border-blue-500 hover:text-white transition font-medium">English 🇺🇸</button>
+        <button id="eula-lang-ru" class="action-btn language-choice-btn px-4 py-2 text-sm">
+          <svg class="language-flag-icon" viewBox="0 0 24 16" aria-hidden="true">
+            <path fill="#fff" d="M0 0h24v5.34H0z"></path>
+            <path fill="#2563eb" d="M0 5.33h24v5.34H0z"></path>
+            <path fill="#dc2626" d="M0 10.66h24V16H0z"></path>
+          </svg>
+          <span>Русский</span>
+        </button>
+        <button id="eula-lang-en" class="action-btn language-choice-btn px-4 py-2 text-sm">
+          <svg class="language-flag-icon" viewBox="0 0 24 16" aria-hidden="true">
+            <path fill="#fff" d="M0 0h24v16H0z"></path>
+            <path fill="#dc2626" d="M0 0h24v2H0v2h24v2H0v2h24v2H0v2h24v2H0z"></path>
+            <path fill="#1d4ed8" d="M0 0h10v8H0z"></path>
+            <g fill="#fff">
+              <circle cx="2" cy="2" r=".6"></circle><circle cx="5" cy="2" r=".6"></circle><circle cx="8" cy="2" r=".6"></circle>
+              <circle cx="3.5" cy="4" r=".6"></circle><circle cx="6.5" cy="4" r=".6"></circle>
+              <circle cx="2" cy="6" r=".6"></circle><circle cx="5" cy="6" r=".6"></circle><circle cx="8" cy="6" r=".6"></circle>
+            </g>
+          </svg>
+          <span>English</span>
+        </button>
       </div>
 
       <div class="text-center space-y-2">
@@ -1901,6 +1959,94 @@
         "sum-security-suite": "Безопасность и PIN-код",
         "sum-appearance": "Внешний вид и фон",
         "sum-backup-suite": "Резервное копирование",
+        mediaAll: "Все",
+        mediaPhoto: "Фото",
+        mediaVideo: "Видео",
+        favoriteTagsTitle: "Избранные теги",
+        searchHistoryTitle: "История поиска",
+        accountTitle: "Аккаунт e621.net",
+        backupGenerate: "Сгенерировать код бэкапа",
+        backupCopy: "Копировать код",
+        backupImport: "Импорт бэкапа",
+        backupPlaceholder: "Вставьте код бэкапа...",
+        backupRestore: "Восстановить из кода",
+        apiBaseLabel: "Базовый адрес e621",
+        proxyModeLabel: "Режим подключения",
+        proxyDirect: "Прямое подключение",
+        proxyFallback: "CORS-прокси",
+        proxyCustom: "Свой прокси-префикс",
+        customProxyLabel: "Префикс прокси",
+        saveProxy: "Сохранить прокси",
+        panicDescription: "Взрослый контент (18+) скрыт в целях защиты конфиденциальности. Отключить этот режим можно кнопкой ниже.",
+        changePin: "Изменить PIN",
+        roundingDesc: "Кнопки, карточки, панели",
+        radiusNone: "Без скругления",
+        radiusStandard: "Стандартное (8px)",
+        radiusExtreme: "Экстремальное (16px)",
+        accentDesc: "Цветовая гамма приложения",
+        customBackground: "Собственные фоновые обои",
+        backgroundOpacity: "Плотность затемнения фона",
+        clearBackground: "Сбросить фоновые обои",
+        gridFormat: "Формат сетки",
+        legalHeader: "Пользовательское соглашение",
+        eulaSubtitle: "Проверка возраста и пользовательское соглашение",
+        slideshow: "Слайдшоу",
+        slideshowStop: "Стоп",
+        slideshowFinished: "Слайдшоу завершено",
+        slideshowStopped: "Слайдшоу остановлено",
+        slideshowStarted: "Слайдшоу запущено",
+        detailFill: "Заполнить",
+        detailContain: "Сжать",
+        previousPhoto: "Предыдущее фото",
+        nextPhoto: "Следующее фото",
+        bookmark: "В закладки",
+        bookmarked: "В закладках",
+        analyzingRecommendations: "Анализ ваших предпочтений...",
+        commentsLoading: "Загрузка комментариев...",
+        commentsAuthRequired: "Сначала подключите аккаунт в Настройках.",
+        favoriteSearchAdded: "Комбинация добавлена в избранное!",
+        favoriteSearchRemoved: "Комбинация удалена из избранного",
+        emptySearchHistory: "История поиска пуста",
+        searchHistoryHeading: "История поиска:",
+        clear: "Очистить",
+        searchHistoryCleared: "История поиска очищена!",
+        backupCreated: "Бэкап успешно создан!",
+        backupCreateError: "Ошибка при создании бэкапа.",
+        backupCodeRequired: "Пожалуйста, введите код!",
+        backupRestored: "Резервная копия восстановлена! Перезапуск...",
+        backupDecodeError: "Ошибка декодирования бэкапа!",
+        codeCopied: "Код скопирован!",
+        proxySaved: "Настройки прокси сохранены!",
+        languageChanged: "Язык изменен на русский!",
+        roundingUpdated: "Скругление интерфейса обновлено!",
+        accentUpdated: "Цветовая гамма обновлена!",
+        pinConfigured: "PIN-код успешно настроен!",
+        pinDisabled: "PIN-код отключен",
+        backgroundApplied: "Фон успешно установлен!",
+        backgroundReset: "Фоновые обои сброшены.",
+        authSaved: "Аккаунт успешно сохранен!",
+        authSignedOut: "Вы вышли из аккаунта.",
+        randomFailed: "Не удалось запустить случайный пост.",
+        createPin: "Придумайте PIN-код",
+        enterPin: "Введите PIN-код",
+        repeatPin: "Повторите PIN-код для подтверждения",
+        pinMismatch: "Не совпадает! Попробуйте заново",
+        invalidPin: "Неверный PIN-код",
+        holdToDownload: "(Зажмите для скачивания)",
+        openingMedia: "Открываем файл. Зажмите для скачивания!",
+        panicSettingsOnly: "Выключение режима паники доступно только в Настройках!",
+        connectionError: "Ошибка подключения",
+        debugReady: "[SYSTEM] Консоль отладчика chrom24 готова...",
+        debugActions: [
+          "1. Сброс трафика", "2. Тест вибрации", "3. Подсветка сеток", "4. Фейковые закладки",
+          "5. Симуляция задержки", "6. Краш-тест JS", "7. Очистка хранилища", "8. Копирование состояния",
+          "9. Элементы DOM", "10. FPS-счетчик", "11. Имитация 3G-сети", "12. Сброс логов",
+          "13. Дамп конфига", "14. Стресс-тест ОЗУ", "15. Вызвать ошибку 403", "16. Вызвать ошибку 404",
+          "17. Случайный лимит", "18. Эко-рендеринг", "19. Очистить историю", "20. Полноэкранный режим",
+          "21. Сброс черного списка", "22. Проверить CORS", "23. Сборщик мусора", "24. Генератор токенов",
+          "25. Сбросить сессию", "26. Тест касаний", "27. Импорт настроек по умолчанию",
+          "28. Блокировка интерфейса", "29. Системный отчет"
+        ],
         eulaText: `<b>ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ И ОТКАЗ ОТ ОТВЕТСТВЕННОСТИ (EULA)</b><br><br>
 1. <b>Возрастной ценз (18+):</b> Данный клиент предоставляет доступ к графическим материалам сексуального характера, предназначенным исключительно для совершеннолетних пользователей. Продолжая использование приложения, вы безоговорочно подтверждаете, что достигли возраста 18 лет (или возраста совершеннолетия в вашей юрисдикции).<br><br>
 2. <b>Отказ от ответственности за контент:</b> Настоящее приложение является неофициальным сторонним программным продуктом с открытым исходным кодом. Разработчик приложения <b>не загружает, не размещает (хостит), не модерирует, не владеет и не контролирует</b> контент, отображаемый на экране. Все медиаданные извлекаются в реальном времени с использованием открытых API-интерфейсов стороннего ресурса e621.net.<br><br>
@@ -1976,6 +2122,94 @@
         "sum-security-suite": "Security & PIN Code",
         "sum-appearance": "Appearance & Background",
         "sum-backup-suite": "Backup Settings",
+        mediaAll: "All",
+        mediaPhoto: "Photos",
+        mediaVideo: "Videos",
+        favoriteTagsTitle: "Favorite tags",
+        searchHistoryTitle: "Search history",
+        accountTitle: "e621.net Account",
+        backupGenerate: "Generate backup code",
+        backupCopy: "Copy code",
+        backupImport: "Import backup",
+        backupPlaceholder: "Paste backup code...",
+        backupRestore: "Restore from code",
+        apiBaseLabel: "e621 base URL",
+        proxyModeLabel: "Connection mode",
+        proxyDirect: "Direct connection",
+        proxyFallback: "CORS proxy",
+        proxyCustom: "Custom proxy prefix",
+        customProxyLabel: "Proxy prefix",
+        saveProxy: "Save proxy settings",
+        panicDescription: "Adult content (18+) is hidden for privacy. You can disable this mode with the button below.",
+        changePin: "Change PIN",
+        roundingDesc: "Buttons, cards, and panels",
+        radiusNone: "Square corners",
+        radiusStandard: "Standard (8px)",
+        radiusExtreme: "Extra rounded (16px)",
+        accentDesc: "Application color scheme",
+        customBackground: "Custom background wallpaper",
+        backgroundOpacity: "Background dimming",
+        clearBackground: "Reset background wallpaper",
+        gridFormat: "Grid format",
+        legalHeader: "User Agreement",
+        eulaSubtitle: "Age verification and user agreement",
+        slideshow: "Slideshow",
+        slideshowStop: "Stop",
+        slideshowFinished: "Slideshow finished",
+        slideshowStopped: "Slideshow stopped",
+        slideshowStarted: "Slideshow started",
+        detailFill: "Fill",
+        detailContain: "Contain",
+        previousPhoto: "Previous post",
+        nextPhoto: "Next post",
+        bookmark: "Bookmark",
+        bookmarked: "Bookmarked",
+        analyzingRecommendations: "Analyzing your preferences...",
+        commentsLoading: "Loading comments...",
+        commentsAuthRequired: "Connect your account in Settings first.",
+        favoriteSearchAdded: "Search combination added to favorites!",
+        favoriteSearchRemoved: "Search combination removed from favorites",
+        emptySearchHistory: "Search history is empty",
+        searchHistoryHeading: "Search history:",
+        clear: "Clear",
+        searchHistoryCleared: "Search history cleared!",
+        backupCreated: "Backup created successfully!",
+        backupCreateError: "Could not create the backup.",
+        backupCodeRequired: "Enter a backup code first.",
+        backupRestored: "Backup restored! Restarting...",
+        backupDecodeError: "Could not decode the backup.",
+        codeCopied: "Code copied!",
+        proxySaved: "Proxy settings saved!",
+        languageChanged: "Language changed to English!",
+        roundingUpdated: "Interface rounding updated!",
+        accentUpdated: "Color scheme updated!",
+        pinConfigured: "PIN configured successfully!",
+        pinDisabled: "PIN disabled",
+        backgroundApplied: "Background wallpaper applied!",
+        backgroundReset: "Background wallpaper reset.",
+        authSaved: "Account saved successfully!",
+        authSignedOut: "You signed out.",
+        randomFailed: "Could not load a random post.",
+        createPin: "Create a PIN",
+        enterPin: "Enter your PIN",
+        repeatPin: "Repeat the PIN to confirm",
+        pinMismatch: "PINs do not match. Try again",
+        invalidPin: "Invalid PIN",
+        holdToDownload: "(Hold to download)",
+        openingMedia: "Opening the file. Hold it to download!",
+        panicSettingsOnly: "Panic mode can only be disabled from Settings!",
+        connectionError: "Connection error",
+        debugReady: "[SYSTEM] chrom24 debug console is ready...",
+        debugActions: [
+          "1. Reset traffic", "2. Test vibration", "3. Highlight layouts", "4. Add dummy bookmarks",
+          "5. Simulate latency", "6. Trigger JS crash", "7. Clear storage", "8. Copy state",
+          "9. Count DOM elements", "10. FPS counter", "11. Simulate 3G network", "12. Clear logs",
+          "13. Dump configuration", "14. RAM stress test", "15. Trigger error 403", "16. Trigger error 404",
+          "17. Random request limit", "18. Eco rendering", "19. Clear history", "20. Fullscreen mode",
+          "21. Reset blacklist", "22. Test CORS", "23. Garbage collection", "24. Token generator",
+          "25. Reset session", "26. Test touch events", "27. Restore defaults",
+          "28. Block the UI", "29. System report"
+        ],
         eulaText: `<b>USER AGREEMENT & END-USER LICENSE AGREEMENT (EULA)</b><br><br>
 1. <b>Age Attestation (18+):</b> This software client provides direct portal access to adult-oriented visual media. Continued entry strictly certifies that you are at least 18 years old or have reached the legal age of maturity under your local jurisdiction.<br><br>
 2. <b>Disclaimer of Content Ownership:</b> This mobile wrapper is an unofficial, community-built, open-source API portal. The developer of this app <b>does not host, store, moderate, upload, or own</b> any of the displayed files. All digital materials are retrieved dynamically via public API queries from e621.net servers.<br><br>
@@ -2082,6 +2316,10 @@
       return translations[activeLang][key] || translations['ru'][key] || key;
     }
 
+    function localized(ruText, enText) {
+      return state.language === 'ru' ? ruText : enText;
+    }
+
     const DOM = {
       galleryGrid: document.getElementById('gallery-grid'),
       bookmarksGrid: document.getElementById('bookmarks-grid'),
@@ -2127,6 +2365,7 @@
     function addDebugLog(msg) {
       const logger = document.getElementById('admin-debug-log');
       if (logger) {
+        logger.dataset.hasActivity = 'true';
         const time = new Date().toLocaleTimeString();
         logger.innerHTML += `\n[${time}] ${msg}`;
         logger.scrollTop = logger.scrollHeight;
@@ -2140,15 +2379,15 @@
           state.trafficUsed = 0.0;
           safeLocalStorage.setItem('p_e621_traffic', '0.0');
           document.getElementById('traffic-val').textContent = '0.0';
-          addDebugLog("Трафик успешно обнулен до 0.0 MB.");
-          showToast("Трафик сброшен!");
+          addDebugLog(localized("Трафик успешно обнулен до 0.0 MB.", "Traffic reset to 0.0 MB."));
+          showToast(localized("Трафик сброшен!", "Traffic reset!"));
           break;
         case 2:
           if ('vibrate' in navigator) {
             navigator.vibrate([100, 50, 100, 50, 200]);
-            addDebugLog("Отправлен паттерн вибрации на устройство.");
+            addDebugLog(localized("Отправлен паттерн вибрации на устройство.", "Vibration pattern sent to the device."));
           } else {
-            addDebugLog("Вибрация не поддерживается браузером.");
+            addDebugLog(localized("Вибрация не поддерживается браузером.", "Vibration is not supported by this browser."));
           }
           break;
         case 3:
@@ -2156,13 +2395,13 @@
           let styleEl = document.getElementById(debugStyleId);
           if (styleEl) {
             styleEl.remove();
-            addDebugLog("Сетка дебага отключена.");
+            addDebugLog(localized("Сетка дебага отключена.", "Debug layout outlines disabled."));
           } else {
             styleEl = document.createElement('style');
             styleEl.id = debugStyleId;
             styleEl.innerHTML = '* { outline: 1px dashed rgba(239, 68, 68, 0.45) !important; }';
             document.head.appendChild(styleEl);
-            addDebugLog("Сетка дебага активирована.");
+            addDebugLog(localized("Сетка дебага активирована.", "Debug layout outlines enabled."));
           }
           break;
         case 4:
@@ -2172,23 +2411,26 @@
           ];
           state.bookmarks = [...state.bookmarks, ...dummy];
           safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-          addDebugLog("Импортировано 2 фейковых dummy-поста в закладки.");
-          showToast("Импортировано!");
+          addDebugLog(localized("Импортировано 2 фейковых dummy-поста в закладки.", "Added 2 dummy posts to bookmarks."));
+          showToast(localized("Импортировано!", "Imported!"));
           break;
         case 5:
           state.debugDelayActive = !state.debugDelayActive;
-          addDebugLog(`Эмуляция задержки сети: ${state.debugDelayActive ? 'ВКЛЮЧЕНА (2000мс)' : 'ВЫКЛЮЧЕНА'}`);
+          addDebugLog(localized(
+            `Эмуляция задержки сети: ${state.debugDelayActive ? 'ВКЛЮЧЕНА (2000мс)' : 'ВЫКЛЮЧЕНА'}`,
+            `Network latency simulation: ${state.debugDelayActive ? 'ON (2000ms)' : 'OFF'}`
+          ));
           break;
         case 6:
-          addDebugLog("Вызов принудительного исключения...");
+          addDebugLog(localized("Вызов принудительного исключения...", "Triggering a forced exception..."));
           setTimeout(() => {
-            throw new Error("[CRITICAL DEBUG ERROR] Симулированный краш.");
+            throw new Error(localized("[CRITICAL DEBUG ERROR] Симулированный краш.", "[CRITICAL DEBUG ERROR] Simulated crash."));
           }, 500);
           break;
         case 7:
           localStorage.clear();
-          addDebugLog("Выполнена полная очистка LocalStorage.");
-          showToast("Локальные данные очищены!");
+          addDebugLog(localized("Выполнена полная очистка LocalStorage.", "LocalStorage cleared completely."));
+          showToast(localized("Локальные данные очищены!", "Local data cleared!"));
           break;
         case 8:
           const stateStr = JSON.stringify(state);
@@ -2198,15 +2440,15 @@
           tempInput.select();
           document.execCommand('copy');
           document.body.removeChild(tempInput);
-          addDebugLog("Состояние скопировано в буфер.");
-          showToast("Скопировано!");
+          addDebugLog(localized("Состояние скопировано в буфер.", "Application state copied to the clipboard."));
+          showToast(localized("Скопировано!", "Copied!"));
           break;
         case 9:
           const nodes = document.getElementsByTagName('*').length;
-          addDebugLog(`Количество активных элементов DOM: ${nodes}`);
+          addDebugLog(localized(`Количество активных элементов DOM: ${nodes}`, `Active DOM elements: ${nodes}`));
           break;
         case 10:
-          addDebugLog("Запущен тест FPS...");
+          addDebugLog(localized("Запущен тест FPS...", "FPS test started..."));
           let frames = 0, lastTime = performance.now();
           const checkFPS = () => {
             frames++;
@@ -2222,88 +2464,94 @@
           break;
         case 11:
           state.debugDelayActive = true;
-          addDebugLog("Имитация слабого соединения (3G / 450kbps) запущена.");
-          showToast("Имитация 3G активна");
+          addDebugLog(localized("Имитация слабого соединения (3G / 450kbps) запущена.", "Slow connection simulation (3G / 450kbps) started."));
+          showToast(localized("Имитация 3G активна", "3G simulation enabled"));
           break;
         case 12:
           const logger = document.getElementById('admin-debug-log');
-          if (logger) logger.innerHTML = "[SYSTEM] Логи консоли очищены.";
+          if (logger) {
+            logger.dataset.hasActivity = 'true';
+            logger.innerHTML = localized("[SYSTEM] Логи консоли очищены.", "[SYSTEM] Console logs cleared.");
+          }
           break;
         case 13:
-          addDebugLog(`Конфиг: Язык=${state.language}, Пакетка=${state.settings.layout}, ФокусБэг=${state.customBg ? 'Активен' : 'Пусто'}`);
+          addDebugLog(localized(
+            `Конфиг: Язык=${state.language}, Разметка=${state.settings.layout}, Фон=${state.customBg ? 'Активен' : 'Пусто'}`,
+            `Config: Language=${state.language}, Layout=${state.settings.layout}, Background=${state.customBg ? 'Active' : 'Empty'}`
+          ));
           break;
         case 14:
-          addDebugLog("Инициализация тяжелых массивов для проверки утечек ОЗУ...");
+          addDebugLog(localized("Инициализация тяжелых массивов для проверки утечек ОЗУ...", "Allocating large arrays for the RAM leak test..."));
           let leak = [];
           for (let i = 0; i < 100000; i++) leak.push({ hash: Math.random() });
-          addDebugLog(`Выделено тестовых объектов: ${leak.length}. Освобождение...`);
+          addDebugLog(localized(`Выделено тестовых объектов: ${leak.length}. Освобождение...`, `Allocated test objects: ${leak.length}. Releasing...`));
           leak = null;
-          showToast("Стресс-тест ОЗУ завершен!");
+          showToast(localized("Стресс-тест ОЗУ завершен!", "RAM stress test completed!"));
           break;
         case 15:
-          addDebugLog("[ERROR SIMULATION] Вызов ошибки HTTP 403 (Доступ заблокирован).");
-          showToast("Ошибка 403 симулирована!");
+          addDebugLog(localized("[ERROR SIMULATION] Вызов ошибки HTTP 403 (Доступ заблокирован).", "[ERROR SIMULATION] Triggering HTTP 403 (Access denied)."));
+          showToast(localized("Ошибка 403 симулирована!", "Error 403 simulated!"));
           break;
         case 16:
-          addDebugLog("[ERROR SIMULATION] Вызов ошибки HTTP 404 (Ресурс не найден).");
-          showToast("Ошибка 404 симулирована!");
+          addDebugLog(localized("[ERROR SIMULATION] Вызов ошибки HTTP 404 (Ресурс не найден).", "[ERROR SIMULATION] Triggering HTTP 404 (Resource not found)."));
+          showToast(localized("Ошибка 404 симулирована!", "Error 404 simulated!"));
           break;
         case 17:
           state.debugPostLimit = Math.floor(Math.random() * 45) + 5;
-          addDebugLog(`Размер запрашиваемой пачки изменен на: ${state.debugPostLimit}`);
+          addDebugLog(localized(`Размер запрашиваемой пачки изменен на: ${state.debugPostLimit}`, `Request batch size changed to: ${state.debugPostLimit}`));
           break;
         case 18:
           state.settings.ecoMode = !state.settings.ecoMode;
           applyEcoMode(state.settings.ecoMode);
-          addDebugLog(`Эко-рендеринг принудительно: ${state.settings.ecoMode}`);
+          addDebugLog(localized(`Эко-рендеринг принудительно: ${state.settings.ecoMode}`, `Forced eco rendering: ${state.settings.ecoMode}`));
           break;
         case 19:
           state.searchHistory = [];
           safeLocalStorage.setItem('p_e621_search_history', '[]');
-          addDebugLog("Локальная история поиска сброшена.");
-          showToast("История очищена!");
+          addDebugLog(localized("Локальная история поиска сброшена.", "Local search history reset."));
+          showToast(localized("История очищена!", "History cleared!"));
           break;
         case 20:
           if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen();
-            addDebugLog("Полноэкранный режим активирован.");
+            addDebugLog(localized("Полноэкранный режим активирован.", "Fullscreen mode enabled."));
           } else {
             document.exitFullscreen();
-            addDebugLog("Полноэкранный режим выключен.");
+            addDebugLog(localized("Полноэкранный режим выключен.", "Fullscreen mode disabled."));
           }
           break;
         case 21:
           state.blacklist = [];
           safeLocalStorage.setItem('p_e621_blacklist', '[]');
           renderBlacklistChips();
-          addDebugLog("Черный список тегов полностью очищен.");
-          showToast("ЧС сброшен!");
+          addDebugLog(localized("Черный список тегов полностью очищен.", "Tag blacklist cleared completely."));
+          showToast(localized("Черный список сброшен!", "Blacklist reset!"));
           break;
         case 22:
-          addDebugLog("Проверка доступности CORS прокси...");
+          addDebugLog(localized("Проверка доступности CORS-прокси...", "Testing CORS proxy availability..."));
           fetch("https://corsproxy.io/?https://e621.net/posts.json?limit=1")
-            .then(r => addDebugLog(`CORS тест: статус ${r.status}`))
-            .catch(e => addDebugLog(`CORS сбой: ${e.message}`));
+            .then(r => addDebugLog(localized(`CORS-тест: статус ${r.status}`, `CORS test: status ${r.status}`)))
+            .catch(e => addDebugLog(localized(`Сбой CORS: ${e.message}`, `CORS failure: ${e.message}`)));
           break;
         case 23:
-          addDebugLog("Принудительная сборка неиспользуемых дескрипторов DOM элементов.");
-          if (window.gc) { window.gc(); addDebugLog("GC запущен нативно."); } 
-          else { addDebugLog("Нативный GC недоступен. Применена очистка кэшей."); }
+          addDebugLog(localized("Принудительная сборка неиспользуемых дескрипторов DOM-элементов.", "Collecting unused DOM element handles."));
+          if (window.gc) { window.gc(); addDebugLog(localized("GC запущен нативно.", "Native GC started.")); } 
+          else { addDebugLog(localized("Нативный GC недоступен. Применена очистка кэшей.", "Native GC is unavailable. Cache cleanup applied.")); }
           break;
         case 24:
           const randomToken = "dev_" + Math.random().toString(36).substring(2, 15);
-          addDebugLog(`Сгенерирован токен сессии: ${randomToken}`);
+          addDebugLog(localized(`Сгенерирован токен сессии: ${randomToken}`, `Session token generated: ${randomToken}`));
           break;
         case 25:
           state.totalTime = 0;
           safeLocalStorage.setItem('p_e621_total_time', '0');
-          addDebugLog("Время сессии сброшено до 0с.");
+          addDebugLog(localized("Время сессии сброшено до 0с.", "Session time reset to 0s."));
           updateStatsUI();
           break;
         case 26:
-          addDebugLog("Тестирование задержки сенсорного ввода...");
+          addDebugLog(localized("Тестирование задержки сенсорного ввода...", "Testing touch input latency..."));
           document.addEventListener('touchstart', function ts() {
-            addDebugLog("Сенсор зафиксирован. Задержка: минимальная.");
+            addDebugLog(localized("Касание зафиксировано. Задержка минимальна.", "Touch detected. Latency is minimal."));
             document.removeEventListener('touchstart', ts);
           });
           break;
@@ -2311,16 +2559,19 @@
           state.customization = {"accent":"#2563eb","radius":"8px"};
           safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
           applyCustomStyles();
-          addDebugLog("Сброс внешнего вида до Chromium дефолтов.");
+          addDebugLog(localized("Внешний вид сброшен к настройкам Chromium по умолчанию.", "Appearance reset to Chromium defaults."));
           break;
         case 28:
-          addDebugLog("Имитация зависания UI потока на 800мс...");
+          addDebugLog(localized("Имитация зависания интерфейса на 800мс...", "Simulating an 800ms UI thread stall..."));
           const end = Date.now() + 800;
           while (Date.now() < end) {}
-          addDebugLog("UI разблокирован.");
+          addDebugLog(localized("Интерфейс разблокирован.", "UI unlocked."));
           break;
         case 29:
-          addDebugLog(`Системный лог: Версия Chromium Mobile Client 3.5. Платформа: ${navigator.platform}, Язык: ${navigator.language}`);
+          addDebugLog(localized(
+            `Системный лог: Chromium Mobile Client 3.5. Платформа: ${navigator.platform}, Язык: ${navigator.language}`,
+            `System report: Chromium Mobile Client 3.5. Platform: ${navigator.platform}, Language: ${navigator.language}`
+          ));
           break;
       }
     }
@@ -2366,16 +2617,16 @@
         if (codeArea && outputWrap) {
           codeArea.value = encoded;
           outputWrap.classList.remove('hidden');
-          showToast("Бэкап успешно создан!");
+          showToast(t('backupCreated'));
         }
       } catch (err) {
-        showToast("Ошибка при создании бэкапа.");
+        showToast(t('backupCreateError'));
       }
     }
 
     function restoreBackupFromCode(code) {
       if (!code) {
-        showToast("Пожалуйста, введите код!");
+        showToast(t('backupCodeRequired'));
         return;
       }
       try {
@@ -2445,12 +2696,12 @@
           safeLocalStorage.removeItem('p_e621_auth_enc');
         }
 
-        showToast("Резервная копия восстановлена! Перезапуск...");
+        showToast(t('backupRestored'));
         setTimeout(() => {
           window.location.reload();
         }, 1200);
       } catch (err) {
-        showToast("Ошибка декодирования бэкапа!");
+        showToast(t('backupDecodeError'));
       }
     }
 
@@ -2520,8 +2771,17 @@
     }
 
     function translateUI() {
+      document.documentElement.lang = state.language;
       safePlaceholder('search-input', t('searchPlaceholder'));
       safePlaceholder('blacklist-input', state.language === 'ru' ? 'Введите тег...' : 'Enter tag...');
+      safeText('media-type-label-all', t('mediaAll'));
+      safeText('media-type-label-photo', t('mediaPhoto'));
+      safeText('media-type-label-video', t('mediaVideo'));
+
+      const favoriteTagsBtn = document.getElementById('fav-search-btn');
+      const searchHistoryBtn = document.getElementById('history-search-btn');
+      if (favoriteTagsBtn) favoriteTagsBtn.title = t('favoriteTagsTitle');
+      if (searchHistoryBtn) searchHistoryBtn.title = t('searchHistoryTitle');
       
       safeText('p-feed', t('feed'));
       safeText('p-day', t('day'));
@@ -2540,11 +2800,29 @@
       safeText('sum-backup-suite', t('sum-backup-suite'));
       safeText('sum-legal-info', t('legalInfo'));
       safeText('sum-proxy', t('proxyTitle'));
+      safeText('sum-account', t('accountTitle'));
       safeText('sum-dev-panel', state.language === 'ru' ? 'Панель разработчика' : 'Developer Control Room');
 
+      const debugLabels = t('debugActions');
+      document.querySelectorAll('#admin-debug-grid button').forEach((button, index) => {
+        if (debugLabels[index]) button.textContent = debugLabels[index];
+      });
+      const debugLogger = document.getElementById('admin-debug-log');
+      if (debugLogger && debugLogger.dataset.hasActivity !== 'true') {
+        debugLogger.textContent = t('debugReady');
+      }
+
       safeText('lbl-lang-title', t('langTitle'));
-      safeText('lbl-custom-bg-section', state.language === 'ru' ? 'Собственные фоновые обои' : 'Custom Background Wallpaper');
-      safeText('clear-bg-btn', state.language === 'ru' ? 'Сбросить фоновые обои' : 'Reset wallpaper background');
+      safeText('lbl-custom-bg-section', t('customBackground'));
+      safeText('lbl-bg-opacity', t('backgroundOpacity'));
+      safeText('clear-bg-btn', t('clearBackground'));
+
+      ['lang-btn-ru', 'eula-lang-ru'].forEach(id => {
+        document.getElementById(id)?.classList.toggle('is-active', state.language === 'ru');
+      });
+      ['lang-btn-en', 'eula-lang-en'].forEach(id => {
+        document.getElementById(id)?.classList.toggle('is-active', state.language === 'en');
+      });
 
       safeText('lbl-stats-title', t('statsTitle'));
       safeText('lbl-stat-viewed', t('statViewed'));
@@ -2562,11 +2840,29 @@
       safeText('save-auth-btn', t('saveConnect'));
       safeText('btn-reg', t('reg'));
 
-      safeHTML('lbl-rounding', t('roundingTitle') + "<span>" + (state.language === 'ru' ? "Кнопки, карточки, панели" : "Buttons, inputs, UI borders") + "</span>");
+      safeText('lbl-backup-desc', t('backupDesc'));
+      safeText('btn-generate-backup', t('backupGenerate'));
+      safeText('btn-copy-backup-code', t('backupCopy'));
+      safeText('lbl-import-code', t('backupImport'));
+      safePlaceholder('import-backup-input', t('backupPlaceholder'));
+      safeText('btn-restore-backup', t('backupRestore'));
+
+      safeText('lbl-api-base', t('apiBaseLabel'));
+      safeText('lbl-proxy-mode', t('proxyModeLabel'));
+      safeText('opt-proxy-direct', t('proxyDirect'));
+      safeText('opt-proxy-fallback', t('proxyFallback'));
+      safeText('opt-proxy-custom', t('proxyCustom'));
+      safeText('lbl-custom-proxy', t('customProxyLabel'));
+      safeText('save-proxy-btn', t('saveProxy'));
+
+      safeHTML('lbl-rounding', t('roundingTitle') + "<span>" + t('roundingDesc') + "</span>");
+      safeText('opt-radius-none', t('radiusNone'));
+      safeText('opt-radius-standard', t('radiusStandard'));
+      safeText('opt-radius-extreme', t('radiusExtreme'));
       safeHTML('lbl-feed-fit', t('feedFitTitle') + "<span>" + t('feedFitDesc') + "</span>");
       safeText('opt-fit-cover', t('fitCover'));
       safeText('opt-fit-contain', t('fitContain'));
-      safeHTML('lbl-accent', t('accent') + "<span>" + (state.language === 'ru' ? "Цветовая гамма приложения" : "Active theme highlights") + "</span>");
+      safeHTML('lbl-accent', t('accent') + "<span>" + t('accentDesc') + "</span>");
       
       safeHTML('lbl-rate-safe', state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>For all audiences</span>');
       safeHTML('lbl-rate-quest', state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Suggestive themes</span>');
@@ -2577,8 +2873,10 @@
       safeHTML('lbl-eco-mode', (state.language === 'ru' ? "Энергосберегающий режим<span>Отключает размытия и эффекты</span>" : "Eco Save Mode<span>Disables heavy blurs & transitions</span>"));
       safeHTML('lbl-pin-toggle', (state.language === 'ru' ? "Защита четырехзначным PIN<span>Запрашивать при запуске и выходе</span>" : "4-Digit PIN Protection<span>Request code on startup</span>"));
       safeHTML('lbl-nsfw-blur-toggle', (state.language === 'ru' ? "Размывать 18+ контент<span>Скрывать превью до клика</span>" : "NSFW Blur Protection<span>Blur explicit feeds until clicked</span>"));
+      safeText('set-pin-btn', t('changePin'));
 
       safeText('lbl-layout-title', t('layoutTitle'));
+      safeText('lbl-grid-format', t('gridFormat'));
       safeText('shuffler-square', t('layoutSquare'));
       safeText('shuffler-masonry', t('layoutMasonry'));
       safeText('shuffler-story', t('layoutStory'));
@@ -2587,15 +2885,24 @@
       safeText('lbl-comments-title', t('comments'));
       safeText('lbl-legal-desc', t('legalDesc'));
       safeText('lbl-btn-view-legal', t('btnViewLegal'));
+      safeText('lbl-legal-header-title', t('legalHeader'));
       
       safeText('lbl-loading-indicator-text', t('loading'));
       
       safeText('panic-warning-text', t('panicActiveText'));
+      safeText('panic-description', t('panicDescription'));
       safeText('disable-panic-settings-btn', t('disablePanicBtn'));
       safeText('banner-text', state.language === 'ru' ? "БЕТА ТЕСТ: Приложение в стадии тестирования" : "BETA TEST: Client currently inside public testing stages");
 
       const downloadBtnSpan = document.getElementById('detail-download-btn')?.querySelector('span');
       if (downloadBtnSpan) downloadBtnSpan.textContent = t('downloadMedia');
+      safeText('detail-fit-toggle', state.detailFitZoom === 'cover' ? t('detailContain') : t('detailFill'));
+      safeText('detail-slideshow-label', state.slideshowActive ? `■ ${t('slideshowStop')}` : `▶ ${t('slideshow')}`);
+
+      const detailPrevBtn = document.getElementById('detail-prev-btn');
+      const detailNextBtn = document.getElementById('detail-next-btn');
+      if (detailPrevBtn) detailPrevBtn.title = t('previousPhoto');
+      if (detailNextBtn) detailNextBtn.title = t('nextPhoto');
 
       safeText('ind-like', state.language === 'ru' ? 'СОХРАНЕНО' : 'SAVED');
       safeText('ind-skip', state.language === 'ru' ? 'ПРОПУСК' : 'SKIP');
@@ -2692,7 +2999,7 @@
       if (response.ok) {
         return await response.text();
       }
-      throw new Error(`Ошибка подключения: ${response.status}`);
+      throw new Error(`${t('connectionError')}: ${response.status}`);
     }
 
     const TAG_ALIASES = {
@@ -2761,10 +3068,10 @@
       const idx = state.favSearches.indexOf(query);
       if (idx === -1) {
         state.favSearches.push(query);
-        showToast(state.language === 'ru' ? "Комбинация добавлена в избранное!" : "Search combination favorited!");
+        showToast(t('favoriteSearchAdded'));
       } else {
         state.favSearches.splice(idx, 1);
-        showToast(state.language === 'ru' ? "Комбинация удалена из избранного" : "Combination removed from favorites");
+        showToast(t('favoriteSearchRemoved'));
       }
       safeLocalStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
       renderFavoriteSearchesBar();
@@ -2803,15 +3110,15 @@
     function renderSearchHistoryInSuggestions() {
       if (state.searchHistory.length === 0) {
         suggestionsBox.innerHTML = `<div style="padding: 12px; text-align:center; font-size: 0.8rem; color: var(--text-muted);">
-          ${state.language === 'ru' ? 'История поиска пуста' : 'Search history is empty'}
+          ${t('emptySearchHistory')}
         </div>`;
         suggestionsBox.style.display = 'block';
         return;
       }
       suggestionsBox.innerHTML = `<div style="padding: 8px 12px; font-size: 0.75rem; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: bold; display: flex; align-items: center; justify-content: space-between;">
-        <span>${state.language === 'ru' ? 'История поиска:' : 'Search History:'}</span>
+        <span>${t('searchHistoryHeading')}</span>
         <button id="clear-all-history-btn" class="text-xs text-red-400 hover:text-red-500 font-normal">
-          ${state.language === 'ru' ? 'Очистить' : 'Clear'}
+          ${t('clear')}
         </button>
       </div>`;
       
@@ -2822,7 +3129,7 @@
           state.searchHistory = [];
           safeLocalStorage.setItem('p_e621_search_history', JSON.stringify([]));
           renderSearchHistoryInSuggestions();
-          showToast(state.language === 'ru' ? "История поиска очищена!" : "Search history cleared!");
+          showToast(t('searchHistoryCleared'));
         });
       }
 
@@ -2894,7 +3201,7 @@
         const count = item.post_count;
         let formattedCount = count >= 1000 ? (count / 1000).toFixed(0) + 'K' : count;
 
-        const aliasText = TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
+        const aliasText = state.language === 'ru' && TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
         suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${aliasText}</span>`;
 
         suggestionItem.addEventListener('click', () => {
@@ -3254,7 +3561,7 @@
         wrapper.classList.remove('rounded-lg');
         const img = wrapper.querySelector('img');
         if (img) img.style.maxHeight = '90vh';
-        toggleBtn.textContent = state.language === 'ru' ? "Сжать" : "Contain";
+        toggleBtn.textContent = t('detailContain');
       } else {
         state.detailFitZoom = 'contain';
         wrapper.style.maxHeight = '75vh';
@@ -3262,7 +3569,7 @@
         wrapper.classList.add('rounded-lg');
         const img = wrapper.querySelector('img');
         if (img) img.style.maxHeight = '75vh';
-        toggleBtn.textContent = state.language === 'ru' ? "Заполнить" : "Fill";
+        toggleBtn.textContent = t('detailFill');
       }
     }
 
@@ -3299,7 +3606,7 @@
       wrapper.style.maxHeight = '75vh';
       wrapper.style.maxWidth = '95%';
       const toggleBtn = document.getElementById('detail-fit-toggle');
-      if (toggleBtn) toggleBtn.textContent = state.language === 'ru' ? "Заполнить" : "Fill";
+      if (toggleBtn) toggleBtn.textContent = t('detailFill');
 
       const downloadBtnSpan = document.getElementById('detail-download-btn')?.querySelector('span');
       if (downloadBtnSpan) {
@@ -3401,7 +3708,7 @@
           openDetailView(currentPool[currentIndex + 1]);
         } else if (state.slideshowActive) {
           stopSlideshow(); 
-          showToast(state.language === 'ru' ? "Слайдшоу завершено" : "Slideshow finished");
+          showToast(t('slideshowFinished'));
         }
       }
     }
@@ -3412,12 +3719,12 @@
       
       if (state.slideshowActive) {
         stopSlideshow();
-        showToast(state.language === 'ru' ? "Слайдшоу остановлено" : "Slideshow stopped");
+        showToast(t('slideshowStopped'));
       } else {
         state.slideshowActive = true;
-        btn.innerHTML = `<span class="text-amber-400">■ Стоп</span>`;
+        btn.innerHTML = `<span id="detail-slideshow-label" class="text-amber-400">■ ${t('slideshowStop')}</span>`;
         btn.classList.add('border-amber-500');
-        showToast(state.language === 'ru' ? "Слайдшоу запущено" : "Slideshow active");
+        showToast(t('slideshowStarted'));
         
         state.slideshowIntervalId = setInterval(() => {
           const activePanel = document.querySelector('.view-panel.active');
@@ -3435,7 +3742,7 @@
       state.slideshowActive = false;
       const btn = document.getElementById('detail-slideshow-btn');
       if (btn) {
-        btn.innerHTML = `<span>▶ Слайдшоу</span>`;
+        btn.innerHTML = `<span id="detail-slideshow-label">▶ ${t('slideshow')}</span>`;
         btn.classList.remove('border-amber-500');
       }
       if (state.slideshowIntervalId) {
@@ -3519,7 +3826,7 @@
 
         <section class="space-y-4">
           <h2 class="text-sm font-bold text-[var(--accent)] flex items-center gap-1.5 border-b border-zinc-800 pb-1.5 uppercase">
-            <span>5. Обратная связь / Contact Support</span>
+            <span>5. ${isRu ? 'Обратная связь' : 'Contact Support'}</span>
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
             ${isRu
@@ -3553,7 +3860,7 @@
       const btn = document.getElementById('detail-bookmark-btn');
       if (!btn || !detailCurrentPost) return;
       const isSaved = state.bookmarks.some(p => p.id === detailCurrentPost.id);
-      btn.textContent = isSaved ? (state.language === 'ru' ? "В закладках" : "Bookmarked") : (state.language === 'ru' ? "В закладки" : "Bookmark");
+      btn.textContent = isSaved ? t('bookmarked') : t('bookmark');
       btn.style.backgroundColor = isSaved ? "var(--success)" : "var(--accent)";
     }
 
@@ -3610,7 +3917,7 @@
       const container = document.getElementById('recs-grid');
       if (!container) return;
       clearPostContainer(container);
-      container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${state.language === 'ru' ? 'Анализ ваших предпочтений...' : 'Analyzing tastes...'}</div>`;
+      container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('analyzingRecommendations')}</div>`;
 
       if (state.bookmarks.length < 2) {
         container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">${t('bookmarksLimit')}</div>`;
@@ -3709,7 +4016,7 @@
           openDetailView(mappedPost);
         }
       } catch (e) {
-        showToast("Не удалось запустить Рандом.");
+        showToast(t('randomFailed'));
       }
     }
 
@@ -3932,6 +4239,14 @@
     function renderEULALanguage(lang) {
       const termsBox = document.getElementById('eula-terms-box');
       if (!termsBox) return;
+      state.language = lang;
+      safeText('eula-sub-title', t('eulaSubtitle'));
+      ['lang-btn-ru', 'eula-lang-ru'].forEach(id => {
+        document.getElementById(id)?.classList.toggle('is-active', lang === 'ru');
+      });
+      ['lang-btn-en', 'eula-lang-en'].forEach(id => {
+        document.getElementById(id)?.classList.toggle('is-active', lang === 'en');
+      });
       if (lang === 'ru') {
         document.getElementById('eula-main-title').textContent = "ВНИМАНИЕ";
         document.getElementById('lbl-eula-checkbox-text').textContent = translations.ru.eulaCheckbox;
@@ -3963,9 +4278,7 @@
 
       const promptText = document.getElementById('pin-screen-prompt');
       if (promptText) {
-        promptText.textContent = isSetup 
-          ? (state.language === 'ru' ? "Придумайте PIN-код" : "Create security PIN")
-          : (state.language === 'ru' ? "Введите PIN-код" : "Enter security PIN");
+        promptText.textContent = isSetup ? t('createPin') : t('enterPin');
       }
 
       resetPinVisualDots();
@@ -4000,7 +4313,7 @@
           state.newPinRegister = state.tempPinInput;
           state.tempPinInput = "";
           resetPinVisualDots();
-          if (promptText) promptText.textContent = state.language === 'ru' ? "Повторите PIN-код для подтверждения" : "Repeat PIN code to confirm";
+          if (promptText) promptText.textContent = t('repeatPin');
         } else {
           if (state.tempPinInput === state.newPinRegister) {
             safeLocalStorage.setItem('p_e621_pin_code', state.tempPinInput);
@@ -4012,14 +4325,14 @@
             if (screen) screen.classList.add('hidden');
             const wrap = document.getElementById('pin-actions-wrap');
             if (wrap) wrap.classList.remove('hidden');
-            showToast("PIN-код успешно настроен!");
+            showToast(t('pinConfigured'));
             
             if (pinVerificationCallback) pinVerificationCallback(state.tempPinInput);
           } else {
             state.tempPinInput = "";
             state.newPinRegister = "";
             resetPinVisualDots();
-            if (promptText) promptText.textContent = state.language === 'ru' ? "Не совпадает! Попробуйте заново" : "Mismatch! Try again";
+            if (promptText) promptText.textContent = t('pinMismatch');
             if ('vibrate' in navigator) navigator.vibrate([80, 80]);
           }
         }
@@ -4034,7 +4347,7 @@
         } else {
           state.tempPinInput = "";
           resetPinVisualDots();
-          if (promptText) promptText.textContent = state.language === 'ru' ? "Неверный PIN-код" : "Invalid security PIN";
+          if (promptText) promptText.textContent = t('invalidPin');
           if ('vibrate' in navigator) navigator.vibrate(120);
         }
       }
@@ -4045,10 +4358,10 @@
       const dlBtnSpan = dlBtn?.querySelector('span');
       
       if (dlBtnSpan) {
-        dlBtnSpan.textContent = state.language === 'ru' ? "(Зажмите для скачивания)" : "(Hold to Download)";
+        dlBtnSpan.textContent = t('holdToDownload');
       }
 
-      showToast(state.language === 'ru' ? "Открываем картинку. Зажмите для скачивания!" : "Opening image. Hold file to save!");
+      showToast(t('openingMedia'));
 
       setTimeout(() => {
         window.open(url, '_blank');
@@ -4169,7 +4482,7 @@
           if (codeArea) {
             codeArea.select();
             document.execCommand('copy');
-            showToast("Код скопирован!");
+            showToast(t('codeCopied'));
           }
         });
       }
@@ -4204,7 +4517,7 @@
       if (panicBtn) {
         panicBtn.addEventListener('click', () => {
           if (state.panicActive) {
-            showToast(state.language === 'ru' ? "Выключение режима паники доступно только в Настройках!" : "Panic Mode can only be disabled from Settings!");
+            showToast(t('panicSettingsOnly'));
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
           } else {
             triggerInstantPanicAction();
@@ -4244,6 +4557,26 @@
           }
         });
       }
+
+      const searchBtn = document.getElementById('search-btn');
+      if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+          const query = searchInput.value.trim();
+          suggestionsBox.style.display = 'none';
+          searchInput.blur();
+          triggerSearch(query);
+        });
+      }
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const query = searchInput.value.trim();
+          suggestionsBox.style.display = 'none';
+          searchInput.blur();
+          triggerSearch(query);
+        }
+      });
 
       const openLegalBtn = document.getElementById('open-legal-btn');
       const legalOverlay = document.getElementById('legal-overlay');
@@ -4310,7 +4643,7 @@
           safeLocalStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode);
           safeLocalStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix);
           
-          showToast("Настройки прокси сохранены!");
+          showToast(t('proxySaved'));
           loadGallery(true);
         });
       }
@@ -4351,7 +4684,7 @@
           state.language = 'ru';
           safeLocalStorage.setItem('p_e621_lang', 'ru');
           translateUI();
-          showToast("Язык изменен на Русский!");
+          showToast(t('languageChanged'));
         });
       }
       if (langEnBtn) {
@@ -4359,18 +4692,22 @@
           state.language = 'en';
           safeLocalStorage.setItem('p_e621_lang', 'en');
           translateUI();
-          showToast("Language changed to English!");
+          showToast(t('languageChanged'));
         });
       }
       if (eulaLangRu) {
         eulaLangRu.addEventListener('click', () => {
           state.language = 'ru';
+          safeLocalStorage.setItem('p_e621_lang', 'ru');
+          translateUI();
           renderEULALanguage('ru');
         });
       }
       if (eulaLangEn) {
         eulaLangEn.addEventListener('click', () => {
           state.language = 'en';
+          safeLocalStorage.setItem('p_e621_lang', 'en');
+          translateUI();
           renderEULALanguage('en');
         });
       }
@@ -4396,7 +4733,7 @@
           state.customization.radius = e.target.value;
           safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
           applyCustomStyles();
-          showToast("Скругление интерфейса обновлено!");
+          showToast(t('roundingUpdated'));
         });
       }
 
@@ -4416,7 +4753,7 @@
           safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
           applyCustomStyles();
           translateUI();
-          showToast("Цветовая гамма обновлена!");
+          showToast(t('accentUpdated'));
         });
       });
 
@@ -4475,7 +4812,7 @@
               safeLocalStorage.removeItem('p_e621_auth_enc');
               const wrap = document.getElementById('pin-actions-wrap');
               if (wrap) wrap.classList.add('hidden');
-              showToast("PIN-код отключен");
+              showToast(t('pinDisabled'));
             }, () => {
               pinBox.checked = true;
             });
@@ -4501,7 +4838,7 @@
             state.customBg = dataUrl;
             safeLocalStorage.setItem('p_e621_custom_bg', dataUrl);
             applyCustomBackground(dataUrl);
-            showToast(state.language === 'ru' ? "Фон успешно установлен!" : "Background wallpaper successfully applied!");
+            showToast(t('backgroundApplied'));
           };
           reader.readAsDataURL(file);
         });
@@ -4522,7 +4859,7 @@
           state.customBg = '';
           safeLocalStorage.removeItem('p_e621_custom_bg');
           applyCustomBackground('');
-          showToast("Кастомный фон сброшен.");
+          showToast(t('backgroundReset'));
         });
       }
 
@@ -4582,13 +4919,13 @@
             state.auth.apiKey = apiVal;
             const activePin = safeLocalStorage.getItem('p_e621_pin_code') || "";
             reEncryptCredentials(activePin);
-            showToast("Аккаунт успешно сохранен!");
+            showToast(t('authSaved'));
             updateAuthUI();
             loadGallery(true);
           } else {
             state.auth = { username: "", apiKey: "" };
             safeLocalStorage.removeItem('p_e621_auth_enc');
-            showToast("Вы вышли из аккаунта.");
+            showToast(t('authSignedOut'));
             updateAuthUI();
             loadGallery(true);
           }
@@ -4607,10 +4944,10 @@
       const container = document.getElementById('comments-feed');
       if (!container) return;
       if (!state.auth.username || !state.auth.apiKey) {
-        container.innerHTML = `<div class="text-zinc-500 py-1">${state.language === 'ru' ? 'Сначала подключите аккаунт в Настройках.' : 'Connect your account first.'}</div>`;
+        container.innerHTML = `<div class="text-zinc-500 py-1">${t('commentsAuthRequired')}</div>`;
         return;
       }
-      container.innerHTML = `<div class="text-zinc-500 py-1">Загрузка комментариев...</div>`;
+      container.innerHTML = `<div class="text-zinc-500 py-1">${t('commentsLoading')}</div>`;
       try {
         const textData = await directFetch(`https://e621.net/comments.json`, { 'group_by': 'comment', 'search[post_id]': postId }, true);
         const data = JSON.parse(textData);
