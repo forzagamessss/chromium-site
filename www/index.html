@@ -1873,6 +1873,14 @@
       try { return str ? JSON.parse(str) : fallback; } catch (e) { return fallback; }
     }
 
+    function normalizeStoredOption(value, allowedValues, fallback) {
+      return allowedValues.includes(value) ? value : fallback;
+    }
+
+    function readStoredOption(key, allowedValues, fallback) {
+      return normalizeStoredOption(safeLocalStorage.getItem(key), allowedValues, fallback);
+    }
+
     function safeText(id, text) {
       const el = document.getElementById(id);
       if (el) el.textContent = text;
@@ -2288,6 +2296,8 @@
       totalTime: parseInt(safeLocalStorage.getItem('p_e621_total_time') || '0'), 
       customBg: safeLocalStorage.getItem('p_e621_custom_bg') || '',
       bgOpacity: safeLocalStorage.getItem('p_e621_bg_opacity') || '0.9',
+      lastSearchTags: safeLocalStorage.getItem('p_e621_last_search') || '',
+      popularPeriod: readStoredOption('p_e621_popular_period', ['all', '1d', '7d', '30d', 'alltime'], 'all'),
       
       tempPinInput: "",
       setupPinMode: false,
@@ -2308,7 +2318,7 @@
       randomModeActive: false,
       
       detailFitZoom: 'contain',
-      mediaTypeFilter: 'all'
+      mediaTypeFilter: readStoredOption('p_e621_media_type', ['all', 'photo', 'video'], 'all')
     };
 
     function t(key) {
@@ -2589,6 +2599,7 @@
           customBg: state.customBg,
           bgOpacity: state.bgOpacity,
           trafficUsed: state.trafficUsed,
+          lastSearchTags: state.lastSearchTags,
           pinCode: safeLocalStorage.getItem('p_e621_pin_code') || '',
           encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '',
           settings: {
@@ -2602,7 +2613,9 @@
             proxyMode: state.settings.proxyMode,
             customProxyPrefix: state.settings.customProxyPrefix,
             pinEnabled: state.settings.pinEnabled,
-            nsfwBlur: state.settings.nsfwBlur
+            nsfwBlur: state.settings.nsfwBlur,
+            mediaTypeFilter: state.mediaTypeFilter,
+            popularPeriod: state.popularPeriod
           }
         };
         const jsonStr = JSON.stringify(payload);
@@ -2646,6 +2659,10 @@
         if (payload.customBg) state.customBg = payload.customBg;
         if (payload.bgOpacity) state.bgOpacity = payload.bgOpacity;
         if (payload.trafficUsed) state.trafficUsed = payload.trafficUsed;
+        if (typeof payload.lastSearchTags === 'string') {
+          state.lastSearchTags = payload.lastSearchTags;
+          currentSearchTags = payload.lastSearchTags;
+        }
         
         if (payload.settings) {
           state.settings.ratings = payload.settings.ratings || ["0+", "16+"];
@@ -2659,6 +2676,9 @@
           state.settings.apiBaseUrl = payload.settings.apiBaseUrl || "https://e621.net";
           state.settings.proxyMode = payload.settings.proxyMode || "fallback";
           state.settings.customProxyPrefix = payload.settings.customProxyPrefix || "";
+          state.mediaTypeFilter = normalizeStoredOption(payload.settings.mediaTypeFilter, ['all', 'photo', 'video'], 'all');
+          state.popularPeriod = normalizeStoredOption(payload.settings.popularPeriod, ['all', '1d', '7d', '30d', 'alltime'], 'all');
+          currentPopularPeriod = state.popularPeriod;
         }
 
         safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
@@ -2671,6 +2691,7 @@
         safeLocalStorage.setItem('p_e621_custom_bg', state.customBg);
         safeLocalStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
         safeLocalStorage.setItem('p_e621_traffic', state.trafficUsed);
+        safeLocalStorage.setItem('p_e621_last_search', state.lastSearchTags);
         
         safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
         safeLocalStorage.setItem('p_e621_feed_fit', state.settings.feedFit);
@@ -2683,6 +2704,8 @@
         safeLocalStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl);
         safeLocalStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode);
         safeLocalStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix);
+        safeLocalStorage.setItem('p_e621_media_type', state.mediaTypeFilter);
+        safeLocalStorage.setItem('p_e621_popular_period', state.popularPeriod);
 
         if (payload.pinCode) {
           safeLocalStorage.setItem('p_e621_pin_code', payload.pinCode);
@@ -2737,8 +2760,10 @@
         const payloadString = JSON.stringify(state.auth);
         const ciphertext = cryptoCore.encrypt(payloadString, pinCode);
         safeLocalStorage.setItem('p_e621_auth_enc', ciphertext);
+        safeLocalStorage.removeItem('p_e621_auth');
       } else {
         safeLocalStorage.removeItem('p_e621_auth_enc');
+        safeLocalStorage.removeItem('p_e621_auth');
       }
     }
 
@@ -3007,13 +3032,13 @@
     };
 
     let activePage = 0;
-    let currentSearchTags = '';
+    let currentSearchTags = state.lastSearchTags;
     let isFetching = false;
     let galleryRequestId = 0;
     let activeGalleryRequest = null;
     const loadedPostIds = new Set();
     let detailCurrentPost = null;
-    let currentPopularPeriod = 'all'; 
+    let currentPopularPeriod = state.popularPeriod;
 
     const searchInput = document.getElementById('search-input');
     const suggestionsBox = document.getElementById('suggestions');
@@ -3223,6 +3248,8 @@
 
     function triggerSearch(query) {
       currentSearchTags = query;
+      state.lastSearchTags = query;
+      safeLocalStorage.setItem('p_e621_last_search', query);
       state.searchCounter++;
       safeLocalStorage.setItem('p_e621_stat_searches', state.searchCounter);
       if (query && !state.searchHistory.includes(query)) {
@@ -3525,18 +3552,25 @@
       if (state.mediaTypeFilter === mode) return;
 
       state.mediaTypeFilter = mode;
+      safeLocalStorage.setItem('p_e621_media_type', mode);
       updateMediaTypeControl(mode);
       if ('vibrate' in navigator) navigator.vibrate(15);
       loadGallery(true);
+    }
+
+    function updatePopularPeriodControl(period) {
+      document.querySelectorAll('.period-btn').forEach(button => {
+        button.classList.toggle('active', button.dataset.period === period);
+      });
     }
 
     function setPopularPeriod(period) {
       if (!Object.prototype.hasOwnProperty.call(POPULAR_PERIODS, period) || currentPopularPeriod === period) return;
 
       currentPopularPeriod = period;
-      document.querySelectorAll('.period-btn').forEach(button => {
-        button.classList.toggle('active', button.dataset.period === period);
-      });
+      state.popularPeriod = period;
+      safeLocalStorage.setItem('p_e621_popular_period', period);
+      updatePopularPeriodControl(period);
       loadGallery(true);
     }
 
@@ -4265,6 +4299,7 @@
         openSecurePinScreen(false, () => loadGallery());
       } else {
         resolveEncryptedCredentials("");
+        updateAuthUI();
         loadGallery();
       }
     }
@@ -4466,6 +4501,11 @@
             setMediaTypeFilter(button.dataset.mode);
           }
         });
+      }
+      updatePopularPeriodControl(currentPopularPeriod);
+      if (searchInput) {
+        searchInput.value = currentSearchTags;
+        toggleClearBtn();
       }
 
       const generateBackupBtn = document.getElementById('btn-generate-backup');
@@ -4766,6 +4806,26 @@
         });
       }
 
+      const dataBudgetBox = document.getElementById('setting-data-budget');
+      if (dataBudgetBox) {
+        dataBudgetBox.checked = state.settings.dataBudget;
+        dataBudgetBox.addEventListener('change', (e) => {
+          state.settings.dataBudget = e.target.checked;
+          safeLocalStorage.setItem('p_e621_set_budget', e.target.checked);
+          loadGallery(true);
+        });
+      }
+
+      const ramSafeguardBox = document.getElementById('setting-ram-safeguard');
+      if (ramSafeguardBox) {
+        ramSafeguardBox.checked = state.settings.ramSafeguard;
+        ramSafeguardBox.addEventListener('change', (e) => {
+          state.settings.ramSafeguard = e.target.checked;
+          safeLocalStorage.setItem('p_e621_set_ram', e.target.checked);
+          loadGallery(true);
+        });
+      }
+
       const nsfwBox = document.getElementById('setting-nsfw-blur');
       if (nsfwBox) {
         nsfwBox.addEventListener('change', (e) => {
@@ -4807,9 +4867,7 @@
               state.settings.pinEnabled = false;
               safeLocalStorage.setItem('p_e621_pin_enabled', 'false');
               safeLocalStorage.removeItem('p_e621_pin_code');
-              resolveEncryptedCredentials("");
-              safeLocalStorage.setItem('p_e621_auth', JSON.stringify(state.auth));
-              safeLocalStorage.removeItem('p_e621_auth_enc');
+              reEncryptCredentials("");
               const wrap = document.getElementById('pin-actions-wrap');
               if (wrap) wrap.classList.add('hidden');
               showToast(t('pinDisabled'));
@@ -4924,7 +4982,7 @@
             loadGallery(true);
           } else {
             state.auth = { username: "", apiKey: "" };
-            safeLocalStorage.removeItem('p_e621_auth_enc');
+            reEncryptCredentials("");
             showToast(t('authSignedOut'));
             updateAuthUI();
             loadGallery(true);
