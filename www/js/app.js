@@ -3118,7 +3118,8 @@
 
       try {
         const isNative = window.Capacitor?.isNativePlatform?.();
-        const mediaDownloader = window.Capacitor?.Plugins?.MediaDownloader;
+        const mediaDownloader = window.Capacitor?.Plugins?.MediaDownloader
+          || window.Capacitor?.registerPlugin?.('MediaDownloader');
 
         if (isNative) {
           if (!mediaDownloader?.download) {
