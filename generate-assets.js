@@ -1,89 +1,88 @@
-const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
-async function main() {
-  const assetsDir = path.join(__dirname, 'assets');
-  if (!fs.existsSync(assetsDir)) {
-    fs.mkdirSync(assetsDir, { recursive: true });
-  }
+const root = __dirname;
+const sourceIcon = path.join(root, 'assets', 'icon-512.png');
+const resDir = path.join(root, 'android', 'app', 'src', 'main', 'res');
 
-  let srcIcon = path.join(assetsDir, 'icon-512.png');
-  if (!fs.existsSync(srcIcon)) {
-    srcIcon = path.join(__dirname, 'icon-512.png');
-  }
+const densities = {
+  mdpi: { legacy: 48, adaptive: 108 },
+  hdpi: { legacy: 72, adaptive: 162 },
+  xhdpi: { legacy: 96, adaptive: 216 },
+  xxhdpi: { legacy: 144, adaptive: 324 },
+  xxxhdpi: { legacy: 192, adaptive: 432 }
+};
 
-  if (!fs.existsSync(srcIcon)) {
-    console.error('❌ Error: icon-512.png not found!');
-    process.exit(1);
-  }
-
-  try {
-    const image = sharp(srcIcon);
-    const metadata = await image.metadata();
-
-    // Get the top-left pixel color to use as background color
-    const topLeftBuffer = await image
-      .clone()
-      .extract({ left: 0, top: 0, width: 1, height: 1 })
-      .raw()
-      .toBuffer();
-
-    const bgRed = topLeftBuffer[0];
-    const bgGreen = topLeftBuffer[1];
-    const bgBlue = topLeftBuffer[2];
-    const bgAlpha = metadata.hasAlpha ? topLeftBuffer[3] : 255;
-
-    // Determine background color configuration
-    const bgColor = { r: bgRed, g: bgGreen, b: bgBlue, alpha: bgAlpha / 255 };
-    console.log(`Detected background color from top-left pixel: rgba(${bgRed}, ${bgGreen}, ${bgBlue}, ${bgAlpha / 255})`);
-
-    // 1. Generate icon-only.png (1024x1024)
-    console.log('Generating assets/icon-only.png...');
-    await sharp(srcIcon)
-      .resize(1024, 1024, {
-        fit: 'contain',
-        background: bgColor
-      })
-      .toFile(path.join(assetsDir, 'icon-only.png'));
-
-    // 1b. Generate icon.png (1024x1024) - required for legacy launcher icon generation
-    console.log('Generating assets/icon.png...');
-    await sharp(srcIcon)
-      .resize(1024, 1024, {
-        fit: 'contain',
-        background: bgColor
-      })
-      .toFile(path.join(assetsDir, 'icon.png'));
-
-    // 2. Generate icon-foreground.png (1024x1024)
-    console.log('Generating assets/icon-foreground.png...');
-    // Android applies its own adaptive-icon safe area and mask. Extra padding here
-    // makes the artwork look noticeably smaller on Android 8+ launchers.
-    await sharp(srcIcon)
-      .resize(1024, 1024, {
-        fit: 'cover',
-        position: 'centre'
-      })
-      .toFile(path.join(assetsDir, 'icon-foreground.png'));
-
-    // 3. Generate icon-background.png (1024x1024 solid color matching detected background)
-    console.log('Generating assets/icon-background.png...');
-    await sharp({
-      create: {
-        width: 1024,
-        height: 1024,
-        channels: 4,
-        background: { r: bgRed, g: bgGreen, b: bgBlue, alpha: 1 } // Opaque background
-      }
-    })
-      .toFile(path.join(assetsDir, 'icon-background.png'));
-
-    console.log('🎉 Assets generation complete!');
-  } catch (error) {
-    console.error('❌ Error generating assets:', error);
-    process.exit(1);
-  }
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
 }
 
-main();
+async function writePng(size, destination, background) {
+  await sharp(sourceIcon)
+    .resize(size, size, { fit: 'contain', background })
+    .png()
+    .toFile(destination);
+}
+
+async function main() {
+  if (!fs.existsSync(sourceIcon)) {
+    throw new Error(`Source icon not found: ${sourceIcon}`);
+  }
+  if (!fs.existsSync(resDir)) {
+    throw new Error('Android project not found. Run "npx cap add android" first.');
+  }
+
+  const image = sharp(sourceIcon);
+  const metadata = await image.metadata();
+  const pixel = await image.clone()
+    .extract({ left: 0, top: 0, width: 1, height: 1 })
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  const background = { r: pixel[0], g: pixel[1], b: pixel[2], alpha: 1 };
+  const backgroundHex = `#${[pixel[0], pixel[1], pixel[2]]
+    .map(value => value.toString(16).padStart(2, '0'))
+    .join('')}`;
+
+  for (const [density, sizes] of Object.entries(densities)) {
+    const mipmapDir = path.join(resDir, `mipmap-${density}`);
+    ensureDir(mipmapDir);
+
+    await writePng(sizes.legacy, path.join(mipmapDir, 'ic_launcher.png'), background);
+    await writePng(sizes.legacy, path.join(mipmapDir, 'ic_launcher_round.png'), background);
+    await writePng(sizes.adaptive, path.join(mipmapDir, 'ic_launcher_foreground.png'), {
+      r: 0,
+      g: 0,
+      b: 0,
+      alpha: 0
+    });
+  }
+
+  const valuesDir = path.join(resDir, 'values');
+  ensureDir(valuesDir);
+  fs.writeFileSync(
+    path.join(valuesDir, 'ic_launcher_background.xml'),
+    `<resources>\n    <color name="ic_launcher_background">${backgroundHex}</color>\n</resources>\n`
+  );
+
+  const adaptiveDir = path.join(resDir, 'mipmap-anydpi-v26');
+  ensureDir(adaptiveDir);
+  const adaptiveIcon = [
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">',
+    '    <background android:drawable="@color/ic_launcher_background" />',
+    '    <foreground android:drawable="@mipmap/ic_launcher_foreground" />',
+    '</adaptive-icon>',
+    ''
+  ].join('\n');
+  fs.writeFileSync(path.join(adaptiveDir, 'ic_launcher.xml'), adaptiveIcon);
+  fs.writeFileSync(path.join(adaptiveDir, 'ic_launcher_round.xml'), adaptiveIcon);
+
+  console.log(`Android launcher icons generated from ${metadata.width}x${metadata.height} source.`);
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});

@@ -13,6 +13,15 @@ for (const filename of ['MainActivity.java', 'MediaDownloaderPlugin.java']) {
   fs.copyFileSync(path.join(templateDir, filename), path.join(javaDir, filename));
 }
 
+const mainActivityPath = path.join(javaDir, 'MainActivity.java');
+const mainActivity = fs.readFileSync(mainActivityPath, 'utf8');
+const registerIndex = mainActivity.indexOf('registerPlugin(MediaDownloaderPlugin.class)');
+const superIndex = mainActivity.indexOf('super.onCreate(savedInstanceState)');
+
+if (registerIndex === -1 || superIndex === -1 || registerIndex > superIndex) {
+  throw new Error('MediaDownloaderPlugin must be registered before super.onCreate().');
+}
+
 let manifest = fs.readFileSync(manifestPath, 'utf8');
 const storagePermission = [
   '    <uses-permission',
