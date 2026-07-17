@@ -54,7 +54,7 @@ jobs:
     
     - name: Initialize Capacitor
       run: |
-        npx cap init "Chromium E621" "com.chromium.e621.client" --web-dir=www
+        npx cap init "Chromium" "com.chromium.client" --web-dir=www
         npx cap add android
     
     - name: Generate icons
@@ -123,14 +123,14 @@ jobs:
           --ks-pass pass:"$KEYSTORE_PASSWORD" \
           --key-pass pass:"$KEYSTORE_PASSWORD" \
           --ks-key-alias "$KEY_ALIAS" \
-          --out chromium-e621-app.apk aligned.apk
+          --out chromium.apk aligned.apk
         
         echo "=== Verifying signature ==="
-        /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify chromium-e621-app.apk
+        /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify chromium.apk
     
     - name: Upload Signed APK
       uses: actions/upload-artifact@v4
       with:
-        name: chromium-e621-release-apk
-        path: chromium-e621-app.apk
+        name: chromium-release-apk
+        path: chromium.apk
         retention-days: 30
