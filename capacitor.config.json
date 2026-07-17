@@ -1,6 +1,6 @@
 {
-  "appId": "com.chromium.client",
-  "appName": "Chromium",
+  "appId": "com.chromium.e621.client",
+  "appName": "Chromium E621",
   "webDir": "www",
   "android": {
     "allowMixedContent": true,
