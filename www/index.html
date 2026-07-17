@@ -69,6 +69,13 @@
       user-select: none;
     }
 
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
+    }
+
     input,
     textarea,
     [contenteditable] {
@@ -100,10 +107,15 @@
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       position: relative;
+      overscroll-behavior-x: none;
+      touch-action: pan-y;
     }
 
     body::before {
@@ -138,6 +150,7 @@
 
     ::-webkit-scrollbar {
       width: 4px;
+      height: 0;
     }
 
     ::-webkit-scrollbar-track {
@@ -164,6 +177,9 @@
       transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       transform: translate3d(0, 0, 0);
       will-change: transform;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
     header.header-hidden {
@@ -174,6 +190,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      min-width: 0;
     }
 
     .logo {
@@ -207,6 +224,9 @@
       display: flex;
       align-items: flex-start;
       gap: 6px;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
     }
 
     #search-input {
@@ -241,6 +261,16 @@
     }
 
     @media (max-width: 640px) {
+      header {
+        padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+      }
+
+      .search-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) repeat(3, 40px);
+        align-items: start;
+      }
+
       #search-input {
         white-space: pre-wrap;
         overflow-wrap: anywhere;
@@ -256,6 +286,13 @@
 
       .search-input-wrapper .clear-btn {
         top: 20px;
+      }
+
+      .search-action-btn {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
       }
     }
 
@@ -2419,7 +2456,7 @@
         recommendations: "Для вас",
         settings: "Настройки",
         random: "Рандом",
-        searchPlaceholder: "Поиск тегов... (через пробел)",
+        searchPlaceholder: "Поиск тегов...",
         traffic: "Трафик",
         loading: "Загрузка",
         feed: "Лента",
@@ -2582,7 +2619,7 @@
         recommendations: "For You",
         settings: "Settings",
         random: "Random",
-        searchPlaceholder: "Search tags... (separated by space)",
+        searchPlaceholder: "Search tags...",
         traffic: "Traffic",
         loading: "Loading",
         feed: "Feed",
@@ -4728,6 +4765,61 @@
       const wrapper = document.getElementById('detail-media-wrapper');
       if (wrapper) wrapper.innerHTML = '';
     }
+
+    function isElementVisible(element) {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+
+    function handleAppBackAction() {
+      const promoModal = document.getElementById('promo-modal');
+      if (isElementVisible(promoModal)) {
+        promoModal.style.display = 'none';
+        return;
+      }
+
+      const legalOverlay = document.getElementById('legal-overlay');
+      if (isElementVisible(legalOverlay)) {
+        legalOverlay.style.display = 'none';
+        return;
+      }
+
+      const detailOverlay = document.getElementById('detail-overlay');
+      if (isElementVisible(detailOverlay)) {
+        closeDetailView();
+        return;
+      }
+
+      const suggestions = document.getElementById('suggestions');
+      if (isElementVisible(suggestions)) {
+        suggestions.style.display = 'none';
+        document.getElementById('search-input')?.blur();
+        return;
+      }
+
+      if (activeView !== 'gallery') {
+        switchView('gallery');
+        return;
+      }
+
+      if (window.scrollY > 0) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function installAppBackNavigation() {
+      const sentinel = { chromiumAppRoot: true };
+      history.replaceState(sentinel, '', location.href);
+      history.pushState(sentinel, '', location.href);
+
+      window.addEventListener('popstate', () => {
+        handleAppBackAction();
+        history.pushState(sentinel, '', location.href);
+      });
+    }
+
+    installAppBackNavigation();
 
     function renderLegalContent() {
       const legalBody = document.getElementById('legal-content-body');
