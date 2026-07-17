@@ -201,6 +201,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
     }
 
     .logo span {
@@ -265,6 +266,26 @@
         padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
       }
 
+      .logo {
+        font-size: 1.05rem;
+        gap: 4px;
+      }
+
+      .logo > svg {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 22px;
+      }
+
+      #header-actions {
+        flex: 0 0 auto;
+        gap: 6px;
+      }
+
+      #api-provider-switch > div {
+        padding-inline: 8px;
+      }
+
       .search-container {
         display: grid;
         grid-template-columns: minmax(0, 1fr) repeat(3, 40px);
@@ -293,6 +314,12 @@
         height: 40px;
         min-width: 40px;
         min-height: 40px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      #traffic-badge {
+        display: none;
       }
     }
 
@@ -1231,6 +1258,7 @@
     .switch {
       position: relative;
       display: inline-block;
+      flex: 0 0 44px;
       width: 44px;
       height: 24px;
       overflow: hidden;
@@ -1284,6 +1312,7 @@
       position: relative;
       display: inline-flex;
       align-items: center;
+      flex: 0 0 44px;
       width: 44px;
       height: 24px;
       overflow: hidden;
@@ -1464,7 +1493,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div id="header-actions" class="flex items-center gap-2">
         <div id="api-provider-switch" class="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-pointer text-[10px] font-bold h-9">
           <div id="prov-e621" class="px-3 flex items-center justify-center transition-colors">Fur</div>
           <div id="prov-r34" class="px-3 flex items-center justify-center transition-colors">R34</div>
@@ -4817,6 +4846,13 @@
         handleAppBackAction();
         history.pushState(sentinel, '', location.href);
       });
+
+      const capacitorApp = window.Capacitor?.Plugins?.App;
+      if (window.Capacitor?.isNativePlatform?.() && capacitorApp?.addListener) {
+        capacitorApp.addListener('backButton', () => {
+          handleAppBackAction();
+        });
+      }
     }
 
     installAppBackNavigation();
