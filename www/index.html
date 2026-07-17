@@ -48,10 +48,6 @@
 
     body {
       background-color: var(--bg-color);
-      background-image: var(--custom-bg, none);
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
@@ -62,6 +58,17 @@
     }
 
     body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: var(--custom-bg, none);
+      background-size: cover;
+      background-position: center;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    body::after {
       content: "";
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -87,8 +94,8 @@
 
     header {
       background: rgba(9, 9, 11, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
       padding: 12px 16px;
       position: sticky;
@@ -425,8 +432,7 @@
       position: absolute;
       top: 6px;
       right: 6px;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.75);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.65rem;
@@ -438,8 +444,7 @@
       position: absolute;
       top: 6px;
       left: 6px;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.75);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.65rem;
@@ -454,13 +459,16 @@
       right: 0;
       height: 60px;
       background: rgba(9, 9, 11, 0.96);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-top: 1px solid var(--accent);
       display: flex;
       justify-content: space-around;
       align-items: center;
       z-index: 45;
       transition: border-color 0.3s;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
 
     .tab-btn {
@@ -578,7 +586,7 @@
       width: 100%;
       height: 100%;
       opacity: 0.35;
-      filter: blur(50px);
+      filter: blur(12px);
       pointer-events: none;
       z-index: 1;
       transform: translate3d(0,0,0);
@@ -2354,7 +2362,8 @@
       detailPrevBtn: document.getElementById('detail-prev-btn'),
       detailNextBtn: document.getElementById('detail-next-btn'),
       detailDownloadBtn: document.getElementById('detail-download-btn'),
-      loadingIndicator: document.getElementById('loading-indicator')
+      loadingIndicator: document.getElementById('loading-indicator'),
+      appHeader: document.getElementById('app-header')
     };
 
     function isAdmin() {
@@ -3031,6 +3040,7 @@
       'anthro': 'антропоморф', 'solo': 'один', 'female': 'самка', 'male': 'самец', 'canine': 'псовые', 'feline': 'кошачьи'
     };
 
+    let activeView = 'gallery';
     let activePage = 0;
     let currentSearchTags = state.lastSearchTags;
     let isFetching = false;
@@ -3410,11 +3420,11 @@
       rateBadge.style.color = post.rating === 'e' ? 'var(--danger)' : (post.rating === 'q' ? 'var(--warning)' : 'var(--success)');
       card.appendChild(rateBadge);
 
-      if (!state.settings.ramSafeguard) {
-        card.appendChild(createCardImage(card, imgUrl));
-      } else {
+      const img = createCardImage(card, state.settings.ramSafeguard ? PLACEHOLDER_SRC : imgUrl);
+      if (state.settings.ramSafeguard) {
         card.dataset.realSrc = imgUrl;
       }
+      card.appendChild(img);
 
       card.addEventListener('click', (e) => {
         if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
@@ -3432,24 +3442,41 @@
       return card;
     }
 
+    const PLACEHOLDER_SRC = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E";
+
     const ramObserver = new IntersectionObserver((entries) => {
       if (!state.settings.ramSafeguard) return;
       entries.forEach(entry => {
         const card = entry.target;
+        const img = card.querySelector('img');
+        if (!img) return;
         if (entry.isIntersecting) {
           card.classList.remove('unloaded');
-          let img = card.querySelector('img');
-          if (!img) {
-            img = createCardImage(card, card.dataset.realSrc || card.dataset.src);
-            card.appendChild(img);
+          const realSrc = card.dataset.realSrc;
+          if (realSrc && img.src !== realSrc) {
+            card.classList.remove('image-loaded');
+            img.onload = () => {
+              card.classList.add('image-loaded');
+              img.onload = null;
+              img.onerror = null;
+            };
+            img.onerror = () => {
+              card.classList.add('image-loaded');
+              img.onload = null;
+              img.onerror = null;
+            };
+            img.src = realSrc;
           } else {
             card.classList.add('image-loaded');
           }
         } else {
           card.classList.add('unloaded');
           card.classList.remove('image-loaded');
-          const img = card.querySelector('img');
-          if (img) img.remove();
+          img.onload = null;
+          img.onerror = null;
+          if (img.src !== PLACEHOLDER_SRC) {
+            img.src = PLACEHOLDER_SRC;
+          }
         }
       });
     }, { root: null, rootMargin: '400px' });
@@ -3575,7 +3602,7 @@
     }
 
     const scrollObserver = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !isFetching && document.getElementById('panel-gallery').classList.contains('active')) {
+      if (entries[0].isIntersecting && !isFetching && activeView === 'gallery') {
         loadGallery();
       }
     }, { rootMargin: '400px' });
@@ -4224,6 +4251,7 @@
     }
 
     function switchView(viewName) {
+      activeView = viewName;
       document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
         b.classList.remove('active');
         b.style.color = 'var(--text-muted)';
@@ -4238,7 +4266,7 @@
       const activePanel = document.getElementById(`panel-${viewName}`);
       if (activePanel) activePanel.classList.add('active');
 
-      const header = document.getElementById('app-header');
+      const header = DOM.appHeader;
       if (header) {
         header.style.display = viewName === 'gallery' ? 'flex' : 'none';
       }
@@ -4462,8 +4490,7 @@
     let scrollFramePending = false;
     
     window.addEventListener('scroll', () => {
-      const activePanel = document.querySelector('.view-panel.active');
-      if (!activePanel || activePanel.id !== 'panel-gallery' || scrollFramePending) return;
+      if (activeView !== 'gallery' || scrollFramePending) return;
 
       scrollFramePending = true;
       requestAnimationFrame(() => {
@@ -4472,7 +4499,7 @@
         const delta = currentScrollY - lastScrollY;
         lastScrollY = currentScrollY;
         
-        const header = document.getElementById('app-header');
+        const header = DOM.appHeader;
         if (currentScrollY <= 60) {
           header?.classList.remove('header-hidden');
           accumulatedDelta = 0;

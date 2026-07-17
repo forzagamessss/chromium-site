@@ -16,12 +16,6 @@
     }
   },
   "server": {
-    "androidScheme": "https",
-    "allowNavigation": [
-      "e621.net",
-      "*.e621.net",
-      "e926.net",
-      "*.e926.net"
-    ]
+    "androidScheme": "https"
   }
 }

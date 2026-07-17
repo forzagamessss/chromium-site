@@ -59,24 +59,13 @@ jobs:
     
     - name: Generate icons
       run: |
-        echo "=== Preparing icons ==="
-        mkdir -p assets
-        
-        if [ -f "assets/icon-512.png" ]; then
-          cp assets/icon-512.png assets/icon-only.png
-          echo "✅ Found assets/icon-512.png"
-        elif [ -f "icon-512.png" ]; then
-          cp icon-512.png assets/icon-only.png
-          echo "✅ Found icon-512.png"
-        else
-          echo "❌ No icon found!"
-          exit 1
-        fi
-        
         echo "=== Installing sharp ==="
         npm install sharp --no-package-lock --legacy-peer-deps
         
-        echo "=== Generating Android icons ==="
+        echo "=== Preparing adaptive icons ==="
+        node generate-assets.js
+        
+        echo "=== Generating Android mipmap resources ==="
         npx @capacitor/assets generate --android
         
         echo "=== Verifying icons ==="
