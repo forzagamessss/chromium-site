@@ -56,22 +56,15 @@ async function main() {
       })
       .toFile(path.join(assetsDir, 'icon.png'));
 
-    // 2. Generate icon-foreground.png (1024x1024 with transparent padding)
+    // 2. Generate icon-foreground.png (1024x1024)
     console.log('Generating assets/icon-foreground.png...');
-    // We resize the icon to 720x720 (70% of 1024) to keep it in the safe zone of adaptive icon
-    const foregroundResized = await sharp(srcIcon)
-      .resize(720, 720, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .toBuffer();
-
-    await sharp({
-      create: {
-        width: 1024,
-        height: 1024,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 }
-      }
-    })
-      .composite([{ input: foregroundResized, gravity: 'center' }])
+    // Android applies its own adaptive-icon safe area and mask. Extra padding here
+    // makes the artwork look noticeably smaller on Android 8+ launchers.
+    await sharp(srcIcon)
+      .resize(1024, 1024, {
+        fit: 'cover',
+        position: 'centre'
+      })
       .toFile(path.join(assetsDir, 'icon-foreground.png'));
 
     // 3. Generate icon-background.png (1024x1024 solid color matching detected background)
