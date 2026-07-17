@@ -3,6 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Chromium E621 Mobile Client</title>
@@ -203,12 +205,58 @@
     .search-container {
       position: relative;
       display: flex;
+      align-items: flex-start;
       gap: 6px;
+    }
+
+    #search-input {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 38px 10px 12px;
+      color: var(--text-color);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      text-overflow: clip;
+      resize: none;
+      overflow-y: hidden;
+      line-height: 1.35;
+      min-height: 40px;
+      transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #search-input:focus {
+      border-color: var(--accent);
     }
 
     .search-input-wrapper {
       position: relative;
+      min-width: 0;
       flex-grow: 1;
+    }
+
+    @media (max-width: 640px) {
+      #search-input {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 96px;
+        transition: height 0.16s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #search-input.search-expanded {
+        overflow-y: auto;
+        border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+      }
+
+      .search-input-wrapper .clear-btn {
+        top: 20px;
+      }
     }
 
     .clear-btn {
@@ -962,6 +1010,16 @@
       color: #fff;
     }
 
+    .search-action-btn {
+      flex: 0 0 44px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     .language-choice-btn {
       min-height: 42px;
     }
@@ -1364,12 +1422,16 @@
           <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round" />
         </svg>
         <div class="flex flex-col items-start leading-none" style="gap: 2px;">
-          <div>CHROMIUM<span>E621</span></div>
+          <div>CHROMIUM<span class="provider-brand-suffix">E621</span></div>
           <span id="user-greeting" class="text-[9px] font-normal text-zinc-500 tracking-wider capitalize"></span>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
+        <div id="api-provider-switch" class="flex rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-pointer text-[10px] font-bold h-9">
+          <div id="prov-e621" class="px-3 flex items-center justify-center transition-colors">Fur</div>
+          <div id="prov-r34" class="px-3 flex items-center justify-center transition-colors">R34</div>
+        </div>
         <button id="quick-panic-btn"
           class="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-500 transition-all duration-200"
           title="Режим паники">
@@ -1392,14 +1454,14 @@
     <!-- Контейнер поиска -->
     <div class="search-container" id="search-section">
       <div class="search-input-wrapper">
-        <input type="text" id="search-input" autocomplete="off" placeholder="Поиск тегов...">
+        <textarea id="search-input" rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="Поиск тегов..."></textarea>
         <button class="clear-btn" id="clear-input-btn">✕</button>
         <div class="suggestions" id="suggestions" style="display: none;"></div>
       </div>
 
       <button
-        class="action-btn flex items-center justify-center border-2 border-dashed border-amber-500/50 hover:border-amber-500 rounded-lg bg-amber-500/5 active:scale-90 transition-all duration-150"
-        style="flex: 0 0 44px; padding: 0;" id="fav-search-btn" title="Избранные теги">
+        class="action-btn search-action-btn flex items-center justify-center border-2 border-dashed border-amber-500/50 hover:border-amber-500 rounded-lg bg-amber-500/5 active:scale-90 transition-all duration-150"
+        id="fav-search-btn" title="Избранные теги">
         <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
@@ -1408,15 +1470,15 @@
       </button>
 
       <button
-        class="action-btn flex items-center justify-center border border-zinc-800 hover:border-zinc-700 rounded-lg bg-zinc-900/40 active:scale-90 transition-all duration-150"
-        style="flex: 0 0 44px; padding: 0;" id="history-search-btn" title="История поиска">
+        class="action-btn search-action-btn flex items-center justify-center border border-zinc-800 hover:border-zinc-700 rounded-lg bg-zinc-900/40 active:scale-90 transition-all duration-150"
+        id="history-search-btn" title="История поиска">
         <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </button>
 
-      <button class="action-btn primary flex items-center justify-center active:scale-90 transition-all duration-150"
-        style="flex: 0 0 44px; padding: 0;" id="search-btn">
+      <button class="action-btn search-action-btn primary flex items-center justify-center active:scale-90 transition-all duration-150"
+        id="search-btn">
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
@@ -1573,6 +1635,35 @@
               </div>
             </div>
             <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted);">
+              Статус: Не подключен (Анонимный режим)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Кабинет аккаунта Rule34 -->
+      <div class="settings-group" id="group-account-r34">
+        <div class="settings-summary" onclick="toggleAccordion('group-account-r34')">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span id="sum-account-r34">Аккаунт Rule34.xxx</span>
+          </span>
+        </div>
+        <div class="settings-content-wrapper">
+          <div class="settings-content">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;" id="lbl-r34-auth-desc">
+              Для работы Rule34 требуется авторизация. Введите ваши API Key и User ID из настроек аккаунта на rule34.xxx.
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <input type="text" id="auth-r34-userid" autocomplete="new-password" placeholder="User ID" style="width: 100%;">
+              <input type="password" id="auth-r34-apikey" autocomplete="new-password" placeholder="API Key" style="width: 100%;">
+              <div>
+                <button class="action-btn primary" id="save-r34-auth-btn" style="width: 100%;">Сохранить</button>
+              </div>
+            </div>
+            <div id="r34-auth-status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
               Статус: Не подключен (Анонимный режим)
             </div>
           </div>
@@ -1842,7 +1933,7 @@
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
-            <div class="space-y-3">
+            <div class="space-y-3" id="rating-filters-block">
               <div class="setting-item">
                 <label id="lbl-rate-safe">0+ (Safe / Безопасно)<span>Подходит для всех</span></label>
                 <label class="switch">
@@ -1864,6 +1955,14 @@
                   <span class="slider-premium"></span>
                 </label>
               </div>
+            </div>
+
+            <div class="setting-item">
+              <label id="lbl-filter-ai">Скрывать AI-посты<span>Фильтровать изображения, созданные или обработанные генеративным ИИ</span></label>
+              <label class="switch">
+                <input type="checkbox" id="filter-ai-posts">
+                <span class="slider"></span>
+              </label>
             </div>
 
             <div class="border-t border-zinc-800/80 pt-4 mt-2">
@@ -2161,7 +2260,7 @@
     class="fixed inset-0 bg-[#09090b] z-[9999] hidden flex flex-col justify-center items-center select-none">
     <div class="w-64 space-y-8 flex flex-col items-center">
       <div class="text-center space-y-2">
-        <div class="logo text-lg font-bold tracking-tight">CHROMIUM<span>E621</span></div>
+        <div class="logo text-lg font-bold tracking-tight">CHROMIUM<span class="provider-brand-suffix">E621</span></div>
         <div id="user-greeting" class="text-[10px] text-zinc-500 italic mt-1"></div>
         <p id="pin-screen-prompt" class="text-xs text-zinc-400">Введите PIN-код для входа</p>
       </div>
@@ -2388,6 +2487,11 @@
         favoriteTagsTitle: "Избранные теги",
         searchHistoryTitle: "История поиска",
         accountTitle: "Аккаунт e621.net",
+        r34AccountTitle: "Аккаунт Rule34.xxx",
+        r34AuthDesc: "Для работы Rule34 требуется авторизация. По умолчанию используется встроенный системный ключ. Вы можете указать собственный User ID и API Key.",
+        r34UserIdLabel: "User ID (опционально)",
+        r34ApiKeyLabel: "API Key (опционально)",
+        r34SaveBtn: "Сохранить",
         backupGenerate: "Сгенерировать код бэкапа",
         backupCopy: "Копировать код",
         backupImport: "Импорт бэкапа",
@@ -2546,6 +2650,11 @@
         favoriteTagsTitle: "Favorite tags",
         searchHistoryTitle: "Search history",
         accountTitle: "e621.net Account",
+        r34AccountTitle: "Rule34.xxx Account",
+        r34AuthDesc: "Rule34 requires authentication. By default, a built-in system key is used. You can specify your own User ID and API Key.",
+        r34UserIdLabel: "User ID (optional)",
+        r34ApiKeyLabel: "API Key (optional)",
+        r34SaveBtn: "Save",
         backupGenerate: "Generate backup code",
         backupCopy: "Copy code",
         backupImport: "Import backup",
@@ -2669,8 +2778,12 @@
     let state = {
       language: safeLocalStorage.getItem('p_e621_lang') || 'ru',
       bookmarks: safeJSONParse(safeLocalStorage.getItem('p_e621_bookmarks'), []),
+      bookmarksR34: safeJSONParse(safeLocalStorage.getItem('p_rule34_bookmarks'), []),
       blacklist: safeJSONParse(safeLocalStorage.getItem('p_e621_blacklist'), ["scat", "goregasm", "guffy"]),
+      blacklistR34: safeJSONParse(safeLocalStorage.getItem('p_rule34_blacklist'), []),
+      apiProvider: safeLocalStorage.getItem('p_api_provider') || 'e621',
       trafficUsed: parseFloat(safeLocalStorage.getItem('p_e621_traffic') || '0.0'),
+      trafficUsedR34: parseFloat(safeLocalStorage.getItem('p_rule34_traffic') || '0.0'),
       settings: {
         dataBudget: safeLocalStorage.getItem('p_e621_set_budget') !== 'false',
         ramSafeguard: safeLocalStorage.getItem('p_e621_set_ram') !== 'false',
@@ -2685,15 +2798,23 @@
         nsfwBlur: safeLocalStorage.getItem('p_e621_nsfw_blur') !== 'false',
         startupAnim: safeLocalStorage.getItem('p_e621_startup_anim') !== 'false'
       },
+      filterAI: safeLocalStorage.getItem('p_e621_filter_ai') === 'true',
+      filterAIR34: safeLocalStorage.getItem('p_rule34_filter_ai') === 'true',
       panicActive: safeLocalStorage.getItem('p_e621_panic_active') === 'true',
       prePanicRatings: safeJSONParse(safeLocalStorage.getItem('p_e621_pre_panic_ratings'), ["0+", "16+"]),
       encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '',
       auth: { "username": "", "apiKey": "" },
+      authR34: {
+        userId: safeLocalStorage.getItem('p_rule34_userid') || '',
+        apiKey: safeLocalStorage.getItem('p_rule34_apikey') || ''
+      },
       customization: safeJSONParse(safeLocalStorage.getItem('p_e621_customization'), { "accent": "#2563eb", "radius": "8px" }),
+      customizationR34: safeJSONParse(safeLocalStorage.getItem('p_rule34_customization'), { "accent": "#2563eb" }),
       tagFreq: safeJSONParse(safeLocalStorage.getItem('p_e621_tag_freq'), {}),
       favSearches: safeJSONParse(safeLocalStorage.getItem('p_e621_fav_searches'), []),
       searchHistory: safeJSONParse(safeLocalStorage.getItem('p_e621_search_history'), []),
       history: safeJSONParse(safeLocalStorage.getItem('p_e621_history'), []),
+      historyR34: safeJSONParse(safeLocalStorage.getItem('p_rule34_history'), []),
       totalTime: parseInt(safeLocalStorage.getItem('p_e621_total_time') || '0'),
       customBg: safeLocalStorage.getItem('p_e621_custom_bg') || '',
       bgOpacity: safeLocalStorage.getItem('p_e621_bg_opacity') || '0.9',
@@ -2711,7 +2832,9 @@
       debugPostLimit: 30,
 
       videoPlays: parseInt(safeLocalStorage.getItem('p_e621_stat_videos') || '0'),
+      videoPlaysR34: parseInt(safeLocalStorage.getItem('p_rule34_stat_videos') || '0'),
       searchCounter: parseInt(safeLocalStorage.getItem('p_e621_stat_searches') || '0'),
+      searchCounterR34: parseInt(safeLocalStorage.getItem('p_rule34_stat_searches') || '0'),
 
       slideshowActive: false,
       slideshowIntervalId: null,
@@ -2721,6 +2844,32 @@
       detailFitZoom: 'contain',
       mediaTypeFilter: readStoredOption('p_e621_media_type', ['all', 'photo', 'video'], 'all')
     };
+
+    function getProviderState() {
+      if (state.apiProvider === 'rule34') {
+        return {
+          bookmarks: state.bookmarksR34,
+          history: state.historyR34,
+          trafficUsed: state.trafficUsedR34,
+          videoPlays: state.videoPlaysR34,
+          searchCounter: state.searchCounterR34,
+          customization: state.customizationR34
+        };
+      }
+
+      return {
+        bookmarks: state.bookmarks,
+        history: state.history,
+        trafficUsed: state.trafficUsed,
+        videoPlays: state.videoPlays,
+        searchCounter: state.searchCounter,
+        customization: state.customization
+      };
+    }
+
+    function getActiveAccent() {
+      return getProviderState().customization?.accent || '#2563eb';
+    }
 
     function t(key) {
       const activeLang = state.language || 'ru';
@@ -2888,15 +3037,27 @@
       try {
         const payload = {
           bookmarks: state.bookmarks,
+          bookmarksR34: state.bookmarksR34,
+          authR34: state.authR34,
           blacklist: state.blacklist,
+          blacklistR34: state.blacklistR34,
+          filterAI: state.filterAI,
+          filterAIR34: state.filterAIR34,
           customization: state.customization,
+          customizationR34: state.customizationR34,
           favSearches: state.favSearches,
           searchHistory: state.searchHistory,
           history: state.history,
+          historyR34: state.historyR34,
           totalTime: state.totalTime,
           customBg: state.customBg,
           bgOpacity: state.bgOpacity,
           trafficUsed: state.trafficUsed,
+          trafficUsedR34: state.trafficUsedR34,
+          videoPlays: state.videoPlays,
+          videoPlaysR34: state.videoPlaysR34,
+          searchCounter: state.searchCounter,
+          searchCounterR34: state.searchCounterR34,
           lastSearchTags: state.lastSearchTags,
           pinCode: safeLocalStorage.getItem('p_e621_pin_code') || '',
           encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '',
@@ -2948,15 +3109,38 @@
         const payload = JSON.parse(decoded);
 
         if (payload.bookmarks) state.bookmarks = payload.bookmarks;
+        if (payload.bookmarksR34) {
+          state.bookmarksR34 = payload.bookmarksR34;
+          safeLocalStorage.setItem('p_rule34_bookmarks', JSON.stringify(state.bookmarksR34));
+        }
+        if (payload.blacklistR34) {
+          state.blacklistR34 = payload.blacklistR34;
+          safeLocalStorage.setItem('p_rule34_blacklist', JSON.stringify(state.blacklistR34));
+        }
+        if (payload.authR34) {
+          state.authR34 = payload.authR34;
+          safeLocalStorage.setItem('p_rule34_userid', state.authR34.userId || '');
+          safeLocalStorage.setItem('p_rule34_apikey', state.authR34.apiKey || '');
+        }
         if (payload.blacklist) state.blacklist = payload.blacklist;
+        if (payload.blacklistR34) state.blacklistR34 = payload.blacklistR34;
+        if (typeof payload.filterAI === 'boolean') state.filterAI = payload.filterAI;
+        if (typeof payload.filterAIR34 === 'boolean') state.filterAIR34 = payload.filterAIR34;
         if (payload.customization) state.customization = payload.customization;
+        if (payload.customizationR34) state.customizationR34 = payload.customizationR34;
         if (payload.favSearches) state.favSearches = payload.favSearches;
         if (payload.searchHistory) state.searchHistory = payload.searchHistory;
         if (payload.history) state.history = payload.history;
+        if (payload.historyR34) state.historyR34 = payload.historyR34;
         if (payload.totalTime) state.totalTime = payload.totalTime;
         if (payload.customBg) state.customBg = payload.customBg;
         if (payload.bgOpacity) state.bgOpacity = payload.bgOpacity;
         if (payload.trafficUsed) state.trafficUsed = payload.trafficUsed;
+        if (payload.trafficUsedR34) state.trafficUsedR34 = payload.trafficUsedR34;
+        if (Number.isFinite(payload.videoPlays)) state.videoPlays = payload.videoPlays;
+        if (Number.isFinite(payload.videoPlaysR34)) state.videoPlaysR34 = payload.videoPlaysR34;
+        if (Number.isFinite(payload.searchCounter)) state.searchCounter = payload.searchCounter;
+        if (Number.isFinite(payload.searchCounterR34)) state.searchCounterR34 = payload.searchCounterR34;
         if (typeof payload.lastSearchTags === 'string') {
           state.lastSearchTags = payload.lastSearchTags;
           currentSearchTags = payload.lastSearchTags;
@@ -2981,14 +3165,23 @@
 
         safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
         safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+        safeLocalStorage.setItem('p_e621_filter_ai', String(state.filterAI));
+        safeLocalStorage.setItem('p_rule34_filter_ai', String(state.filterAIR34));
         safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+        safeLocalStorage.setItem('p_rule34_customization', JSON.stringify(state.customizationR34));
         safeLocalStorage.setItem('p_e621_fav_searches', JSON.stringify(state.favSearches));
         safeLocalStorage.setItem('p_e621_search_history', JSON.stringify(state.searchHistory));
         safeLocalStorage.setItem('p_e621_history', JSON.stringify(state.history));
+        safeLocalStorage.setItem('p_rule34_history', JSON.stringify(state.historyR34));
         safeLocalStorage.setItem('p_e621_total_time', state.totalTime);
         safeLocalStorage.setItem('p_e621_custom_bg', state.customBg);
         safeLocalStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
         safeLocalStorage.setItem('p_e621_traffic', state.trafficUsed);
+        safeLocalStorage.setItem('p_rule34_traffic', state.trafficUsedR34);
+        safeLocalStorage.setItem('p_e621_stat_videos', state.videoPlays);
+        safeLocalStorage.setItem('p_rule34_stat_videos', state.videoPlaysR34);
+        safeLocalStorage.setItem('p_e621_stat_searches', state.searchCounter);
+        safeLocalStorage.setItem('p_rule34_stat_searches', state.searchCounterR34);
         safeLocalStorage.setItem('p_e621_last_search', state.lastSearchTags);
 
         safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
@@ -3145,11 +3338,20 @@
       safeText('sum-security-suite', t('sum-security-suite'));
       safeText('sum-appearance', t('sum-appearance'));
       safeText('sum-safety', state.language === 'ru' ? 'Фильтры и черный список' : 'Filters & Blacklist');
+      safeHTML('lbl-filter-ai', state.language === 'ru'
+        ? 'Скрывать AI-посты<span>Фильтровать изображения, созданные или обработанные генеративным ИИ</span>'
+        : 'Hide AI posts<span>Filter images created or modified with generative AI</span>');
       safeText('sum-traffic', state.language === 'ru' ? 'Трафик и производительность' : 'Traffic & Performance');
       safeText('sum-backup-suite', t('sum-backup-suite'));
       safeText('sum-legal-info', t('legalInfo'));
       safeText('sum-proxy', t('proxyTitle'));
       safeText('sum-account', t('accountTitle'));
+      safeText('sum-account-r34', t('r34AccountTitle'));
+      safeText('lbl-r34-auth-desc', t('r34AuthDesc'));
+      safePlaceholder('auth-r34-userid', t('r34UserIdLabel'));
+      safePlaceholder('auth-r34-apikey', t('r34ApiKeyLabel'));
+      const saveR34BtnEl = document.getElementById('save-r34-auth-btn');
+      if (saveR34BtnEl) saveR34BtnEl.textContent = t('r34SaveBtn');
       safeText('sum-dev-panel', state.language === 'ru' ? 'Панель разработчика' : 'Developer Control Room');
 
       const debugLabels = t('debugActions');
@@ -3316,7 +3518,8 @@
 
       const finalUrl = urlObj.toString();
       const mode = state.settings.proxyMode || 'fallback';
-      const headers = { 'Accept': 'application/json', 'User-Agent': 'ChromiumClient/3.0.S21Optimized' };
+      const isRule34Url = finalUrl.includes('rule34.xxx');
+      const headers = { 'Accept': isRule34Url ? '*/*' : 'application/json', 'User-Agent': 'ChromiumClient/3.0' };
 
       if (state.debugRequestLog) {
         addDebugLog(`[API REQ] ${finalUrl}`);
@@ -3373,8 +3576,27 @@
     let autocompleteRequestController = null;
     const tagSuggestionCache = new Map();
 
+    function resizeSearchInput() {
+      if (!searchInput) return;
+      if (!window.matchMedia('(max-width: 640px)').matches) {
+        searchInput.style.height = '';
+        searchInput.style.overflowY = 'hidden';
+        searchInput.classList.remove('search-expanded');
+        return;
+      }
+
+      searchInput.style.height = 'auto';
+      const baseHeight = 40;
+      const maxHeight = 96;
+      const nextHeight = Math.min(maxHeight, Math.max(baseHeight, searchInput.scrollHeight));
+      searchInput.style.height = `${nextHeight}px`;
+      searchInput.style.overflowY = searchInput.scrollHeight > maxHeight ? 'auto' : 'hidden';
+      searchInput.classList.toggle('search-expanded', nextHeight > baseHeight + 4);
+    }
+
     function toggleClearBtn() {
       clearInputBtn.style.display = searchInput.value ? 'flex' : 'none';
+      requestAnimationFrame(resizeSearchInput);
     }
 
     clearInputBtn.addEventListener('click', () => {
@@ -3384,26 +3606,169 @@
       searchInput.focus();
     });
 
+    function parseRule34TagSuggestions(textData) {
+      const payload = String(textData || '').trim();
+      if (!payload) return [];
+
+      let data;
+      try {
+        data = JSON.parse(payload);
+      } catch (jsonError) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(payload, 'text/xml');
+        if (xmlDoc.querySelector('parsererror')) return [];
+
+        return Array.from(xmlDoc.getElementsByTagName('tag')).map(node => ({
+          name: node.getAttribute('name') || '',
+          post_count: parseInt(node.getAttribute('count') || '0', 10) || 0
+        })).filter(item => item.name);
+      }
+
+      let items = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.tags) ? data.tags : []);
+
+      if (items.length === 0 && data && typeof data === 'object'
+        && (data.name || data.value || data.tag || data.label)) {
+        items = [data];
+      }
+
+      if (items.length === 0 && data && typeof data === 'object') {
+        items = Object.entries(data).map(([name, value]) => {
+          if (value && typeof value === 'object') return { name, ...value };
+          return { name, label: String(value || name) };
+        });
+      }
+
+      return items.map(item => {
+        if (typeof item === 'string') {
+          return { name: item, post_count: 0 };
+        }
+
+        const label = String(item?.label || '');
+        const labelName = label.replace(/\s*\([^)]*\)\s*$/, '');
+        const rawName = item?.name || item?.tag || labelName || item?.value;
+        const explicitCount = item?.post_count ?? item?.postCount ?? item?.count;
+        const labelCount = label.match(/\(([\d,\s]+)\)\s*$/);
+        const postCount = explicitCount != null
+          ? parseInt(String(explicitCount).replace(/[^\d]/g, ''), 10)
+          : parseInt((labelCount?.[1] || '0').replace(/[^\d]/g, ''), 10);
+
+        return {
+          name: String(rawName || '').trim(),
+          post_count: Number.isFinite(postCount) ? postCount : 0
+        };
+      }).filter(item => item.name);
+    }
+
+    function getRule34ApiCredentials() {
+      return {
+        userId: state.authR34.userId || atob("NjUxNDE0MA=="),
+        apiKey: state.authR34.apiKey || atob("YTYwNTllZmVmMTlhNmVhZTQ0Yjk4YzZjM2ZjOThkYjhhYzdlMmVjNjk1ZWM0ODBhOTZmMmE5OTA3MzU2OTVmOGJkZjNmNDk2YjgzNWNkNGFkYzIzMjA2MmMwMTRjNjhmZWY2NDJkYzE5YzU2MmI2ZjM2ZmNiZTljNDEwOGM3YWE=")
+      };
+    }
+
+    function filterRule34TagSuggestions(suggestions, searchQuery) {
+      const prefix = String(searchQuery || '')
+        .trim()
+        .replace(/^[-~]+/, '')
+        .toLowerCase()
+        .replace(/\s+/g, '_');
+      const uniqueNames = new Set();
+
+      return suggestions.filter(item => {
+        const normalizedName = String(item?.name || '').trim().toLowerCase();
+        if (!normalizedName
+          || !normalizedName.startsWith(prefix)
+          || uniqueNames.has(normalizedName)) {
+          return false;
+        }
+        uniqueNames.add(normalizedName);
+        return true;
+      }).sort((a, b) => {
+        const aExact = String(a.name).toLowerCase() === prefix ? 1 : 0;
+        const bExact = String(b.name).toLowerCase() === prefix ? 1 : 0;
+        return bExact - aExact;
+      });
+    }
+
+    async function performCapacitorHttpGet(url, signal = null) {
+      const capacitorHttp = window.Capacitor?.Plugins?.CapacitorHttp;
+      if (!capacitorHttp?.get) throw new Error('CapacitorHttp unavailable');
+      if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+
+      const response = await capacitorHttp.get({
+        url,
+        headers: { Accept: 'application/json' },
+        connectTimeout: 8000,
+        readTimeout: 8000
+      });
+
+      if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(`${t('connectionError')}: ${response.status}`);
+      }
+
+      return typeof response.data === 'string'
+        ? response.data
+        : JSON.stringify(response.data);
+    }
+
+    async function fetchRule34Autocomplete(searchQuery, signal = null) {
+      const endpoint = 'https://api.rule34.xxx/autocomplete.php';
+      const url = new URL(endpoint);
+      url.searchParams.set('q', searchQuery);
+
+      try {
+        return await performCapacitorHttpGet(url.toString(), signal);
+      } catch (nativeError) {
+        if (nativeError.name === 'AbortError') throw nativeError;
+      }
+
+      return await directFetch(endpoint, { q: searchQuery }, false, signal);
+    }
+
     async function fetchTagSuggestions(searchQuery) {
       if (!searchQuery) return [];
+      const provider = state.apiProvider;
       const normalizedQuery = searchQuery.toLowerCase();
-      if (tagSuggestionCache.has(normalizedQuery)) {
-        return tagSuggestionCache.get(normalizedQuery);
-      }
+      const providerQuery = provider === 'rule34'
+        ? normalizedQuery.replace(/^[-~]+/, '')
+        : normalizedQuery;
+      if (!providerQuery) return [];
+      const cacheKey = provider + '_' + normalizedQuery;
+      if (tagSuggestionCache.has(cacheKey)) return tagSuggestionCache.get(cacheKey);
 
       if (autocompleteRequestController) autocompleteRequestController.abort();
       const controller = new AbortController();
       autocompleteRequestController = controller;
-      const url = `https://e621.net/tags/autocomplete.json`;
-      const params = { 'search[name_matches]': searchQuery };
 
       try {
-        const textData = await directFetch(url, params, true, controller.signal);
-        const data = JSON.parse(textData);
-        const suggestions = Array.isArray(data) ? data : [];
-        tagSuggestionCache.set(normalizedQuery, suggestions);
-        if (tagSuggestionCache.size > 40) {
-          tagSuggestionCache.delete(tagSuggestionCache.keys().next().value);
+        let suggestions = [];
+        if (provider === 'rule34') {
+          const textData = await fetchRule34Autocomplete(providerQuery, controller.signal);
+          suggestions = filterRule34TagSuggestions(
+            parseRule34TagSuggestions(textData),
+            providerQuery
+          );
+        } else {
+          const textData = await directFetch(
+            `https://e621.net/tags/autocomplete.json`,
+            { 'search[name_matches]': searchQuery },
+            true,
+            controller.signal
+          );
+          const data = JSON.parse(textData);
+          suggestions = Array.isArray(data) ? data : [];
+        }
+        if (provider !== 'rule34') {
+          suggestions.sort((a, b) => (b.post_count || 0) - (a.post_count || 0));
+        }
+        if (suggestions.length > 0) {
+          tagSuggestionCache.set(cacheKey, suggestions);
+          if (tagSuggestionCache.size > 40) {
+            tagSuggestionCache.delete(tagSuggestionCache.keys().next().value);
+          }
         }
         return suggestions;
       } catch (err) {
@@ -3556,8 +3921,10 @@
         suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${aliasText}</span>`;
 
         suggestionItem.addEventListener('click', () => {
-          words[words.length - 1] = item.name;
+          const operatorPrefix = String(words[words.length - 1] || '').match(/^[-~]+/)?.[0] || '';
+          words[words.length - 1] = operatorPrefix + item.name;
           searchInput.value = words.join(' ') + ' ';
+          toggleClearBtn();
           suggestionsBox.style.display = 'none';
           searchInput.focus();
         });
@@ -3576,8 +3943,13 @@
       currentSearchTags = query;
       state.lastSearchTags = query;
       safeLocalStorage.setItem('p_e621_last_search', query);
-      state.searchCounter++;
-      safeLocalStorage.setItem('p_e621_stat_searches', state.searchCounter);
+      if (state.apiProvider === 'rule34') {
+        state.searchCounterR34++;
+        safeLocalStorage.setItem('p_rule34_stat_searches', state.searchCounterR34);
+      } else {
+        state.searchCounter++;
+        safeLocalStorage.setItem('p_e621_stat_searches', state.searchCounter);
+      }
       if (query && !state.searchHistory.includes(query)) {
         state.searchHistory.unshift(query);
         state.searchHistory = state.searchHistory.slice(0, 15);
@@ -3601,6 +3973,29 @@
       video: ['~filetype:webm', '~filetype:mp4']
     });
 
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(resizeSearchInput);
+    }, { passive: true });
+
+    const AI_FILTER_TAGS = Object.freeze({
+      e621: Object.freeze(['ai_generated', 'ai_assisted', 'machine_generated', 'stable_diffusion']),
+      rule34: Object.freeze(['ai_generated', 'ai_art', 'ai-created', 'ai-generated', 'stable_diffusion'])
+    });
+
+    function isAiFilterEnabled() {
+      return state.apiProvider === 'rule34' ? state.filterAIR34 : state.filterAI;
+    }
+
+    function getActiveAiTags() {
+      return AI_FILTER_TAGS[state.apiProvider] || AI_FILTER_TAGS.e621;
+    }
+
+    function hasAiGeneratedTag(tagsString) {
+      if (!isAiFilterEnabled()) return false;
+      const postTags = new Set(String(tagsString || '').toLowerCase().split(/\s+/).filter(Boolean));
+      return getActiveAiTags().some(tag => postTags.has(tag));
+    }
+
     function removePopularityMetatags(tags) {
       return String(tags || '')
         .split(/\s+/)
@@ -3608,11 +4003,76 @@
         .join(' ');
     }
 
+    function removeRule34PopularityMetatags(tags) {
+      return String(tags || '')
+        .split(/\s+/)
+        .filter(tag => tag
+          && !/^sort:score(?::(?:asc|desc))?$/i.test(tag)
+          && !/^order:score(?::(?:asc|desc))?$/i.test(tag)
+          && !/^date:/i.test(tag))
+        .join(' ');
+    }
+
+    function getRule34PeriodTags(period) {
+      if (period === 'alltime') return ['sort:score'];
+      const periodStart = getRule34PeriodStart(period);
+      if (periodStart) {
+        const date = new Date(periodStart);
+        const dateTag = [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, '0'),
+          String(date.getDate()).padStart(2, '0')
+        ].join('-');
+        return [`date:>${dateTag}`, 'sort:score'];
+      }
+      return [];
+    }
+
+    function removeRule34DateMetatags(tags) {
+      return String(tags || '')
+        .split(/\s+/)
+        .filter(tag => tag && !/^date:/i.test(tag) && !/^sort:score(?::(?:asc|desc))?$/i.test(tag))
+        .join(' ');
+    }
+
+    function getRule34PeriodStart(period, now = new Date()) {
+      const daysByPeriod = { '1d': 1, '7d': 7, '30d': 30 };
+      const days = daysByPeriod[period];
+      if (!days) return null;
+
+      const startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      startDate.setDate(startDate.getDate() - (days - 1));
+      return startDate.getTime();
+    }
+
+    function getRule34PostTimestamp(item) {
+      const createdAt = Date.parse(item?.created_at || item?.createdAt || '');
+      if (Number.isFinite(createdAt)) return createdAt;
+      return null;
+    }
+
     function buildFeedQueryTags(tags, period = currentPopularPeriod, mediaType = state.mediaTypeFilter) {
       const queryParts = [];
+
+      if (state.apiProvider === 'rule34') {
+        const baseTags = period === 'all'
+          ? String(tags || '').trim()
+          : removeRule34PopularityMetatags(tags);
+        if (baseTags) queryParts.push(baseTags);
+        queryParts.push(...getRule34PeriodTags(period));
+
+        if (mediaType === 'video') queryParts.push('video');
+        else if (mediaType === 'photo') queryParts.push('-video');
+        if (isAiFilterEnabled()) {
+          getActiveAiTags().forEach(tag => queryParts.push(`-${tag}`));
+        }
+
+        return queryParts.join(' ').trim();
+      }
+
       const baseTags = period === 'all' ? String(tags || '').trim() : removePopularityMetatags(tags);
       const periodConfig = POPULAR_PERIODS[period] || POPULAR_PERIODS.all;
-
       if (baseTags) queryParts.push(baseTags);
       if (!state.settings.ratings.includes('18+')) queryParts.push('-rating:explicit');
       if (!state.settings.ratings.includes('16+')) queryParts.push('-rating:questionable');
@@ -3620,6 +4080,9 @@
 
       const mediaTags = MEDIA_TYPE_TAGS[mediaType] || MEDIA_TYPE_TAGS.all;
       queryParts.push(...mediaTags);
+      if (isAiFilterEnabled()) {
+        getActiveAiTags().forEach(tag => queryParts.push(`-${tag}`));
+      }
 
       state.blacklist.forEach(blocked => {
         const blockedTag = String(blocked || '').trim();
@@ -3632,22 +4095,92 @@
       return queryParts.join(' ');
     }
 
-    async function fetchFromE621(tags, page = 0, signal = null) {
-      const url = `https://e621.net/posts.json`;
-      const params = {
-        limit: state.settings.dataBudget && state.trafficUsed > 50 ? 15 : state.debugPostLimit,
-        page: page + 1,
-        tags: buildFeedQueryTags(tags)
-      };
+    async function fetchFromE621(tags, page = 0, signal = null, period = currentPopularPeriod) {
+      let url, params;
+      if (state.apiProvider === 'rule34') {
+        url = `https://api.rule34.xxx/index.php`;
+        const credentials = getRule34ApiCredentials();
+        params = {
+          page: 'dapi', s: 'post', q: 'index', json: 1,
+          limit: state.settings.dataBudget && getProviderState().trafficUsed > 50 ? 15 : state.debugPostLimit,
+          pid: page, tags: buildFeedQueryTags(tags, period)
+        };
+        params.user_id = credentials.userId;
+        params.api_key = credentials.apiKey;
+      } else {
+        url = `https://e621.net/posts.json`;
+        params = {
+          limit: state.settings.dataBudget && getProviderState().trafficUsed > 50 ? 15 : state.debugPostLimit,
+          page: page + 1, tags: buildFeedQueryTags(tags, period)
+        };
+      }
 
       try {
-        const textData = await directFetch(url, params, true, signal);
-        registerTraffic(textData.length);
+        const hasRule34Period = state.apiProvider === 'rule34'
+          && Boolean(getRule34PeriodStart(period));
 
-        const data = JSON.parse(textData);
-        const rawPosts = data.posts || [];
+        const fetchRule34PeriodFallback = async () => {
+          const fallbackPages = [];
+          const fallbackTags = removeRule34DateMetatags(params.tags);
+          const firstPage = page * 4;
+
+          for (let offset = 0; offset < 4; offset++) {
+            if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+            const fallbackText = await directFetch(url, {
+              ...params,
+              pid: firstPage + offset,
+              tags: fallbackTags
+            }, false, signal);
+            registerTraffic(fallbackText.length);
+            const fallbackData = JSON.parse(fallbackText);
+            if (!Array.isArray(fallbackData) || fallbackData.length === 0) break;
+            fallbackPages.push(...fallbackData);
+          }
+
+          return fallbackPages;
+        };
+
+        let data;
+        try {
+          const textData = await directFetch(url, params, state.apiProvider !== 'rule34', signal);
+          registerTraffic(textData.length);
+          data = JSON.parse(textData);
+        } catch (primaryError) {
+          if (primaryError.name === 'AbortError' || !hasRule34Period) throw primaryError;
+          data = await fetchRule34PeriodFallback();
+        }
+
+        if (hasRule34Period && (!Array.isArray(data) || data.length === 0)) {
+          data = await fetchRule34PeriodFallback();
+        }
+
+        let rawPosts = state.apiProvider === 'rule34' ? (Array.isArray(data) ? data : []) : (data.posts || []);
+        if (state.apiProvider === 'rule34') {
+          const periodStart = getRule34PeriodStart(period);
+          if (periodStart) {
+            rawPosts = rawPosts.filter(item => {
+              const timestamp = getRule34PostTimestamp(item);
+              return timestamp === null || timestamp >= periodStart;
+            });
+          }
+        }
 
         const mapped = rawPosts.map(item => {
+          if (state.apiProvider === 'rule34') {
+            if (!item.file_url) return null;
+            if (state.blacklistR34 && state.blacklistR34.length > 0) {
+              const postTags = (item.tags || '').toLowerCase().split(' ');
+              if (state.blacklistR34.some(bTag => postTags.includes(bTag))) return null;
+            }
+            return {
+              id: item.id, file_url: item.file_url, preview_url: item.preview_url || item.file_url,
+              sample_url: item.sample_url || item.file_url, tags: { general: (item.tags || '').split(' ') },
+              tagsString: item.tags || '', ext: item.file_url.split('.').pop() || 'jpg',
+              rating: item.rating === 's' ? 's' : (item.rating === 'q' ? 'q' : 'e'),
+              score: item.score || 0, isVideo: item.file_url.includes('.mp4') || item.file_url.includes('.webm'),
+              width: item.width, height: item.height
+            };
+          }
           if (!item.file || !item.file.url) return null;
           return {
             id: item.id,
@@ -3663,7 +4196,13 @@
             width: item.file.width,
             height: item.file.height
           };
-        }).filter(p => p !== null);
+        }).filter(p => p !== null && !hasAiGeneratedTag(p.tagsString));
+
+        if (state.apiProvider === 'rule34'
+          && period !== 'all'
+          && period !== 'alltime') {
+          mapped.sort((a, b) => (b.score || 0) - (a.score || 0));
+        }
 
         return mapped;
       } catch (err) {
@@ -3676,10 +4215,15 @@
     function registerTraffic(bytes) {
       if (!bytes) return;
       const mb = bytes / (1024 * 1024);
-      state.trafficUsed += mb;
-      safeLocalStorage.setItem('p_e621_traffic', state.trafficUsed.toFixed(2));
+      if (state.apiProvider === 'rule34') {
+        state.trafficUsedR34 += mb;
+        safeLocalStorage.setItem('p_rule34_traffic', state.trafficUsedR34.toFixed(2));
+      } else {
+        state.trafficUsed += mb;
+        safeLocalStorage.setItem('p_e621_traffic', state.trafficUsed.toFixed(2));
+      }
       const valSpan = document.getElementById('traffic-val');
-      if (valSpan) valSpan.textContent = state.trafficUsed.toFixed(2);
+      if (valSpan) valSpan.textContent = getProviderState().trafficUsed.toFixed(2);
       updateStatsUI();
     }
 
@@ -3728,7 +4272,7 @@
 
       let imgUrl = state.settings.layout === 'stories'
         ? (post.sample_url || post.file_url)
-        : ((state.settings.dataBudget && state.trafficUsed > 50) ? post.preview_url : (post.sample_url || post.preview_url));
+        : ((state.settings.dataBudget && getProviderState().trafficUsed > 50) ? post.preview_url : (post.sample_url || post.preview_url));
 
       if (post.isVideo) {
         const badge = document.createElement('div');
@@ -3845,7 +4389,8 @@
         if (controller.signal.aborted || requestId !== galleryRequestId) return;
 
         if (posts && posts.length > 0) {
-          const blockedTags = new Set(state.blacklist.map(tag => String(tag).toLowerCase()));
+          const blArr = (state.apiProvider === 'rule34') ? state.blacklistR34 : state.blacklist;
+          const blockedTags = new Set(blArr.map(tag => String(tag).toLowerCase()));
           const fragment = document.createDocumentFragment();
           const renderedCards = [];
           const acceptedPosts = [];
@@ -3915,7 +4460,26 @@
       });
     }
 
+    function syncProviderPeriodControls() {
+      const isRule34 = state.apiProvider === 'rule34';
+      ['p-day', 'p-week', 'p-month'].forEach(id => {
+        const button = document.getElementById(id);
+        if (!button) return;
+        button.hidden = isRule34;
+        button.setAttribute('aria-hidden', String(isRule34));
+      });
+
+      if (isRule34 && ['1d', '7d', '30d'].includes(currentPopularPeriod)) {
+        currentPopularPeriod = 'all';
+        state.popularPeriod = 'all';
+        safeLocalStorage.setItem('p_e621_popular_period', 'all');
+      }
+
+      updatePopularPeriodControl(currentPopularPeriod);
+    }
+
     function setPopularPeriod(period) {
+      if (state.apiProvider === 'rule34' && ['1d', '7d', '30d'].includes(period)) return;
       if (!Object.prototype.hasOwnProperty.call(POPULAR_PERIODS, period) || currentPopularPeriod === period) return;
 
       currentPopularPeriod = period;
@@ -3961,21 +4525,28 @@
     function openDetailView(post) {
       detailCurrentPost = post;
 
-      if (!state.history.some(h => h.id === post.id)) {
-        state.history.push({ id: post.id, rating: post.rating || 's', score: post.score || 0 });
-        safeLocalStorage.setItem('p_e621_history', JSON.stringify(state.history));
+      const activeHistory = state.apiProvider === 'rule34' ? state.historyR34 : state.history;
+      if (!activeHistory.some(h => h.id === post.id)) {
+        activeHistory.push({ id: post.id, rating: post.rating || 's', score: post.score || 0 });
+        const historyKey = state.apiProvider === 'rule34' ? 'p_rule34_history' : 'p_e621_history';
+        safeLocalStorage.setItem(historyKey, JSON.stringify(activeHistory));
       }
 
       if (post.isVideo) {
-        state.videoPlays++;
-        safeLocalStorage.setItem('p_e621_stat_videos', state.videoPlays);
+        if (state.apiProvider === 'rule34') {
+          state.videoPlaysR34++;
+          safeLocalStorage.setItem('p_rule34_stat_videos', state.videoPlaysR34);
+        } else {
+          state.videoPlays++;
+          safeLocalStorage.setItem('p_e621_stat_videos', state.videoPlays);
+        }
       }
 
       const activePanel = document.querySelector('.view-panel.active');
       let currentPool = state.currentPostPool;
 
       if (activePanel && activePanel.id === 'panel-bookmarks') {
-        currentPool = state.bookmarks;
+        currentPool = getProviderState().bookmarks;
       }
 
       const currentIndex = currentPool.findIndex(p => p.id === post.id);
@@ -4115,7 +4686,7 @@
           const activePanel = document.querySelector('.view-panel.active');
           let currentPool = state.currentPostPool;
           if (activePanel && activePanel.id === 'panel-bookmarks') {
-            currentPool = state.bookmarks;
+            currentPool = getProviderState().bookmarks;
           }
           const currentIndex = currentPool.findIndex(p => p.id === detailCurrentPost?.id);
           handleForwardNavigation(currentIndex, currentPool);
@@ -4226,13 +4797,16 @@
     }
 
     function toggleBookmark(post) {
-      const idx = state.bookmarks.findIndex(p => p.id === post.id);
+      const isR34 = state.apiProvider === 'rule34';
+      const bookmarksArr = isR34 ? state.bookmarksR34 : state.bookmarks;
+      const idx = bookmarksArr.findIndex(p => p.id === post.id);
       if (idx === -1) {
-        state.bookmarks.push(post);
+        bookmarksArr.push(post);
       } else {
-        state.bookmarks.splice(idx, 1);
+        bookmarksArr.splice(idx, 1);
       }
-      safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
+      if (isR34) safeLocalStorage.setItem('p_rule34_bookmarks', JSON.stringify(state.bookmarksR34));
+      else safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
       updateBookmarkBtnState();
       updateStatsUI();
       const bookmarksPanel = document.getElementById('panel-bookmarks');
@@ -4244,7 +4818,8 @@
     function updateBookmarkBtnState() {
       const btn = document.getElementById('detail-bookmark-btn');
       if (!btn || !detailCurrentPost) return;
-      const isSaved = state.bookmarks.some(p => p.id === detailCurrentPost.id);
+      const currentBookmarks = state.apiProvider === 'rule34' ? state.bookmarksR34 : state.bookmarks;
+      const isSaved = currentBookmarks.some(p => p.id === detailCurrentPost.id);
       btn.textContent = isSaved ? t('bookmarked') : t('bookmark');
       btn.style.backgroundColor = isSaved ? "var(--success)" : "var(--accent)";
     }
@@ -4253,14 +4828,37 @@
       const container = document.getElementById('bookmarks-grid');
       if (!container) return;
       clearPostContainer(container);
-      if (state.bookmarks.length === 0) {
-        container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('noBookmarks')}</div>`;
+      const isR34 = state.apiProvider === 'rule34';
+      const bookmarksArr = isR34 ? state.bookmarksR34 : state.bookmarks;
+      
+      if (!document.getElementById('bookmark-source-tabs')) {
+         const tabsHtml = `<div id="bookmark-source-tabs" class="flex gap-2 mb-4" style="grid-column: span 3; overflow-x: auto;">
+           <button id="bm-tab-e621" class="op-btn ${!isR34 ? 'and' : ''}">e621</button>
+           <button id="bm-tab-r34" class="op-btn ${isR34 ? 'and' : ''}">rule34</button>
+         </div>`;
+         container.innerHTML = tabsHtml;
+         
+         requestAnimationFrame(() => {
+             document.getElementById('bm-tab-e621')?.addEventListener('click', () => {
+                 if (state.apiProvider !== 'e621') document.getElementById('prov-e621')?.click();
+             });
+             document.getElementById('bm-tab-r34')?.addEventListener('click', () => {
+                 if (state.apiProvider !== 'rule34') document.getElementById('prov-r34')?.click();
+             });
+         });
+      }
+
+      if (bookmarksArr.length === 0) {
+        const noBm = document.createElement('div');
+        noBm.style.cssText = "grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);";
+        noBm.textContent = t('noBookmarks');
+        container.appendChild(noBm);
         return;
       }
 
       const fragment = document.createDocumentFragment();
       const renderedCards = [];
-      state.bookmarks.forEach(post => {
+      bookmarksArr.forEach(post => {
         const card = createPostCard(post);
         renderedCards.push(card);
         fragment.appendChild(card);
@@ -4301,16 +4899,17 @@
     function generateSmartRecommendations() {
       const container = document.getElementById('recs-grid');
       if (!container) return;
+      const providerBookmarks = getProviderState().bookmarks;
       clearPostContainer(container);
       container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 40px; color:var(--text-muted);">${t('analyzingRecommendations')}</div>`;
 
-      if (state.bookmarks.length < 2) {
+      if (providerBookmarks.length < 2) {
         container.innerHTML = `<div style="grid-column: span 3; text-align:center; padding: 20px; color:var(--text-muted);">${t('bookmarksLimit')}</div>`;
         return;
       }
 
       const tagWeights = {};
-      state.bookmarks.forEach(post => {
+      providerBookmarks.forEach(post => {
         const allTags = post.tagsString || '';
         allTags.split(' ').forEach(tag => {
           if (!tag) return;
@@ -4375,32 +4974,32 @@
         authStatus.textContent = state.language === 'ru' ? `Статус: Не подключен (Анонимный режим)` : `Status: Not connected (Anonymous mode)`;
         authStatus.style.color = 'var(--text-muted)';
       }
+      const r34User = document.getElementById('auth-r34-userid');
+      const r34Key = document.getElementById('auth-r34-apikey');
+      const r34Status = document.getElementById('r34-auth-status');
+      if (r34User && r34Key && r34Status) {
+        r34User.value = '';
+        r34Key.value = '';
+        if (state.authR34.userId && state.authR34.apiKey) {
+          r34Status.textContent = state.language === 'ru' ? `Статус: Подключен` : `Status: Connected`;
+          r34Status.style.color = 'var(--success)';
+        } else {
+          r34Status.textContent = state.language === 'ru' ? `Статус: Подключен (Ключ по умолчанию)` : `Status: Connected (Default Key)`;
+          r34Status.style.color = 'var(--success)';
+        }
+      }
       toggleAdminPanelVisibility();
     }
 
     async function rollLuckyPost() {
       try {
-        const textData = await directFetch(`https://e621.net/posts.json`, { tags: 'order:random', limit: 1 }, true);
-        const data = JSON.parse(textData);
-        const posts = data.posts || [];
+        const randomTag = state.apiProvider === 'rule34' ? 'sort:random' : 'order:random';
+        const posts = await fetchFromE621(randomTag, 0, null, 'all');
         if (posts.length > 0) {
-          const chosen = posts[0];
-          const mappedPost = {
-            id: chosen.id,
-            file_url: chosen.file.url,
-            preview_url: chosen.preview ? chosen.preview.url : chosen.file.url,
-            sample_url: (chosen.sample && chosen.sample.has) ? chosen.sample.url : chosen.file.url,
-            tags: chosen.tags || {},
-            tagsString: Object.values(chosen.tags || {}).flat().join(' '),
-            ext: chosen.file.ext,
-            rating: chosen.rating,
-            score: chosen.score ? chosen.score.total : 0,
-            isVideo: ['mp4', 'webm'].includes(chosen.file.ext),
-            width: chosen.file.width,
-            height: chosen.file.height
-          };
-          openDetailView(mappedPost);
+          openDetailView(posts[Math.floor(Math.random() * posts.length)]);
+          return;
         }
+        throw new Error('No random posts');
       } catch (e) {
         showToast(t('randomFailed'));
       }
@@ -4414,6 +5013,10 @@
     }
 
     function updateStatsUI() {
+      const providerState = getProviderState();
+      const providerHistory = providerState.history;
+      const providerBookmarks = providerState.bookmarks;
+      const statsTitle = document.getElementById('lbl-stats-title');
       const viewed = document.getElementById('stat-val-viewed');
       const liked = document.getElementById('stat-val-liked');
       const timeVal = document.getElementById('stat-val-time');
@@ -4423,16 +5026,21 @@
       const ratingVal = document.getElementById('stat-val-fav-rating');
       const avgScoreVal = document.getElementById('stat-val-avg-score');
 
-      if (viewed) viewed.textContent = state.history.length;
-      if (liked) liked.textContent = state.bookmarks.length;
-      if (loadedMb) loadedMb.textContent = state.trafficUsed.toFixed(2) + ' MB';
-      if (videosVal) videosVal.textContent = state.videoPlays;
+      if (statsTitle) {
+        const providerLabel = state.apiProvider === 'rule34' ? 'rule34' : 'e621';
+        statsTitle.textContent = `${t('statsTitle')} · ${providerLabel}`;
+      }
+      if (viewed) viewed.textContent = providerHistory.length;
+      if (liked) liked.textContent = providerBookmarks.length;
+      if (loadedMb) loadedMb.textContent = providerState.trafficUsed.toFixed(2) + ' MB';
+      if (videosVal) videosVal.textContent = providerState.videoPlays;
 
       updateElapsedTimeUI(timeVal);
 
-      if (ratingVal && state.history.length > 0) {
+      if (ratingVal) ratingVal.textContent = '...';
+      if (ratingVal && providerHistory.length > 0) {
         const ratingsMap = {};
-        state.history.forEach(h => {
+        providerHistory.forEach(h => {
           if (h.rating) ratingsMap[h.rating] = (ratingsMap[h.rating] || 0) + 1;
         });
         const topRating = Object.entries(ratingsMap).sort((a, b) => b[1] - a[1])[0][0];
@@ -4440,15 +5048,16 @@
         ratingVal.textContent = ratingLabels[topRating] || 'S (Safe)';
       }
 
-      if (avgScoreVal && state.history.length > 0) {
-        const sumScore = state.history.reduce((acc, curr) => acc + (curr.score || 0), 0);
-        const avg = Math.round(sumScore / state.history.length);
+      if (avgScoreVal) avgScoreVal.textContent = '0';
+      if (avgScoreVal && providerHistory.length > 0) {
+        const sumScore = providerHistory.reduce((acc, curr) => acc + (curr.score || 0), 0);
+        const avg = Math.round(sumScore / providerHistory.length);
         avgScoreVal.textContent = avg;
       }
 
       if (tagsBox) {
         const tagWeights = {};
-        state.bookmarks.forEach(post => {
+        providerBookmarks.forEach(post => {
           if (post.tags && post.tags.general) {
             post.tags.general.forEach(t => {
               tagWeights[t] = (tagWeights[t] || 0) + 1;
@@ -4473,12 +5082,13 @@
 
     function applyCustomStyles() {
       const root = document.documentElement;
-      root.style.setProperty('--accent', state.customization.accent);
-      root.style.setProperty('--accent-hover', state.customization.accent + 'dd');
+      const activeAccent = getActiveAccent();
+      root.style.setProperty('--accent', activeAccent);
+      root.style.setProperty('--accent-hover', activeAccent + 'dd');
       root.style.setProperty('--radius', state.customization.radius);
 
       document.querySelectorAll('.color-dot').forEach(dot => {
-        if (dot.getAttribute('data-color') === state.customization.accent) {
+        if (dot.getAttribute('data-color') === activeAccent) {
           dot.classList.add('active');
           dot.style.borderColor = '#ffffff';
         } else {
@@ -4491,11 +5101,11 @@
       if (radiusSelect) radiusSelect.value = state.customization.radius;
 
       const bottomBar = document.getElementById('bottom-tab-bar');
-      if (bottomBar) bottomBar.style.borderColor = state.customization.accent;
+      if (bottomBar) bottomBar.style.borderColor = activeAccent;
 
       document.querySelectorAll('.tab-bar .tab-btn').forEach(b => {
         if (b.classList.contains('active')) {
-          b.style.color = state.customization.accent;
+          b.style.color = activeAccent;
         } else {
           b.style.color = 'var(--text-muted)';
         }
@@ -4535,7 +5145,9 @@
       const chipsContainer = document.getElementById('blacklist-chips');
       if (!chipsContainer) return;
       chipsContainer.innerHTML = '';
-      state.blacklist.forEach(tag => {
+      const isR34 = state.apiProvider === 'rule34';
+      const blArr = isR34 ? state.blacklistR34 : state.blacklist;
+      blArr.forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
         chip.innerHTML = `<span>${tag}</span><button onclick="removeBlacklistTag('${tag}')">✕</button>`;
@@ -4544,8 +5156,14 @@
     }
 
     window.removeBlacklistTag = function (tag) {
-      state.blacklist = state.blacklist.filter(t => t !== tag);
-      safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+      const isR34 = state.apiProvider === 'rule34';
+      if (isR34) {
+          state.blacklistR34 = state.blacklistR34.filter(t => t !== tag);
+          safeLocalStorage.setItem('p_rule34_blacklist', JSON.stringify(state.blacklistR34));
+      } else {
+          state.blacklist = state.blacklist.filter(t => t !== tag);
+          safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+      }
       renderBlacklistChips();
       loadGallery(true);
     };
@@ -4584,7 +5202,7 @@
       const activeBtn = document.querySelector(`[data-view="${viewName}"]`);
       if (activeBtn) {
         activeBtn.classList.add('active');
-        activeBtn.style.color = state.customization.accent;
+        activeBtn.style.color = getActiveAccent();
       }
 
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -4702,7 +5320,7 @@
       for (let i = 0; i < dots.length; i++) {
         if (i < len) {
           dots[i].className = "w-3.5 h-3.5 rounded-full border-2 bg-white transition-all duration-150";
-          dots[i].style.borderColor = state.customization.accent;
+          dots[i].style.borderColor = getActiveAccent();
         } else {
           dots[i].className = "w-3.5 h-3.5 rounded-full border-2 border-zinc-700 bg-transparent transition-all duration-150";
         }
@@ -4880,6 +5498,66 @@
       const mediaSwitchContainer = document.getElementById('media-type-container');
       if (mediaSwitchContainer) {
         updateMediaTypeControl(state.mediaTypeFilter);
+        
+        function syncProviderUI() {
+          const btnE621 = document.getElementById('prov-e621');
+          const btnR34 = document.getElementById('prov-r34');
+          if (!btnE621 || !btnR34) return;
+          const providerBrand = state.apiProvider === 'rule34' ? 'R34' : 'E621';
+          document.querySelectorAll('.provider-brand-suffix').forEach(suffix => {
+            suffix.textContent = providerBrand;
+          });
+          document.title = `Chromium ${providerBrand} Mobile Client`;
+          applyCustomStyles();
+          if (state.apiProvider === 'e621') {
+            btnE621.style.backgroundColor = 'var(--accent)';
+            btnE621.style.color = '#fff';
+            btnR34.style.backgroundColor = 'transparent';
+            btnR34.style.color = 'var(--text-muted)';
+          } else {
+            btnR34.style.backgroundColor = 'var(--accent)';
+            btnR34.style.color = '#fff';
+            btnE621.style.backgroundColor = 'transparent';
+            btnE621.style.color = 'var(--text-muted)';
+          }
+          const ratingFilters = document.getElementById('rating-filters-block');
+          if (ratingFilters) ratingFilters.hidden = state.apiProvider === 'rule34';
+          const aiFilter = document.getElementById('filter-ai-posts');
+          if (aiFilter) aiFilter.checked = isAiFilterEnabled();
+          const trafficVal = document.getElementById('traffic-val');
+          if (trafficVal) trafficVal.textContent = getProviderState().trafficUsed.toFixed(2);
+          syncProviderPeriodControls();
+          updateStatsUI();
+        }
+        if (document.getElementById('api-provider-switch')) syncProviderUI();
+        
+        const provSwitch = document.getElementById('api-provider-switch');
+        if (provSwitch) {
+          provSwitch.addEventListener('click', (e) => {
+            let newProv;
+            if (e.target.closest('#prov-r34')) newProv = 'rule34';
+            else if (e.target.closest('#prov-e621')) newProv = 'e621';
+            else return;
+            if (state.apiProvider === newProv) return;
+            state.apiProvider = newProv;
+            safeLocalStorage.setItem('p_api_provider', newProv);
+            syncProviderUI();
+            if (autocompleteRequestController) autocompleteRequestController.abort();
+            if (suggestionsBox) suggestionsBox.style.display = 'none';
+            const blacklistSuggestions = document.getElementById('blacklist-suggestions');
+            if (blacklistSuggestions) blacklistSuggestions.style.display = 'none';
+            if (typeof renderBlacklistChips === 'function') renderBlacklistChips();
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            currentSearchTags = '';
+            
+            const grid = document.getElementById('gallery-grid');
+            if(grid) clearPostContainer(grid);
+            loadGallery(true);
+            
+            if (activeView === 'bookmarks') renderBookmarks();
+          });
+        }
         mediaSwitchContainer.addEventListener('click', event => {
           const button = event.target.closest('.media-type-btn');
           if (button && mediaSwitchContainer.contains(button)) {
@@ -4887,7 +5565,7 @@
           }
         });
       }
-      updatePopularPeriodControl(currentPopularPeriod);
+      syncProviderPeriodControls();
       if (searchInput) {
         searchInput.value = currentSearchTags;
         toggleClearBtn();
@@ -5192,9 +5870,12 @@
         blacklistBtn.addEventListener('click', () => {
           const input = document.getElementById('blacklist-input');
           const tag = input.value.trim().toLowerCase();
-          if (tag && !state.blacklist.includes(tag)) {
-            state.blacklist.push(tag);
-            safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
+          const isR34 = state.apiProvider === 'rule34';
+          const blArr = isR34 ? state.blacklistR34 : state.blacklist;
+          if (tag && !blArr.includes(tag)) {
+            blArr.push(tag);
+            if (isR34) safeLocalStorage.setItem('p_rule34_blacklist', JSON.stringify(blArr));
+            else safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(blArr));
             renderBlacklistChips();
             input.value = '';
             if (blacklistSuggestionsBox) blacklistSuggestionsBox.style.display = 'none';
@@ -5226,8 +5907,13 @@
       document.querySelectorAll('.color-dot').forEach(dot => {
         dot.addEventListener('click', () => {
           const color = dot.getAttribute('data-color');
-          state.customization.accent = color;
-          safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          if (state.apiProvider === 'rule34') {
+            state.customizationR34.accent = color;
+            safeLocalStorage.setItem('p_rule34_customization', JSON.stringify(state.customizationR34));
+          } else {
+            state.customization.accent = color;
+            safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          }
           applyCustomStyles();
           translateUI();
           showToast(t('accentUpdated'));
@@ -5277,6 +5963,21 @@
           state.settings.nsfwBlur = e.target.checked;
           safeLocalStorage.setItem('p_e621_nsfw_blur', e.target.checked);
           applyNsfwBlurState(e.target.checked);
+        });
+      }
+
+      const aiFilterBox = document.getElementById('filter-ai-posts');
+      if (aiFilterBox) {
+        aiFilterBox.checked = isAiFilterEnabled();
+        aiFilterBox.addEventListener('change', (e) => {
+          if (state.apiProvider === 'rule34') {
+            state.filterAIR34 = e.target.checked;
+            safeLocalStorage.setItem('p_rule34_filter_ai', String(state.filterAIR34));
+          } else {
+            state.filterAI = e.target.checked;
+            safeLocalStorage.setItem('p_e621_filter_ai', String(state.filterAI));
+          }
+          loadGallery(true);
         });
       }
 
@@ -5410,6 +6111,31 @@
       if (eulaCheckbox) {
         eulaCheckbox.addEventListener('change', (e) => {
           if (eulaConfirmBtn) eulaConfirmBtn.disabled = !e.target.checked;
+        });
+      }
+
+      const saveR34Btn = document.getElementById('save-r34-auth-btn');
+      if (saveR34Btn) {
+        saveR34Btn.addEventListener('click', () => {
+          const userVal = document.getElementById('auth-r34-userid').value.trim();
+          const apiVal = document.getElementById('auth-r34-apikey').value.trim();
+          if (userVal && apiVal) {
+            state.authR34.userId = userVal;
+            state.authR34.apiKey = apiVal;
+            safeLocalStorage.setItem('p_rule34_userid', userVal);
+            safeLocalStorage.setItem('p_rule34_apikey', apiVal);
+            showToast(state.language === 'ru' ? 'Настройки Rule34 сохранены' : 'Rule34 credentials saved');
+            updateAuthUI();
+            loadGallery(true);
+          } else {
+            state.authR34.userId = '';
+            state.authR34.apiKey = '';
+            safeLocalStorage.removeItem('p_rule34_userid');
+            safeLocalStorage.removeItem('p_rule34_apikey');
+            showToast(state.language === 'ru' ? 'Кастомные ключи сброшены. Используется системный ключ.' : 'Custom keys removed. Default system key used.');
+            updateAuthUI();
+            loadGallery(true);
+          }
         });
       }
 
