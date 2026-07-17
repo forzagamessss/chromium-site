@@ -2,9 +2,9 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 env:
@@ -13,124 +13,86 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-    
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-    
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        packages: 'build-tools;34.0.0'
-    
-    - name: Clean npm cache and install dependencies
-      run: |
-        echo "=== Cleaning npm cache ==="
-        npm cache clean --force
-        rm -rf node_modules package-lock.json
-        
-        echo "=== Installing dependencies ==="
-        npm install --no-package-lock --legacy-peer-deps
-        
-        echo "=== Installing Capacitor ==="
-        npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --no-package-lock --legacy-peer-deps
-    
-    - name: Remove existing Android folder
-      run: |
-        echo "=== Removing existing android folder ==="
-        rm -rf android
-    
-    - name: Initialize Capacitor
-      run: |
-        npx cap init "Chromium" "com.chromium.client" --web-dir=www
-        npx cap add android
-    
-    - name: Generate icons
-      run: |
-        echo "=== Installing sharp ==="
-        npm install sharp --no-package-lock --legacy-peer-deps
-        
-        echo "=== Preparing adaptive icons ==="
-        node generate-assets.js
-        
-        echo "=== Generating Android mipmap resources ==="
-        npx @capacitor/assets generate --android
-        
-        echo "=== Verifying icons ==="
-        ls -la android/app/src/main/res/mipmap-*/ic_launcher.png || echo "Icons generated"
-    
-    - name: Fix Android Manifest
-      run: |
-        echo "=== Fixing AndroidManifest.xml ==="
-        MANIFEST="android/app/src/main/AndroidManifest.xml"
-        
-        if [ ! -f "$MANIFEST" ]; then
-          echo "❌ Manifest not found!"
-          exit 1
-        fi
-        
-        echo "=== Original manifest ==="
-        cat "$MANIFEST"
-        
-        # Проверяем, есть ли уже атрибуты иконок
-        if grep -q 'android:icon=' "$MANIFEST"; then
-          echo "✅ android:icon already exists, skipping"
-        else
-          # Если атрибутов нет, добавляем их после <application
-          sed -i 's|<application>|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">|g' "$MANIFEST"
-        fi
-        
-        echo "=== Updated manifest ==="
-        cat "$MANIFEST"
-    
-    - name: Sync Capacitor
-      run: |
-        npx cap sync android
-    
-    - name: Build Release APK
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleRelease --stacktrace
 
-    - name: Sign Release APK
-      env:
-        KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      run: |
-        echo "=== Decoding Keystore ==="
-        echo "$KEYSTORE_BASE64" | base64 --decode > release-key.jks
-        
-        echo "=== Aligning APK ==="
-        /usr/local/lib/android/sdk/build-tools/34.0.0/zipalign -v 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
-        
-        echo "=== Signing APK ==="
-        /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
-          --ks release-key.jks \
-          --ks-pass pass:"$KEYSTORE_PASSWORD" \
-          --key-pass pass:"$KEYSTORE_PASSWORD" \
-          --ks-key-alias "$KEY_ALIAS" \
-          --out chromium.apk aligned.apk
-        
-        echo "=== Verifying signature ==="
-        /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify chromium.apk
-    
-    - name: Upload Signed APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: chromium-release-apk
-        path: chromium.apk
-        retention-days: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: build-tools;34.0.0
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Generate Android icons
+        run: node generate-assets.js
+
+      - name: Sync Capacitor
+        run: npm run sync
+
+      - name: Verify native downloader
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const activityPath = 'android/app/src/main/java/com/chromium/e621/client/MainActivity.java';
+          const pluginPath = 'android/app/src/main/java/com/chromium/e621/client/MediaDownloaderPlugin.java';
+          const activity = fs.readFileSync(activityPath, 'utf8');
+          const registerIndex = activity.indexOf('registerPlugin(MediaDownloaderPlugin.class)');
+          const superIndex = activity.indexOf('super.onCreate(savedInstanceState)');
+          if (!fs.existsSync(pluginPath) || registerIndex < 0 || superIndex < 0 || registerIndex > superIndex) {
+            throw new Error('MediaDownloaderPlugin is not configured before Capacitor Bridge creation.');
+          }
+          NODE
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Sign release APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > release-key.jks
+          /usr/local/lib/android/sdk/build-tools/34.0.0/zipalign -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            aligned.apk
+          /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
+            --ks release-key.jks \
+            --ks-pass pass:"$KEYSTORE_PASSWORD" \
+            --key-pass pass:"$KEYSTORE_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out chromium-e621-app.apk \
+            aligned.apk
+          /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify \
+            chromium-e621-app.apk
+
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromium-e621-release-apk
+          path: chromium-e621-app.apk
+          retention-days: 30

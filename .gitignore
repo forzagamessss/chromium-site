@@ -1,0 +1,16 @@
+/node_modules/
+/android/
+/.idea/
+/.agents/
+
+*.apk
+*.aab
+*.jks
+aligned.apk
+release-key.jks
+
+/assets/icon.png
+/assets/icon-only.png
+/assets/icon-foreground.png
+/assets/icon-background.png
+/www/css/tailwind.css

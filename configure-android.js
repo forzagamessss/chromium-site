@@ -6,6 +6,7 @@ const packagePath = path.join('com', 'chromium', 'e621', 'client');
 const javaDir = path.join(root, 'android', 'app', 'src', 'main', 'java', packagePath);
 const templateDir = path.join(root, 'native', 'android');
 const manifestPath = path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
+const buildGradlePath = path.join(root, 'android', 'app', 'build.gradle');
 
 fs.mkdirSync(javaDir, { recursive: true });
 
@@ -37,4 +38,11 @@ if (!manifest.includes('android.permission.WRITE_EXTERNAL_STORAGE')) {
 }
 
 fs.writeFileSync(manifestPath, manifest);
+
+let buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
+buildGradle = buildGradle
+  .replace(/versionCode\s+\d+/, 'versionCode 2')
+  .replace(/versionName\s+"[^"]+"/, 'versionName "1.0.1"');
+fs.writeFileSync(buildGradlePath, buildGradle);
+
 console.log('Android native downloader configured.');
