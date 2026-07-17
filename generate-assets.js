@@ -14,26 +14,44 @@ async function main() {
   }
 
   if (!fs.existsSync(srcIcon)) {
-    console.error('❌ Error: icon-512.png not found in assets/ or project root!');
+    console.error('❌ Error: icon-512.png not found!');
     process.exit(1);
   }
 
-  console.log(`✅ Found source icon: ${srcIcon}`);
-
   try {
+    const image = sharp(srcIcon);
+    const metadata = await image.metadata();
+
+    // Get the top-left pixel color to use as background color
+    const topLeftBuffer = await image
+      .clone()
+      .extract({ left: 0, top: 0, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+
+    const bgRed = topLeftBuffer[0];
+    const bgGreen = topLeftBuffer[1];
+    const bgBlue = topLeftBuffer[2];
+    const bgAlpha = metadata.hasAlpha ? topLeftBuffer[3] : 255;
+
+    // Determine background color configuration
+    const bgColor = { r: bgRed, g: bgGreen, b: bgBlue, alpha: bgAlpha / 255 };
+    console.log(`Detected background color from top-left pixel: rgba(${bgRed}, ${bgGreen}, ${bgBlue}, ${bgAlpha / 255})`);
+
     // 1. Generate icon-only.png (1024x1024)
     console.log('Generating assets/icon-only.png...');
     await sharp(srcIcon)
       .resize(1024, 1024, {
         fit: 'contain',
-        background: { r: 9, g: 9, b: 11, alpha: 1 } // Fallback to theme bg color
+        background: bgColor
       })
       .toFile(path.join(assetsDir, 'icon-only.png'));
 
-    // 2. Generate icon-foreground.png (1024x1024 with transparent padding to prevent cropping on Android)
+    // 2. Generate icon-foreground.png (1024x1024 with transparent padding)
     console.log('Generating assets/icon-foreground.png...');
+    // We resize the icon to 720x720 (70% of 1024) to keep it in the safe zone of adaptive icon
     const foregroundResized = await sharp(srcIcon)
-      .resize(700, 700, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .resize(720, 720, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
     await sharp({
@@ -47,14 +65,14 @@ async function main() {
       .composite([{ input: foregroundResized, gravity: 'center' }])
       .toFile(path.join(assetsDir, 'icon-foreground.png'));
 
-    // 3. Generate icon-background.png (1024x1024 solid color matching theme #09090b)
+    // 3. Generate icon-background.png (1024x1024 solid color matching detected background)
     console.log('Generating assets/icon-background.png...');
     await sharp({
       create: {
         width: 1024,
         height: 1024,
         channels: 4,
-        background: { r: 9, g: 9, b: 11, alpha: 1 }
+        background: { r: bgRed, g: bgGreen, b: bgBlue, alpha: 1 } // Opaque background
       }
     })
       .toFile(path.join(assetsDir, 'icon-background.png'));
