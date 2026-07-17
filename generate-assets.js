@@ -47,6 +47,15 @@ async function main() {
       })
       .toFile(path.join(assetsDir, 'icon-only.png'));
 
+    // 1b. Generate icon.png (1024x1024) - required for legacy launcher icon generation
+    console.log('Generating assets/icon.png...');
+    await sharp(srcIcon)
+      .resize(1024, 1024, {
+        fit: 'contain',
+        background: bgColor
+      })
+      .toFile(path.join(assetsDir, 'icon.png'));
+
     // 2. Generate icon-foreground.png (1024x1024 with transparent padding)
     console.log('Generating assets/icon-foreground.png...');
     // We resize the icon to 720x720 (70% of 1024) to keep it in the safe zone of adaptive icon

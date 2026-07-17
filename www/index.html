@@ -1,24 +1,62 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Chromium E621 Mobile Client</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
+  <script>
+    (function () {
+      try {
+        const startupAnim = localStorage.getItem('p_e621_startup_anim') !== 'false';
+        const ecoMode = localStorage.getItem('p_e621_set_eco') === 'true';
+        if (startupAnim && !ecoMode) {
+          document.documentElement.classList.add('startup-loading');
+        }
+        const eulaAccepted = localStorage.getItem('p_e621_eula_accepted') === 'true';
+        if (!eulaAccepted) {
+          document.documentElement.classList.add('eula-loading');
+        } else {
+          const pinEnabled = localStorage.getItem('p_e621_pin_enabled') === 'true';
+          if (pinEnabled) {
+            document.documentElement.classList.add('pin-loading');
+          }
+        }
+      } catch (e) { }
+    })();
+  </script>
+
   <style>
+    /* Prevent flashing on page load */
+    html.startup-loading #app-header,
+    html.startup-loading main,
+    html.startup-loading .tab-bar {
+      opacity: 0 !important;
+    }
+
+    html.pin-loading #pin-overlay-screen {
+      display: flex !important;
+    }
+
+    html.eula-loading #eula-overlay {
+      display: flex !important;
+    }
+
     :root {
       --bg-color: #09090b;
       --card-bg: #121214;
       --text-color: #f4f4f5;
       --text-muted: #71717a;
-      --accent: #2563eb;       
+      --accent: #2563eb;
       --accent-hover: #3b82f6;
       --danger: #ef4444;
       --success: #22c55e;
       --warning: #eab308;
       --border: #27272a;
-      --radius: 8px;           
+      --radius: 8px;
     }
 
     * {
@@ -29,9 +67,16 @@
       user-select: none;
     }
 
+    input,
+    textarea,
+    [contenteditable] {
+      user-select: auto;
+    }
+
     body.eco-mode {
       --custom-bg: none !important;
     }
+
     body.eco-mode * {
       animation: none !important;
       transition: none !important;
@@ -39,9 +84,11 @@
       -webkit-backdrop-filter: none !important;
       box-shadow: none !important;
     }
+
     body.eco-mode .ambient-canvas {
       display: none !important;
     }
+
     body.eco-mode .post-card:not(.image-loaded) {
       background: var(--card-bg) !important;
     }
@@ -60,7 +107,10 @@
     body::before {
       content: "";
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-image: var(--custom-bg, none);
       background-size: cover;
       background-position: center;
@@ -71,7 +121,10 @@
     body::after {
       content: "";
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: rgba(9, 9, 11, var(--bg-opacity, 0.9));
       z-index: -1;
       pointer-events: none;
@@ -84,9 +137,11 @@
     ::-webkit-scrollbar {
       width: 4px;
     }
+
     ::-webkit-scrollbar-track {
       background: var(--bg-color);
     }
+
     ::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 2px;
@@ -173,7 +228,10 @@
       height: 24px;
     }
 
-    input[type="text"], input[type="password"], input[type="number"], select {
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    select {
       width: 100%;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -195,7 +253,10 @@
       cursor: pointer;
     }
 
-    input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus {
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    select:focus {
       border-color: var(--accent);
     }
 
@@ -249,9 +310,20 @@
     }
 
     /* Цвета подложки для каждого режима */
-    .state-all { transform: translateX(0); background-color: var(--accent); }
-    .state-photo { transform: translateX(100%); background-color: var(--success); }
-    .state-video { transform: translateX(200%); background-color: var(--warning); }
+    .state-all {
+      transform: translateX(0);
+      background-color: var(--accent);
+    }
+
+    .state-photo {
+      transform: translateX(100%);
+      background-color: var(--success);
+    }
+
+    .state-video {
+      transform: translateX(200%);
+      background-color: var(--warning);
+    }
 
     .nsfw-blur-enabled .post-card.is-nsfw img,
     .nsfw-blur-enabled .post-card.is-nsfw video {
@@ -271,8 +343,15 @@
     }
 
     @keyframes pulse-danger {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+      }
     }
 
     .tag-operator-bar {
@@ -282,9 +361,11 @@
       padding: 4px 0;
       scrollbar-width: none;
     }
+
     .tag-operator-bar::-webkit-scrollbar {
       display: none;
     }
+
     .op-btn {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -297,8 +378,15 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .op-btn.and { border-color: var(--accent); color: var(--accent); }
-    .op-btn:active { transform: scale(0.95); }
+
+    .op-btn.and {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .op-btn:active {
+      transform: scale(0.95);
+    }
 
     .suggestions {
       position: absolute;
@@ -325,6 +413,7 @@
       font-size: 0.85rem;
       transition: background-color 0.15s;
     }
+
     .suggestion-item:hover {
       background-color: rgba(255, 255, 255, 0.05);
     }
@@ -399,21 +488,58 @@
       }
     }
 
-    @keyframes fadeInCard {
-      from { opacity: 0; transform: scale(0.96) translate3d(0, 8px, 0); }
-      to { opacity: 1; transform: scale(1) translate3d(0, 0, 0); }
+    @keyframes appRevealAnim {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+        filter: blur(5px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0px);
+      }
     }
 
-    .post-card img, .post-card video {
+    body.do-startup-anim #app-header,
+    body.do-startup-anim main,
+    body.do-startup-anim .tab-bar {
+      animation: appRevealAnim 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    body.do-startup-anim main {
+      animation-delay: 0.1s;
+    }
+
+    body.do-startup-anim .tab-bar {
+      animation-delay: 0.2s;
+    }
+
+    @keyframes fadeInCard {
+      from {
+        opacity: 0;
+        transform: scale(0.96) translate3d(0, 8px, 0);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translate3d(0, 0, 0);
+      }
+    }
+
+    .post-card img,
+    .post-card video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
       opacity: 0;
-      transition: opacity 0.25s ease-in-out;
+      transition: opacity 0.8s ease;
     }
 
-    .post-card.image-loaded img, .post-card.image-loaded video {
+    .post-card.image-loaded img,
+    .post-card.image-loaded video {
       opacity: 1;
     }
 
@@ -432,7 +558,7 @@
       position: absolute;
       top: 6px;
       right: 6px;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0, 0, 0, 0.75);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.65rem;
@@ -444,7 +570,7 @@
       position: absolute;
       top: 6px;
       left: 6px;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0, 0, 0, 0.75);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.65rem;
@@ -481,7 +607,7 @@
       color: var(--text-muted);
       font-size: 0.65rem;
       cursor: pointer;
-      flex: 1; 
+      flex: 1;
       transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -492,35 +618,98 @@
     }
 
     @keyframes tab-gallery-anim {
-      0% { transform: scale(1); }
-      30% { transform: scale(0.75) rotate(-10deg); }
-      70% { transform: scale(1.2) rotate(10deg); }
-      100% { transform: scale(1); }
-    }
-    @keyframes tab-bookmarks-anim {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
-      50% { transform: scale(1.35); filter: drop-shadow(0 0 6px var(--accent)); }
-    }
-    @keyframes tab-random-anim {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.2); }
-      100% { transform: rotate(360deg) scale(1); }
-    }
-    @keyframes tab-recs-anim {
-      0%, 100% { transform: scale(1); filter: brightness(1); }
-      50% { transform: scale(1.2) translateY(-3px); filter: brightness(1.4) drop-shadow(0 0 4px var(--accent)); }
-    }
-    @keyframes tab-settings-anim {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(90deg) scale(1.15); }
-      100% { transform: rotate(180deg) scale(1); }
+      0% {
+        transform: scale(1);
+      }
+
+      30% {
+        transform: scale(0.75) rotate(-10deg);
+      }
+
+      70% {
+        transform: scale(1.2) rotate(10deg);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
 
-    .animate-gallery-tab { animation: tab-gallery-anim 0.45s ease-out forwards; }
-    .animate-bookmarks-tab { animation: tab-bookmarks-anim 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-    .animate-random-tab { animation: tab-random-anim 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-    .animate-recs-tab { animation: tab-recs-anim 0.45s ease-in-out forwards; }
-    .animate-settings-tab { animation: tab-settings-anim 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    @keyframes tab-bookmarks-anim {
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 transparent);
+      }
+
+      50% {
+        transform: scale(1.35);
+        filter: drop-shadow(0 0 6px var(--accent));
+      }
+    }
+
+    @keyframes tab-random-anim {
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      50% {
+        transform: rotate(180deg) scale(1.2);
+      }
+
+      100% {
+        transform: rotate(360deg) scale(1);
+      }
+    }
+
+    @keyframes tab-recs-anim {
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      50% {
+        transform: scale(1.2) translateY(-3px);
+        filter: brightness(1.4) drop-shadow(0 0 4px var(--accent));
+      }
+    }
+
+    @keyframes tab-settings-anim {
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      50% {
+        transform: rotate(90deg) scale(1.15);
+      }
+
+      100% {
+        transform: rotate(180deg) scale(1);
+      }
+    }
+
+    .animate-gallery-tab {
+      animation: tab-gallery-anim 0.45s ease-out forwards;
+    }
+
+    .animate-bookmarks-tab {
+      animation: tab-bookmarks-anim 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .animate-random-tab {
+      animation: tab-random-anim 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .animate-recs-tab {
+      animation: tab-recs-anim 0.45s ease-in-out forwards;
+    }
+
+    .animate-settings-tab {
+      animation: tab-settings-anim 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
 
     .tab-btn.active {
       color: var(--accent) !important;
@@ -542,8 +731,13 @@
     }
 
     @keyframes slideInUp {
-      from { transform: translate3d(0, 100%, 0); }
-      to { transform: translate3d(0, 0, 0); }
+      from {
+        transform: translate3d(0, 100%, 0);
+      }
+
+      to {
+        transform: translate3d(0, 0, 0);
+      }
     }
 
     .detail-header {
@@ -551,14 +745,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
       position: sticky;
       top: 0;
       z-index: 210;
     }
 
     .detail-close {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border: none;
       color: white;
       padding: 8px;
@@ -567,7 +761,10 @@
       display: flex;
       transition: background-color 0.2s;
     }
-    .detail-close:active { background-color: rgba(255,255,255,0.25); }
+
+    .detail-close:active {
+      background-color: rgba(255, 255, 255, 0.25);
+    }
 
     .detail-card-container {
       width: 100%;
@@ -589,7 +786,7 @@
       filter: blur(12px);
       pointer-events: none;
       z-index: 1;
-      transform: translate3d(0,0,0);
+      transform: translate3d(0, 0, 0);
     }
 
     .detail-media-wrapper {
@@ -599,14 +796,15 @@
       position: relative;
       transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
       border-radius: var(--radius);
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .detail-media-wrapper img, .detail-media-wrapper video {
+    .detail-media-wrapper img,
+    .detail-media-wrapper video {
       max-width: 100%;
       max-height: 75vh;
       width: auto;
@@ -628,11 +826,13 @@
       pointer-events: none;
       z-index: 10;
     }
+
     .swipe-indicator.like {
       color: var(--success);
       left: 30px;
       top: 20%;
     }
+
     .swipe-indicator.skip {
       color: var(--danger);
       right: 30px;
@@ -659,9 +859,11 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       padding-bottom: 12px;
     }
+
     .tag-category-group:last-child {
       border-bottom: none;
     }
+
     .category-title {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -678,8 +880,8 @@
     }
 
     .tag-badge {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 4px 8px;
       border-radius: var(--radius);
       font-size: 0.7rem;
@@ -687,14 +889,46 @@
       cursor: pointer;
       transition: background-color 0.15s, transform 0.1s;
     }
-    .tag-badge:active { transform: scale(0.95); }
 
-    .tag-badge.artist { color: #f43f5e; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
-    .tag-badge.character { color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
-    .tag-badge.copyright { color: #a855f7; border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05); }
-    .tag-badge.species { color: #fbbf24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
-    .tag-badge.general { color: #94a3b8; border-color: rgba(148,163,184,0.3); background: rgba(148,163,184,0.05); }
-    .tag-badge.meta { color: #64748b; border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.05); }
+    .tag-badge:active {
+      transform: scale(0.95);
+    }
+
+    .tag-badge.artist {
+      color: #f43f5e;
+      border-color: rgba(244, 63, 94, 0.3);
+      background: rgba(244, 63, 94, 0.05);
+    }
+
+    .tag-badge.character {
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .tag-badge.copyright {
+      color: #a855f7;
+      border-color: rgba(168, 85, 247, 0.3);
+      background: rgba(168, 85, 247, 0.05);
+    }
+
+    .tag-badge.species {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.05);
+    }
+
+    .tag-badge.general {
+      color: #94a3b8;
+      border-color: rgba(148, 163, 184, 0.3);
+      background: rgba(148, 163, 184, 0.05);
+    }
+
+    .tag-badge.meta {
+      color: #64748b;
+      border-color: rgba(100, 116, 139, 0.3);
+      background: rgba(100, 116, 139, 0.05);
+    }
 
     .detail-actions {
       display: flex;
@@ -717,7 +951,10 @@
       gap: 6px;
       transition: background 0.25s, border-color 0.25s, transform 0.1s;
     }
-    .action-btn:active { transform: scale(0.97); }
+
+    .action-btn:active {
+      transform: scale(0.97);
+    }
 
     .action-btn.primary {
       background: var(--accent);
@@ -755,6 +992,7 @@
       margin: 0 auto;
       max-width: 280px;
     }
+
     .color-dot {
       width: 32px;
       height: 32px;
@@ -763,6 +1001,7 @@
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
     .color-dot.active {
       border-color: #fff;
       transform: scale(1.15);
@@ -774,7 +1013,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(8px);
       z-index: 300;
       display: none;
@@ -793,7 +1032,8 @@
       background: var(--bg-color);
     }
 
-    .peek-content img, .peek-content video {
+    .peek-content img,
+    .peek-content video {
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -803,13 +1043,21 @@
       display: none;
       animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
+
     .view-panel.active {
       display: block;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translate3d(0, 4px, 0); }
-      to { opacity: 1; transform: translate3d(0, 0, 0); }
+      from {
+        opacity: 0;
+        transform: translate3d(0, 4px, 0);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
     }
 
     .settings-group {
@@ -820,7 +1068,7 @@
       border-radius: var(--radius);
       margin-bottom: 12px;
       overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background-color 0.2s, border-color 0.2s;
     }
 
     .settings-summary {
@@ -836,7 +1084,10 @@
       user-select: none;
       transition: background-color 0.2s;
     }
-    .settings-summary:active { background-color: rgba(255, 255, 255, 0.03); }
+
+    .settings-summary:active {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
 
     .settings-summary::after {
       content: '▼';
@@ -860,9 +1111,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      background: rgba(18, 18, 20, 0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: transparent;
     }
 
     .setting-item {
@@ -889,10 +1138,11 @@
       display: inline-block;
       width: 44px;
       height: 24px;
-      overflow: hidden; 
+      overflow: hidden;
       border-radius: 24px;
       transition: transform 0.1s ease;
     }
+
     .switch:active {
       transform: scale(0.92);
     }
@@ -906,7 +1156,10 @@
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-color: var(--border);
       transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 24px;
@@ -915,19 +1168,21 @@
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px; width: 18px;
-      left: 3px; bottom: 3px;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
       background-color: white;
       transition: .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border-radius: 50%;
     }
 
-    input:checked + .slider {
+    input:checked+.slider {
       background-color: var(--accent);
     }
 
-    input:checked + .slider:before {
-      transform: translateX(20px); 
+    input:checked+.slider:before {
+      transform: translateX(20px);
     }
 
     .switch-premium {
@@ -936,10 +1191,11 @@
       align-items: center;
       width: 44px;
       height: 24px;
-      overflow: hidden; 
+      overflow: hidden;
       border-radius: 24px;
       transition: transform 0.1s ease;
     }
+
     .switch-premium:active {
       transform: scale(0.92);
     }
@@ -954,12 +1210,15 @@
     .slider-premium {
       position: absolute;
       cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-color: #27272a;
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
     }
 
     .slider-premium:before {
@@ -970,7 +1229,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 18px; width: 18px;
+      height: 18px;
+      width: 18px;
       left: 2px;
       top: 50%;
       transform: translateY(-50%);
@@ -978,22 +1238,22 @@
       color: #ef4444;
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border-radius: 50%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
       border: 1px solid #ef4444;
     }
 
-    input:checked + .slider-premium {
+    input:checked+.slider-premium {
       background: linear-gradient(135deg, #ef4444, #991b1b);
       box-shadow: 0 0 12px rgba(239, 68, 68, 0.45);
       border-color: #f87171;
     }
 
-    input:checked + .slider-premium:before {
+    input:checked+.slider-premium:before {
       transform: translateX(20px) translateY(-50%) rotate(360deg);
       background-color: #ffffff;
       color: #b91c1c;
       border-color: #b91c1c;
-      box-shadow: 0 0 8px rgba(255,255,255,0.8);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
     }
 
     .tag-chips {
@@ -1035,12 +1295,15 @@
       z-index: 1000;
       pointer-events: none;
       display: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
     @keyframes toastIn {
-      to { transform: translateX(-50%) translate3d(0, 0, 0); opacity: 1; }
+      to {
+        transform: translateX(-50%) translate3d(0, 0, 0);
+        opacity: 1;
+      }
     }
 
     .period-selector {
@@ -1081,9 +1344,11 @@
     }
   </style>
 </head>
+
 <body class="nsfw-blur-enabled">
-  
-  <div id="beta-test-banner" class="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border-b border-amber-500/30 text-amber-400 text-center py-1.5 px-4 text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-2 select-none z-50">
+
+  <div id="beta-test-banner"
+    class="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border-b border-amber-500/30 text-amber-400 text-center py-1.5 px-4 text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-2 select-none z-50">
     <span class="flex h-2 w-2 relative">
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
       <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
@@ -1095,21 +1360,29 @@
     <div class="header-top">
       <div class="logo" id="main-logo-text">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3"/>
-          <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" stroke-width="3" />
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent-hover)" stroke-width="3" stroke-linecap="round" />
         </svg>
-        CHROMIUM<span>E621</span>
+        <div class="flex flex-col items-start leading-none" style="gap: 2px;">
+          <div>CHROMIUM<span>E621</span></div>
+          <span id="user-greeting" class="text-[9px] font-normal text-zinc-500 tracking-wider capitalize"></span>
+        </div>
       </div>
-      
+
       <div class="flex items-center gap-2">
-        <button id="quick-panic-btn" class="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-500 transition-all duration-200" title="Режим паники">
+        <button id="quick-panic-btn"
+          class="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-500 transition-all duration-200"
+          title="Режим паники">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+            </path>
           </svg>
         </button>
         <div id="traffic-badge" class="traffic-counter">
           <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <span id="traffic-val">0.0</span> MB
         </div>
@@ -1123,20 +1396,27 @@
         <button class="clear-btn" id="clear-input-btn">✕</button>
         <div class="suggestions" id="suggestions" style="display: none;"></div>
       </div>
-      
-      <button class="action-btn flex items-center justify-center border-2 border-dashed border-amber-500/50 hover:border-amber-500 rounded-lg bg-amber-500/5 active:scale-90 transition-all duration-150" style="flex: 0 0 44px; padding: 0;" id="fav-search-btn" title="Избранные теги">
+
+      <button
+        class="action-btn flex items-center justify-center border-2 border-dashed border-amber-500/50 hover:border-amber-500 rounded-lg bg-amber-500/5 active:scale-90 transition-all duration-150"
+        style="flex: 0 0 44px; padding: 0;" id="fav-search-btn" title="Избранные теги">
         <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+          <path
+            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+          </path>
         </svg>
       </button>
 
-      <button class="action-btn flex items-center justify-center border border-zinc-800 hover:border-zinc-700 rounded-lg bg-zinc-900/40 active:scale-90 transition-all duration-150" style="flex: 0 0 44px; padding: 0;" id="history-search-btn" title="История поиска">
+      <button
+        class="action-btn flex items-center justify-center border border-zinc-800 hover:border-zinc-700 rounded-lg bg-zinc-900/40 active:scale-90 transition-all duration-150"
+        style="flex: 0 0 44px; padding: 0;" id="history-search-btn" title="История поиска">
         <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </button>
 
-      <button class="action-btn primary flex items-center justify-center active:scale-90 transition-all duration-150" style="flex: 0 0 44px; padding: 0;" id="search-btn">
+      <button class="action-btn primary flex items-center justify-center active:scale-90 transition-all duration-150"
+        style="flex: 0 0 44px; padding: 0;" id="search-btn">
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
@@ -1145,25 +1425,28 @@
 
     <div class="media-type-switch" id="media-type-container">
       <div class="media-type-slider state-all" id="media-type-backplane"></div>
-      
+
       <button type="button" class="media-type-btn active" id="media-type-btn-all" data-mode="all" aria-pressed="true">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
         <span id="media-type-label-all">Все</span>
       </button>
-      
+
       <button type="button" class="media-type-btn" id="media-type-btn-photo" data-mode="photo" aria-pressed="false">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
         <span id="media-type-label-photo">Фото</span>
       </button>
-      
+
       <button type="button" class="media-type-btn" id="media-type-btn-video" data-mode="video" aria-pressed="false">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 2.25-4.5 2.25V9.75z" />
         </svg>
         <span id="media-type-label-video">Видео</span>
@@ -1184,12 +1467,12 @@
   <main class="main-content" id="scroll-container">
     <div id="panel-gallery" class="view-panel active">
       <div class="grid-container grid-squares" id="gallery-grid"></div>
-      
+
       <div id="loading-indicator" class="flex flex-col justify-center items-center py-6 w-full hidden gap-2">
         <div class="animate-spin rounded-full h-8 w-8 border-4 border-zinc-700/60 border-t-[var(--accent)]"></div>
         <span class="text-xs text-zinc-500 font-medium" id="lbl-loading-indicator-text">Загрузка</span>
       </div>
-      
+
       <div id="infinite-scroll-trigger" style="height: 20px; margin-top: 10px;"></div>
     </div>
 
@@ -1201,8 +1484,10 @@
     </div>
 
     <div id="panel-recommendations" class="view-panel">
-      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 15px;">
-        <h4 id="lbl-recs-title" style="color: var(--accent); margin-bottom: 4px; font-weight: bold;">Умные рекомендации</h4>
+      <div
+        style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 15px;">
+        <h4 id="lbl-recs-title" style="color: var(--accent); margin-bottom: 4px; font-weight: bold;">Умные рекомендации
+        </h4>
         <p style="font-size: 0.8rem; color: var(--text-muted);" id="lbl-rec-desc">
           Алгоритм анализирует закладки, строит карту интересов по тегам и выдает рекомендации.
         </p>
@@ -1211,59 +1496,18 @@
     </div>
 
     <div id="panel-settings" class="view-panel">
-      
-      <!-- Панель разработчика: теперь скрыта из DOM по умолчанию и не имеет active классов -->
-      <div class="settings-group border-2 border-dashed border-rose-500/40 hidden" id="group-admin-debug">
-        <div class="settings-summary bg-rose-950/20 text-rose-400 font-extrabold" onclick="toggleAccordion('group-admin-debug')">
-          <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-rose-400 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-            <span id="sum-dev-panel">Панель разработчика</span>
-          </span>
-        </div>
-        <div class="settings-content-wrapper">
-          <div class="settings-content">
-            <div class="grid grid-cols-2 gap-2 text-[10px]" id="admin-debug-grid">
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(1)">1. Сброс трафика</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(2)">2. Тест вибрации</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(3)">3. Подсветка сеток</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(4)">4. Фейковые закладки</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(5)">5. Симуляция задержки</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(6)">6. Краш-тест JS</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(7)">7. Очистка хранилища</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(8)">8. Копирование состояния</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(9)">9. Элементы DOM</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(10)">10. FPS счетчик</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(11)">11. Имитация 3G сети</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(12)">12. Сброс логов</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(13)">13. Дамп конфига</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(14)">14. Стресс-тест ОЗУ</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(15)">15. Вызвать ошибку 403</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(16)">16. Вызвать ошибку 404</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(17)">17. Рандомный лимит</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(18)">18. Эко-рендеринг</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(19)">19. Очистить историю</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(20)">20. Полноэкранный режим</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(21)">21. Сброс ЧС тегов</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(22)">22. Проверить CORS</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(23)">23. Сборщик мусора</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(24)">24. Генератор токенов</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(25)">25. Сбросить сессию</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(26)">26. Тест тач-эвентов</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(27)">27. Импорт дефолтов</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(28)">28. Блокировка UI</button>
-              <button class="p-2 bg-rose-950/40 border border-rose-800 rounded text-rose-200 hover:bg-rose-900/60 transition" onclick="debugAction(29)">29. Системный отчет</button>
-            </div>
-            <div id="admin-debug-log" class="bg-black/80 border border-rose-950 p-2.5 rounded font-mono text-[10px] text-rose-500 max-h-32 overflow-y-auto">
-              [SYSTEM] Консоль отладчика chrom24 готова...
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <!-- Панель разработчика полностью удалена по просьбе пользователя -->
 
       <!-- Вся группа статистики свернута -->
       <div class="settings-group p-4" id="group-stats">
         <div class="font-bold text-[var(--accent)] border-b border-zinc-800 pb-2 mb-3 text-sm flex items-center gap-2">
-          <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+            </path>
+          </svg>
           <span id="lbl-stats-title">Статистика просмотра</span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.8rem;">
@@ -1306,7 +1550,11 @@
       <div class="settings-group" id="group-account">
         <div class="settings-summary" onclick="toggleAccordion('group-account')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
             <span id="sum-account">Аккаунт e621.net</span>
           </span>
         </div>
@@ -1320,7 +1568,8 @@
               <input type="password" id="auth-api-key" style="width: 100%;">
               <div style="display: flex; gap: 8px;">
                 <button class="action-btn primary" id="save-auth-btn" style="flex: 1;">Сохранить и подключить</button>
-                <button class="action-btn" id="btn-reg" style="flex: 1; border-color: var(--accent); color: var(--accent);">Регистрация</button>
+                <button class="action-btn" id="btn-reg"
+                  style="flex: 1; border-color: var(--accent); color: var(--accent);">Регистрация</button>
               </div>
             </div>
             <div id="auth-status" style="font-size: 0.8rem; color: var(--text-muted);">
@@ -1334,26 +1583,36 @@
       <div class="settings-group" id="group-backup-suite">
         <div class="settings-summary" onclick="toggleAccordion('group-backup-suite')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-16v4m0 4h.01M4 12h2m0 0h2v-4m0 16h2m-6-8h2"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 4v1m6 11h2m-6 0h-2v4m0-16v4m0 4h.01M4 12h2m0 0h2v-4m0 16h2m-6-8h2"></path>
+            </svg>
             <span id="sum-backup-suite">Резервное копирование</span>
           </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
             <div class="text-xs text-zinc-400 leading-relaxed mb-1" id="lbl-backup-desc">
-              Вы можете заархивировать все локальные закладки, блэклисты и кастомные стили в уникальный компактный шифр-код.
+              Вы можете заархивировать все локальные закладки, блэклисты и кастомные стили в уникальный компактный
+              шифр-код.
             </div>
             <div class="flex flex-col gap-3">
-              <button class="action-btn primary w-full text-xs" id="btn-generate-backup">Сгенерировать код бэкапа</button>
-              <div id="backup-output-wrap" class="hidden flex flex-col gap-2 bg-zinc-900/60 p-3 rounded border border-zinc-800">
-                <textarea id="backup-code-area" class="bg-zinc-950 border border-zinc-800 rounded p-1.5 font-mono text-[9px] text-zinc-300 h-16 resize-none w-full" readonly></textarea>
+              <button class="action-btn primary w-full text-xs" id="btn-generate-backup">Сгенерировать код
+                бэкапа</button>
+              <div id="backup-output-wrap"
+                class="hidden flex flex-col gap-2 bg-zinc-900/60 p-3 rounded border border-zinc-800">
+                <textarea id="backup-code-area"
+                  class="bg-zinc-950 border border-zinc-800 rounded p-1.5 font-mono text-[9px] text-zinc-300 h-16 resize-none w-full"
+                  readonly></textarea>
                 <button class="action-btn text-xs py-1.5" id="btn-copy-backup-code">Копировать код</button>
               </div>
-              
+
               <div class="border-t border-zinc-800/80 pt-3 flex flex-col gap-2">
                 <label class="text-xs font-bold text-zinc-400" id="lbl-import-code">Импорт бэкапа</label>
                 <input type="text" id="import-backup-input" placeholder="Вставьте код бэкапа..." class="text-xs">
-                <button class="action-btn text-xs py-2" id="btn-restore-backup" style="border-color: var(--accent); color: var(--accent);">Восстановить из кода</button>
+                <button class="action-btn text-xs py-2" id="btn-restore-backup"
+                  style="border-color: var(--accent); color: var(--accent);">Восстановить из кода</button>
               </div>
             </div>
           </div>
@@ -1364,8 +1623,10 @@
       <div class="settings-group" id="group-proxy">
         <div class="settings-summary" onclick="toggleAccordion('group-proxy')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path>
             </svg>
             <span id="sum-proxy">Настройки прокси</span>
           </span>
@@ -1378,7 +1639,8 @@
             </div>
             <div class="setting-item">
               <label id="lbl-proxy-mode" class="text-xs font-bold text-zinc-400">Режим подключения</label>
-              <select id="setting-proxy-mode" class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
+              <select id="setting-proxy-mode"
+                class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
                 <option value="direct" id="opt-proxy-direct">Прямое подключение</option>
                 <option value="fallback" id="opt-proxy-fallback" selected>CORS Прокси</option>
                 <option value="custom" id="opt-proxy-custom">Свой прокси-префикс</option>
@@ -1397,24 +1659,31 @@
       <div class="settings-group" id="group-security-suite">
         <div class="settings-summary" onclick="toggleAccordion('group-security-suite')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+              </path>
             </svg>
             <span id="sum-security-suite">Безопасность и PIN-код</span>
           </span>
         </div>
         <div class="settings-content-wrapper">
           <div class="settings-content">
-            <div id="panic-disable-wrap" class="hidden border border-red-500/40 pb-3 p-3 rounded-lg bg-gradient-to-br from-red-950/40 via-red-900/10 to-red-950/20 shadow-md mb-3 space-y-2">
+            <div id="panic-disable-wrap"
+              class="hidden border border-red-500/40 pb-3 p-3 rounded-lg bg-gradient-to-br from-red-950/40 via-red-900/10 to-red-950/20 shadow-md mb-3 space-y-2">
               <div class="text-xs font-bold text-red-400 flex items-center gap-2">
                 <span class="flex h-2 w-2 relative">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
                 <span id="panic-warning-text">Экстренная маскировка активна!</span>
               </div>
-              <p id="panic-description" class="text-[10px] text-zinc-400 leading-relaxed">Взрослый контент (18+) скрыт в целях защиты конфиденциальности. Вы можете деактивировать этот режим кнопкой ниже.</p>
-              <button id="disable-panic-settings-btn" class="w-full py-2 px-3 rounded text-white font-bold text-xs bg-red-600 hover:bg-red-500 border border-red-500 active:scale-95 transition-all duration-150 shadow-sm shadow-red-900/50">
+              <p id="panic-description" class="text-[10px] text-zinc-400 leading-relaxed">Взрослый контент (18+) скрыт в
+                целях защиты конфиденциальности. Вы можете деактивировать этот режим кнопкой ниже.</p>
+              <button id="disable-panic-settings-btn"
+                class="w-full py-2 px-3 rounded text-white font-bold text-xs bg-red-600 hover:bg-red-500 border border-red-500 active:scale-95 transition-all duration-150 shadow-sm shadow-red-900/50">
                 Отключить режим паники
               </button>
             </div>
@@ -1455,7 +1724,12 @@
       <div class="settings-group" id="group-appearance">
         <div class="settings-summary" onclick="toggleAccordion('group-appearance')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3">
+              </path>
+            </svg>
             <span id="sum-appearance">Внешний вид и фон</span>
           </span>
         </div>
@@ -1480,9 +1754,14 @@
                     <path fill="#dc2626" d="M0 0h24v2H0v2h24v2H0v2h24v2H0v2h24v2H0z"></path>
                     <path fill="#1d4ed8" d="M0 0h10v8H0z"></path>
                     <g fill="#fff">
-                      <circle cx="2" cy="2" r=".6"></circle><circle cx="5" cy="2" r=".6"></circle><circle cx="8" cy="2" r=".6"></circle>
-                      <circle cx="3.5" cy="4" r=".6"></circle><circle cx="6.5" cy="4" r=".6"></circle>
-                      <circle cx="2" cy="6" r=".6"></circle><circle cx="5" cy="6" r=".6"></circle><circle cx="8" cy="6" r=".6"></circle>
+                      <circle cx="2" cy="2" r=".6"></circle>
+                      <circle cx="5" cy="2" r=".6"></circle>
+                      <circle cx="8" cy="2" r=".6"></circle>
+                      <circle cx="3.5" cy="4" r=".6"></circle>
+                      <circle cx="6.5" cy="4" r=".6"></circle>
+                      <circle cx="2" cy="6" r=".6"></circle>
+                      <circle cx="5" cy="6" r=".6"></circle>
+                      <circle cx="8" cy="6" r=".6"></circle>
                     </g>
                   </svg>
                   <span>English</span>
@@ -1491,26 +1770,40 @@
             </div>
 
             <div class="setting-item flex-col !items-start gap-2">
-              <label id="lbl-accent" class="text-xs font-bold text-zinc-400">Цвет темы<span>Цветовая гамма приложения</span></label>
+              <label id="lbl-accent" class="text-xs font-bold text-zinc-400">Цвет темы<span>Цветовая гамма
+                  приложения</span></label>
               <div class="color-presets grid grid-cols-6 gap-2 w-full pt-1">
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#2563eb" style="background:#2563eb;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#a855f7" style="background:#a855f7;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#22c55e" style="background:#22c55e;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#ec4899" style="background:#ec4899;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#06b6d4" style="background:#06b6d4;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#eab308" style="background:#eab308;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#f43f5e" style="background:#f43f5e;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#6366f1" style="background:#6366f1;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#f97316" style="background:#f97316;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#14b8a6" style="background:#14b8a6;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#84cc16" style="background:#84cc16;"></button>
-                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90" data-color="#fb7185" style="background:#fb7185;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#2563eb" style="background:#2563eb;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#a855f7" style="background:#a855f7;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#22c55e" style="background:#22c55e;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#ec4899" style="background:#ec4899;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#06b6d4" style="background:#06b6d4;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#eab308" style="background:#eab308;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#f43f5e" style="background:#f43f5e;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#6366f1" style="background:#6366f1;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#f97316" style="background:#f97316;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#14b8a6" style="background:#14b8a6;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#84cc16" style="background:#84cc16;"></button>
+                <button class="color-dot w-8 h-8 rounded-full border-2 border-transparent transition active:scale-90"
+                  data-color="#fb7185" style="background:#fb7185;"></button>
               </div>
             </div>
 
             <div class="setting-item">
               <label id="lbl-rounding">Скругление интерфейса<span>Кнопки, карточки, панели</span></label>
-              <select id="setting-radius" class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
+              <select id="setting-radius"
+                class="custom-select-ui w-44 bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
                 <option value="0px" id="opt-radius-none">Без скругнения</option>
                 <option value="8px" id="opt-radius-standard" selected>Стандартное (8px)</option>
                 <option value="16px" id="opt-radius-extreme">Экстремальное (16px)</option>
@@ -1518,13 +1811,17 @@
             </div>
 
             <div class="border-t border-zinc-800/80 pt-4 mt-2">
-              <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-custom-bg-section">Собственные фоновые обои</div>
-              <input type="file" id="custom-bg-input" accept="image/*" class="bg-zinc-900 border border-zinc-800 p-1 w-full rounded text-xs text-zinc-300">
+              <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-custom-bg-section">Собственные фоновые обои
+              </div>
+              <input type="file" id="custom-bg-input" accept="image/*"
+                class="bg-zinc-900 border border-zinc-800 p-1 w-full rounded text-xs text-zinc-300">
               <div class="flex items-center justify-between gap-4 mt-3">
                 <span class="text-xs text-zinc-400" id="lbl-bg-opacity">Плотность затемнения фона</span>
-                <input type="range" id="bg-opacity-range" min="0.1" max="0.95" step="0.05" value="0.9" class="w-28 accent-[var(--accent)]">
+                <input type="range" id="bg-opacity-range" min="0.1" max="0.95" step="0.05" value="0.9"
+                  class="w-28 accent-[var(--accent)]">
               </div>
-              <button id="clear-bg-btn" class="action-btn text-xs mt-3 w-full py-2 hover:bg-red-950/20" style="border-color: var(--danger); color: var(--danger);">Сбросить фоновые обои</button>
+              <button id="clear-bg-btn" class="action-btn text-xs mt-3 w-full py-2 hover:bg-red-950/20"
+                style="border-color: var(--danger); color: var(--danger);">Сбросить фоновые обои</button>
             </div>
           </div>
         </div>
@@ -1534,7 +1831,12 @@
       <div class="settings-group" id="group-safety">
         <div class="settings-summary" onclick="toggleAccordion('group-safety')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+              </path>
+            </svg>
             <span id="sum-safety">Фильтры и черный список</span>
           </span>
         </div>
@@ -1565,10 +1867,12 @@
             </div>
 
             <div class="border-t border-zinc-800/80 pt-4 mt-2">
-              <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-blacklist-title">Локальный Чёрный Список тегов</div>
-              <div style="display: flex; gap: 6px;">
-                <input type="text" id="blacklist-input" style="flex-grow: 1;">
+              <div class="text-xs font-bold text-zinc-400 mb-2" id="lbl-blacklist-title">Локальный Чёрный Список тегов
+              </div>
+              <div style="display: flex; gap: 6px; position: relative;">
+                <input type="text" id="blacklist-input" style="flex-grow: 1;" autocomplete="off">
                 <button class="action-btn primary" id="add-blacklist-btn" style="flex: 0 0 50px;">+</button>
+                <div id="blacklist-suggestions" class="suggestions" style="display: none;"></div>
               </div>
               <div class="tag-chips mt-3" id="blacklist-chips"></div>
             </div>
@@ -1580,7 +1884,10 @@
       <div class="settings-group" id="group-traffic">
         <div class="settings-summary" onclick="toggleAccordion('group-traffic')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
             <span id="sum-traffic">Трафик и производительность</span>
           </span>
         </div>
@@ -1600,7 +1907,7 @@
                 <span class="slider"></span>
               </label>
             </div>
-            
+
             <div class="setting-item border-t border-zinc-800/80 pt-3 mt-1">
               <label id="lbl-eco-mode" class="text-emerald-400">
                 Энергосберегающий режим
@@ -1608,6 +1915,17 @@
               </label>
               <label class="switch">
                 <input type="checkbox" id="setting-eco-mode">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item border-t border-zinc-800/80 pt-3 mt-1">
+              <label id="lbl-startup-anim" class="text-zinc-200">
+                Анимация запуска
+                <span class="text-zinc-500">Плавное появление интерфейса при старте</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" id="setting-startup-anim" checked>
                 <span class="slider"></span>
               </label>
             </div>
@@ -1619,7 +1937,12 @@
       <div class="settings-group" id="group-layout">
         <div class="settings-summary" onclick="toggleAccordion('group-layout')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z">
+              </path>
+            </svg>
             <span id="lbl-layout-title">Разметка ленты</span>
           </span>
         </div>
@@ -1635,8 +1958,10 @@
             </div>
 
             <div class="border-t border-zinc-850 pt-3 flex flex-col gap-2 mt-1">
-              <label id="lbl-feed-fit" class="text-xs font-bold text-zinc-400">Масштабирование картинок<span>Обрезать миниатюры или вписывать в оригинальный размер</span></label>
-              <select id="setting-feed-fit" class="custom-select-ui bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
+              <label id="lbl-feed-fit" class="text-xs font-bold text-zinc-400">Масштабирование картинок<span>Обрезать
+                  миниатюры или вписывать в оригинальный размер</span></label>
+              <select id="setting-feed-fit"
+                class="custom-select-ui bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs py-2 px-3 rounded-lg outline-none focus:border-[var(--accent)]">
                 <option value="cover" id="opt-fit-cover">Обрезать (1:1)</option>
                 <option value="contain" id="opt-fit-contain">Оригинальный размер (Contain)</option>
               </select>
@@ -1649,8 +1974,11 @@
       <div class="settings-group" id="group-legal">
         <div class="settings-summary" onclick="toggleAccordion('group-legal')">
           <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+              </path>
             </svg>
             <span id="sum-legal-info">Правовая информация</span>
           </span>
@@ -1660,9 +1988,12 @@
             <p class="text-xs text-zinc-400 leading-relaxed mb-1" id="lbl-legal-desc">
               Юридические положения, конфиденциальность, использование файлов cookie и контактные данные.
             </p>
-            <button class="action-btn primary w-full text-xs py-2.5 font-bold flex items-center justify-center gap-2" id="open-legal-btn">
+            <button class="action-btn primary w-full text-xs py-2.5 font-bold flex items-center justify-center gap-2"
+              id="open-legal-btn">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
               </svg>
               <span id="lbl-btn-view-legal">Читать соглашение</span>
             </button>
@@ -1671,7 +2002,8 @@
       </div>
 
       <div class="mt-6 mb-2 text-center">
-        <a href="https://t.me/VelVetus_Chromus" target="_blank" id="author-tg-link" class="text-[9px] text-zinc-500/20 hover:text-zinc-500/80 transition-colors duration-300 font-mono tracking-widest block py-2 select-text">
+        <a href="https://t.me/VelVetus_Chromus" target="_blank" id="author-tg-link"
+          class="text-[9px] text-zinc-500/20 hover:text-zinc-500/80 transition-colors duration-300 font-mono tracking-widest block py-2 select-text">
           TGK: t.me/VelVetus_Chromus
         </a>
       </div>
@@ -1683,15 +2015,19 @@
     <div class="detail-header">
       <button class="detail-close" id="detail-close-btn">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
-      
-      <div style="color: var(--text-color); font-size: 0.8rem; font-weight: bold;" id="swipe-hint" class="flex gap-2 items-center">
-        <button id="detail-slideshow-btn" class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-amber-500 hover:text-amber-400 transition-all duration-150 flex items-center gap-1">
+
+      <div style="color: var(--text-color); font-size: 0.8rem; font-weight: bold;" id="swipe-hint"
+        class="flex gap-2 items-center">
+        <button id="detail-slideshow-btn"
+          class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-amber-500 hover:text-amber-400 transition-all duration-150 flex items-center gap-1">
           <span id="detail-slideshow-label">▶ Слайдшоу</span>
         </button>
-        <button id="detail-fit-toggle" class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-[var(--accent)] transition-all duration-150">Заполнить</button>
+        <button id="detail-fit-toggle"
+          class="bg-zinc-900 border border-zinc-800 text-xs px-2.5 py-1 rounded hover:border-[var(--accent)] transition-all duration-150">Заполнить</button>
       </div>
     </div>
 
@@ -1701,7 +2037,9 @@
       <div class="swipe-indicator like" id="ind-like">СОХРАНЕНО</div>
       <div class="swipe-indicator skip" id="ind-skip">ПРОПУСК</div>
 
-      <button id="detail-prev-btn" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/55 backdrop-blur border border-zinc-800/80 text-white p-3.5 rounded-full z-[12] transition duration-200 active:scale-90 flex items-center justify-center shadow-lg" title="Предыдущее фото">
+      <button id="detail-prev-btn"
+        class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/55 backdrop-blur border border-zinc-800/80 text-white p-3.5 rounded-full z-[12] transition duration-200 active:scale-90 flex items-center justify-center shadow-lg"
+        title="Предыдущее фото">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -1709,7 +2047,9 @@
 
       <div class="detail-media-wrapper" id="detail-media-wrapper"></div>
 
-      <button id="detail-next-btn" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/55 backdrop-blur border border-zinc-800/80 text-white p-3.5 rounded-full z-[12] transition duration-200 active:scale-90 flex items-center justify-center shadow-lg" title="Следующее фото">
+      <button id="detail-next-btn"
+        class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/55 backdrop-blur border border-zinc-800/80 text-white p-3.5 rounded-full z-[12] transition duration-200 active:scale-90 flex items-center justify-center shadow-lg"
+        title="Следующее фото">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
         </svg>
@@ -1719,7 +2059,8 @@
     <div class="detail-footer">
       <div class="detail-actions">
         <button class="action-btn" id="detail-download-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            class="mr-1">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -1732,7 +2073,8 @@
       </div>
 
       <div id="comments-main-container" class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
-        <h4 id="lbl-comments-title" class="font-bold text-sm text-zinc-300 border-b border-zinc-800 pb-2">Комментарии</h4>
+        <h4 id="lbl-comments-title" class="font-bold text-sm text-zinc-300 border-b border-zinc-800 pb-2">Комментарии
+        </h4>
         <div id="comments-feed" class="space-y-2 max-height-60 overflow-y-auto text-xs text-zinc-400">
         </div>
       </div>
@@ -1745,17 +2087,20 @@
     <div class="detail-header">
       <button class="detail-close" id="legal-close-btn">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
-      <div style="color: var(--text-color); font-size: 0.85rem; font-weight: bold;" id="lbl-legal-header-title">Пользовательское соглашение</div>
+      <div style="color: var(--text-color); font-size: 0.85rem; font-weight: bold;" id="lbl-legal-header-title">
+        Пользовательское соглашение</div>
     </div>
-    
+
     <div class="p-6 pb-20 max-w-xl mx-auto space-y-8 text-zinc-300 text-xs leading-relaxed" id="legal-content-body">
     </div>
   </div>
 
-  <div id="eula-overlay" class="fixed inset-0 bg-zinc-950/98 backdrop-blur-md z-[2000] flex flex-col justify-between p-6 overflow-y-auto hidden">
+  <div id="eula-overlay"
+    class="fixed inset-0 bg-zinc-950/98 backdrop-blur-md z-[2000] flex flex-col justify-between p-6 overflow-y-auto hidden">
     <div class="max-w-md mx-auto w-full my-auto space-y-6">
       <div class="flex gap-4 justify-center">
         <button id="eula-lang-ru" class="action-btn language-choice-btn px-4 py-2 text-sm">
@@ -1772,9 +2117,14 @@
             <path fill="#dc2626" d="M0 0h24v2H0v2h24v2H0v2h24v2H0v2h24v2H0z"></path>
             <path fill="#1d4ed8" d="M0 0h10v8H0z"></path>
             <g fill="#fff">
-              <circle cx="2" cy="2" r=".6"></circle><circle cx="5" cy="2" r=".6"></circle><circle cx="8" cy="2" r=".6"></circle>
-              <circle cx="3.5" cy="4" r=".6"></circle><circle cx="6.5" cy="4" r=".6"></circle>
-              <circle cx="2" cy="6" r=".6"></circle><circle cx="5" cy="6" r=".6"></circle><circle cx="8" cy="6" r=".6"></circle>
+              <circle cx="2" cy="2" r=".6"></circle>
+              <circle cx="5" cy="2" r=".6"></circle>
+              <circle cx="8" cy="2" r=".6"></circle>
+              <circle cx="3.5" cy="4" r=".6"></circle>
+              <circle cx="6.5" cy="4" r=".6"></circle>
+              <circle cx="2" cy="6" r=".6"></circle>
+              <circle cx="5" cy="6" r=".6"></circle>
+              <circle cx="8" cy="6" r=".6"></circle>
             </g>
           </svg>
           <span>English</span>
@@ -1786,25 +2136,33 @@
         <p class="text-xs text-zinc-500" id="eula-sub-title">NSFW Content Verification Hub & EULA Agreement</p>
       </div>
 
-      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-lg p-4 h-80 overflow-y-auto text-xs text-zinc-400 leading-relaxed space-y-3" id="eula-terms-box"></div>
+      <div
+        class="bg-zinc-900/80 border border-zinc-800/80 rounded-lg p-4 h-80 overflow-y-auto text-xs text-zinc-400 leading-relaxed space-y-3"
+        id="eula-terms-box"></div>
 
       <label class="flex items-start gap-3 cursor-pointer select-none py-1">
-        <input type="checkbox" id="eula-checkbox" class="mt-1 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-950">
+        <input type="checkbox" id="eula-checkbox"
+          class="mt-1 rounded border-zinc-800 bg-zinc-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-950">
         <span class="text-xs text-zinc-400 leading-snug" id="lbl-eula-checkbox-text">
-          Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского соглашения.
+          Я подтверждаю, что мне исполнилось 18 лет, и я полностью принимаю условия данного пользовательского
+          соглашения.
         </span>
       </label>
 
-      <button id="eula-confirm-btn" class="w-full py-3 px-4 rounded text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed" style="background-color: var(--accent);" disabled>
+      <button id="eula-confirm-btn"
+        class="w-full py-3 px-4 rounded text-white font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+        style="background-color: var(--accent);" disabled>
         Подтвердить и Продолжить
       </button>
     </div>
   </div>
 
-  <div id="pin-overlay-screen" class="fixed inset-0 bg-[#09090b] z-[9999] hidden flex flex-col justify-center items-center select-none">
+  <div id="pin-overlay-screen"
+    class="fixed inset-0 bg-[#09090b] z-[9999] hidden flex flex-col justify-center items-center select-none">
     <div class="w-64 space-y-8 flex flex-col items-center">
       <div class="text-center space-y-2">
         <div class="logo text-lg font-bold tracking-tight">CHROMIUM<span>E621</span></div>
+        <div id="user-greeting" class="text-[10px] text-zinc-500 italic mt-1"></div>
         <p id="pin-screen-prompt" class="text-xs text-zinc-400">Введите PIN-код для входа</p>
       </div>
 
@@ -1816,18 +2174,42 @@
       </div>
 
       <div class="grid grid-cols-3 gap-4 w-full">
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="1">1</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="2">2</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="3">3</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="4">4</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="5">5</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="6">6</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="7">7</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="8">8</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="9">9</button>
-        <button class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90" data-action="clear">✕</button>
-        <button class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition" data-num="0">0</button>
-        <button class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90" data-action="backspace">⌫</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="1">1</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="2">2</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="3">3</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="4">4</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="5">5</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="6">6</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="7">7</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="8">8</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="9">9</button>
+        <button
+          class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90"
+          data-action="clear">✕</button>
+        <button
+          class="pin-key-btn py-3.5 bg-zinc-900 hover:bg-zinc-800 text-lg font-bold rounded-xl border border-zinc-800/80 active:scale-95 transition"
+          data-num="0">0</button>
+        <button
+          class="pin-key-btn py-3.5 text-zinc-500 rounded-xl flex items-center justify-center transition active:scale-90"
+          data-action="backspace">⌫</button>
       </div>
     </div>
   </div>
@@ -1840,25 +2222,45 @@
 
   <nav class="tab-bar" id="bottom-tab-bar">
     <button class="tab-btn active" data-view="gallery" id="tab-btn-gallery">
-      <svg id="icon-gallery" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+      <svg id="icon-gallery" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+        </path>
+      </svg>
       <span id="tab-gallery">Галерея</span>
     </button>
     <button class="tab-btn" data-view="bookmarks" id="tab-btn-bookmarks">
-      <svg id="icon-bookmarks" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+      <svg id="icon-bookmarks" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+        </path>
+      </svg>
       <span id="tab-bookmarks">Избранное</span>
     </button>
-    
+
     <button class="tab-btn" id="tab-btn-random" data-action="random">
-      <svg id="icon-random" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+      <svg id="icon-random" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
+        </path>
+      </svg>
       <span id="tab-random">Рандом</span>
     </button>
 
     <button class="tab-btn" data-view="recommendations" id="tab-btn-recs">
-      <svg id="icon-recs" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.371 1.24.588 1.81l-3.97 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.89a1 1 0 00-1.175 0l-3.97 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+      <svg id="icon-recs" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.371 1.24.588 1.81l-3.97 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.89a1 1 0 00-1.175 0l-3.97 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
+        </path>
+      </svg>
       <span id="tab-recs">Для вас</span>
     </button>
     <button class="tab-btn" data-view="settings" id="tab-btn-settings">
-      <svg id="icon-settings" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      <svg id="icon-settings" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+        </path>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
       <span id="tab-settings">Настройки</span>
     </button>
   </nav>
@@ -1908,6 +2310,11 @@
 
     const translations = {
       ru: {
+        greetingMorning: "Доброе утро",
+        greetingDay: "Добрый день",
+        greetingEvening: "Добрый вечер",
+        greetingNight: "Доброй ночи",
+        greetingAnon: "аноним",
         gallery: "Галерея",
         bookmarks: "Избранное",
         recommendations: "Для вас",
@@ -2053,16 +2460,6 @@
         panicSettingsOnly: "Выключение режима паники доступно только в Настройках!",
         connectionError: "Ошибка подключения",
         debugReady: "[SYSTEM] Консоль отладчика chrom24 готова...",
-        debugActions: [
-          "1. Сброс трафика", "2. Тест вибрации", "3. Подсветка сеток", "4. Фейковые закладки",
-          "5. Симуляция задержки", "6. Краш-тест JS", "7. Очистка хранилища", "8. Копирование состояния",
-          "9. Элементы DOM", "10. FPS-счетчик", "11. Имитация 3G-сети", "12. Сброс логов",
-          "13. Дамп конфига", "14. Стресс-тест ОЗУ", "15. Вызвать ошибку 403", "16. Вызвать ошибку 404",
-          "17. Случайный лимит", "18. Эко-рендеринг", "19. Очистить историю", "20. Полноэкранный режим",
-          "21. Сброс черного списка", "22. Проверить CORS", "23. Сборщик мусора", "24. Генератор токенов",
-          "25. Сбросить сессию", "26. Тест касаний", "27. Импорт настроек по умолчанию",
-          "28. Блокировка интерфейса", "29. Системный отчет"
-        ],
         eulaText: `<b>ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ И ОТКАЗ ОТ ОТВЕТСТВЕННОСТИ (EULA)</b><br><br>
 1. <b>Возрастной ценз (18+):</b> Данный клиент предоставляет доступ к графическим материалам сексуального характера, предназначенным исключительно для совершеннолетних пользователей. Продолжая использование приложения, вы безоговорочно подтверждаете, что достигли возраста 18 лет (или возраста совершеннолетия в вашей юрисдикции).<br><br>
 2. <b>Отказ от ответственности за контент:</b> Настоящее приложение является неофициальным сторонним программным продуктом с открытым исходным кодом. Разработчик приложения <b>не загружает, не размещает (хостит), не модерирует, не владеет и не контролирует</b> контент, отображаемый на экране. Все медиаданные извлекаются в реальном времени с использованием открытых API-интерфейсов стороннего ресурса e621.net.<br><br>
@@ -2071,6 +2468,11 @@
 5. <b>Ограничение правовой ответственности:</b> Разработчик освобождается от любой ответственности за прямые, косвенные или сопутствующие убытки, юридические споры, моральный вред или технические неисправности, возникшие в ходе эксплуатации данного программного продукта.`
       },
       en: {
+        greetingMorning: "Good morning",
+        greetingDay: "Good afternoon",
+        greetingEvening: "Good evening",
+        greetingNight: "Good night",
+        greetingAnon: "anonymous",
         gallery: "Gallery",
         bookmarks: "Bookmarks",
         recommendations: "For You",
@@ -2216,16 +2618,6 @@
         panicSettingsOnly: "Panic mode can only be disabled from Settings!",
         connectionError: "Connection error",
         debugReady: "[SYSTEM] chrom24 debug console is ready...",
-        debugActions: [
-          "1. Reset traffic", "2. Test vibration", "3. Highlight layouts", "4. Add dummy bookmarks",
-          "5. Simulate latency", "6. Trigger JS crash", "7. Clear storage", "8. Copy state",
-          "9. Count DOM elements", "10. FPS counter", "11. Simulate 3G network", "12. Clear logs",
-          "13. Dump configuration", "14. RAM stress test", "15. Trigger error 403", "16. Trigger error 404",
-          "17. Random request limit", "18. Eco rendering", "19. Clear history", "20. Fullscreen mode",
-          "21. Reset blacklist", "22. Test CORS", "23. Garbage collection", "24. Token generator",
-          "25. Reset session", "26. Test touch events", "27. Restore defaults",
-          "28. Block the UI", "29. System report"
-        ],
         eulaText: `<b>USER AGREEMENT & END-USER LICENSE AGREEMENT (EULA)</b><br><br>
 1. <b>Age Attestation (18+):</b> This software client provides direct portal access to adult-oriented visual media. Continued entry strictly certifies that you are at least 18 years old or have reached the legal age of maturity under your local jurisdiction.<br><br>
 2. <b>Disclaimer of Content Ownership:</b> This mobile wrapper is an unofficial, community-built, open-source API portal. The developer of this app <b>does not host, store, moderate, upload, or own</b> any of the displayed files. All digital materials are retrieved dynamically via public API queries from e621.net servers.<br><br>
@@ -2290,41 +2682,42 @@
         proxyMode: safeLocalStorage.getItem('p_e621_proxy_mode') || 'fallback',
         customProxyPrefix: safeLocalStorage.getItem('p_e621_custom_proxy') || '',
         pinEnabled: safeLocalStorage.getItem('p_e621_pin_enabled') === 'true',
-        nsfwBlur: safeLocalStorage.getItem('p_e621_nsfw_blur') !== 'false'
+        nsfwBlur: safeLocalStorage.getItem('p_e621_nsfw_blur') !== 'false',
+        startupAnim: safeLocalStorage.getItem('p_e621_startup_anim') !== 'false'
       },
       panicActive: safeLocalStorage.getItem('p_e621_panic_active') === 'true',
       prePanicRatings: safeJSONParse(safeLocalStorage.getItem('p_e621_pre_panic_ratings'), ["0+", "16+"]),
-      encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '', 
-      auth: {"username":"","apiKey":""}, 
-      customization: safeJSONParse(safeLocalStorage.getItem('p_e621_customization'), {"accent":"#2563eb","radius":"8px"}),
+      encryptedAuth: safeLocalStorage.getItem('p_e621_auth_enc') || '',
+      auth: { "username": "", "apiKey": "" },
+      customization: safeJSONParse(safeLocalStorage.getItem('p_e621_customization'), { "accent": "#2563eb", "radius": "8px" }),
       tagFreq: safeJSONParse(safeLocalStorage.getItem('p_e621_tag_freq'), {}),
       favSearches: safeJSONParse(safeLocalStorage.getItem('p_e621_fav_searches'), []),
       searchHistory: safeJSONParse(safeLocalStorage.getItem('p_e621_search_history'), []),
-      history: safeJSONParse(safeLocalStorage.getItem('p_e621_history'), []), 
-      totalTime: parseInt(safeLocalStorage.getItem('p_e621_total_time') || '0'), 
+      history: safeJSONParse(safeLocalStorage.getItem('p_e621_history'), []),
+      totalTime: parseInt(safeLocalStorage.getItem('p_e621_total_time') || '0'),
       customBg: safeLocalStorage.getItem('p_e621_custom_bg') || '',
       bgOpacity: safeLocalStorage.getItem('p_e621_bg_opacity') || '0.9',
       lastSearchTags: safeLocalStorage.getItem('p_e621_last_search') || '',
       popularPeriod: readStoredOption('p_e621_popular_period', ['all', '1d', '7d', '30d', 'alltime'], 'all'),
-      
+
       tempPinInput: "",
       setupPinMode: false,
       newPinRegister: "",
-      
+
       currentPostPool: [],
       debugDelayActive: false,
       debugErrorMock: false,
       debugRequestLog: false,
       debugPostLimit: 30,
-      
+
       videoPlays: parseInt(safeLocalStorage.getItem('p_e621_stat_videos') || '0'),
       searchCounter: parseInt(safeLocalStorage.getItem('p_e621_stat_searches') || '0'),
-      
+
       slideshowActive: false,
       slideshowIntervalId: null,
-      slideshowDuration: 4000, 
+      slideshowDuration: 4000,
       randomModeActive: false,
-      
+
       detailFitZoom: 'contain',
       mediaTypeFilter: readStoredOption('p_e621_media_type', ['all', 'photo', 'video'], 'all')
     };
@@ -2393,204 +2786,100 @@
 
     function debugAction(id) {
       if ('vibrate' in navigator) navigator.vibrate(25);
-      switch(id) {
+      switch (id) {
         case 1:
-          state.trafficUsed = 0.0;
-          safeLocalStorage.setItem('p_e621_traffic', '0.0');
-          document.getElementById('traffic-val').textContent = '0.0';
-          addDebugLog(localized("Трафик успешно обнулен до 0.0 MB.", "Traffic reset to 0.0 MB."));
-          showToast(localized("Трафик сброшен!", "Traffic reset!"));
+          document.querySelectorAll('img, video').forEach(media => {
+            if (media.src) media.src = '';
+          });
+          const grid = document.getElementById('gallery-grid');
+          if (grid) grid.innerHTML = '';
+          addDebugLog("Изображения выгружены из памяти (DOM).");
+          showToast("Кэш очищен!");
           break;
         case 2:
-          if ('vibrate' in navigator) {
-            navigator.vibrate([100, 50, 100, 50, 200]);
-            addDebugLog(localized("Отправлен паттерн вибрации на устройство.", "Vibration pattern sent to the device."));
-          } else {
-            addDebugLog(localized("Вибрация не поддерживается браузером.", "Vibration is not supported by this browser."));
-          }
+          state.searchHistory = [];
+          state.lastSearchTags = '';
+          safeLocalStorage.setItem('p_e621_search_history', '[]');
+          safeLocalStorage.setItem('p_e621_last_search_tags', '');
+          addDebugLog("История поисков и последние теги удалены.");
+          showToast("История очищена!");
           break;
         case 3:
-          const debugStyleId = 'debug-layout-grid-outline';
-          let styleEl = document.getElementById(debugStyleId);
-          if (styleEl) {
-            styleEl.remove();
-            addDebugLog(localized("Сетка дебага отключена.", "Debug layout outlines disabled."));
+          const turboId = 'turbo-mode-style';
+          let turbo = document.getElementById(turboId);
+          if (turbo) {
+            turbo.remove();
+            showToast("Турбо отключен");
+            addDebugLog("Турбо-режим отключен.");
           } else {
-            styleEl = document.createElement('style');
-            styleEl.id = debugStyleId;
-            styleEl.innerHTML = '* { outline: 1px dashed rgba(239, 68, 68, 0.45) !important; }';
-            document.head.appendChild(styleEl);
-            addDebugLog(localized("Сетка дебага активирована.", "Debug layout outlines enabled."));
+            turbo = document.createElement('style');
+            turbo.id = turboId;
+            turbo.innerHTML = '* { box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }';
+            document.head.appendChild(turbo);
+            showToast("Турбо-режим активирован!");
+            addDebugLog("Активирован Турбо-режим (выключены тени и блюры).");
           }
           break;
         case 4:
-          const dummy = [
-            { id: 999991, file_url: "https://placehold.co/600x600/121214/f4f4f5?text=Dummy+Art+1", preview_url: "https://placehold.co/150x150/121214/f4f4f5?text=Dummy+1", tags: { general: ["anthro", "solo"] }, tagsString: "anthro solo", ext: "jpg", rating: "s", score: 999, isVideo: false, width: 600, height: 600 },
-            { id: 999992, file_url: "https://placehold.co/600x600/121214/f4f4f5?text=Dummy+Art+2", preview_url: "https://placehold.co/150x150/121214/f4f4f5?text=Dummy+2", tags: { general: ["anthro", "canine"] }, tagsString: "anthro canine", ext: "jpg", rating: "q", score: 1250, isVideo: false, width: 600, height: 600 }
-          ];
-          state.bookmarks = [...state.bookmarks, ...dummy];
-          safeLocalStorage.setItem('p_e621_bookmarks', JSON.stringify(state.bookmarks));
-          addDebugLog(localized("Импортировано 2 фейковых dummy-поста в закладки.", "Added 2 dummy posts to bookmarks."));
-          showToast(localized("Импортировано!", "Imported!"));
+          switchView('gallery');
+          const gallery = document.getElementById('gallery-grid');
+          if (gallery) {
+            for (let i = 0; i < 20; i++) {
+              const el = document.createElement('div');
+              el.className = 'post-card';
+              el.style.backgroundColor = `hsl(${Math.random() * 360}, 60%, 20%)`;
+              el.style.minHeight = '150px';
+              el.innerHTML = `<div class="p-2 text-xs font-bold text-white/50 text-center mt-10">Dummy ${Math.floor(Math.random() * 1000)}</div>`;
+              gallery.appendChild(el);
+            }
+          }
+          addDebugLog("Добавлено 20 визуальных Dummy-постов в галерею.");
+          showToast("Посты сгенерированы!");
           break;
         case 5:
-          state.debugDelayActive = !state.debugDelayActive;
-          addDebugLog(localized(
-            `Эмуляция задержки сети: ${state.debugDelayActive ? 'ВКЛЮЧЕНА (2000мс)' : 'ВЫКЛЮЧЕНА'}`,
-            `Network latency simulation: ${state.debugDelayActive ? 'ON (2000ms)' : 'OFF'}`
-          ));
-          break;
-        case 6:
-          addDebugLog(localized("Вызов принудительного исключения...", "Triggering a forced exception..."));
-          setTimeout(() => {
-            throw new Error(localized("[CRITICAL DEBUG ERROR] Симулированный краш.", "[CRITICAL DEBUG ERROR] Simulated crash."));
-          }, 500);
-          break;
-        case 7:
-          localStorage.clear();
-          addDebugLog(localized("Выполнена полная очистка LocalStorage.", "LocalStorage cleared completely."));
-          showToast(localized("Локальные данные очищены!", "Local data cleared!"));
-          break;
-        case 8:
-          const stateStr = JSON.stringify(state);
-          const tempInput = document.createElement('textarea');
-          tempInput.value = stateStr;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-          addDebugLog(localized("Состояние скопировано в буфер.", "Application state copied to the clipboard."));
-          showToast(localized("Скопировано!", "Copied!"));
-          break;
-        case 9:
-          const nodes = document.getElementsByTagName('*').length;
-          addDebugLog(localized(`Количество активных элементов DOM: ${nodes}`, `Active DOM elements: ${nodes}`));
-          break;
-        case 10:
-          addDebugLog(localized("Запущен тест FPS...", "FPS test started..."));
-          let frames = 0, lastTime = performance.now();
-          const checkFPS = () => {
-            frames++;
-            const now = performance.now();
-            if (now >= lastTime + 1000) {
-              addDebugLog(`FPS: ~${Math.round((frames * 1000) / (now - lastTime))}`);
-              cancelAnimationFrame(fpsId);
-            } else {
-              fpsId = requestAnimationFrame(checkFPS);
-            }
-          };
-          let fpsId = requestAnimationFrame(checkFPS);
-          break;
-        case 11:
-          state.debugDelayActive = true;
-          addDebugLog(localized("Имитация слабого соединения (3G / 450kbps) запущена.", "Slow connection simulation (3G / 450kbps) started."));
-          showToast(localized("Имитация 3G активна", "3G simulation enabled"));
-          break;
-        case 12:
-          const logger = document.getElementById('admin-debug-log');
-          if (logger) {
-            logger.dataset.hasActivity = 'true';
-            logger.innerHTML = localized("[SYSTEM] Логи консоли очищены.", "[SYSTEM] Console logs cleared.");
-          }
-          break;
-        case 13:
-          addDebugLog(localized(
-            `Конфиг: Язык=${state.language}, Разметка=${state.settings.layout}, Фон=${state.customBg ? 'Активен' : 'Пусто'}`,
-            `Config: Language=${state.language}, Layout=${state.settings.layout}, Background=${state.customBg ? 'Active' : 'Empty'}`
-          ));
-          break;
-        case 14:
-          addDebugLog(localized("Инициализация тяжелых массивов для проверки утечек ОЗУ...", "Allocating large arrays for the RAM leak test..."));
-          let leak = [];
-          for (let i = 0; i < 100000; i++) leak.push({ hash: Math.random() });
-          addDebugLog(localized(`Выделено тестовых объектов: ${leak.length}. Освобождение...`, `Allocated test objects: ${leak.length}. Releasing...`));
-          leak = null;
-          showToast(localized("Стресс-тест ОЗУ завершен!", "RAM stress test completed!"));
-          break;
-        case 15:
-          addDebugLog(localized("[ERROR SIMULATION] Вызов ошибки HTTP 403 (Доступ заблокирован).", "[ERROR SIMULATION] Triggering HTTP 403 (Access denied)."));
-          showToast(localized("Ошибка 403 симулирована!", "Error 403 simulated!"));
-          break;
-        case 16:
-          addDebugLog(localized("[ERROR SIMULATION] Вызов ошибки HTTP 404 (Ресурс не найден).", "[ERROR SIMULATION] Triggering HTTP 404 (Resource not found)."));
-          showToast(localized("Ошибка 404 симулирована!", "Error 404 simulated!"));
-          break;
-        case 17:
-          state.debugPostLimit = Math.floor(Math.random() * 45) + 5;
-          addDebugLog(localized(`Размер запрашиваемой пачки изменен на: ${state.debugPostLimit}`, `Request batch size changed to: ${state.debugPostLimit}`));
-          break;
-        case 18:
-          state.settings.ecoMode = !state.settings.ecoMode;
-          applyEcoMode(state.settings.ecoMode);
-          addDebugLog(localized(`Эко-рендеринг принудительно: ${state.settings.ecoMode}`, `Forced eco rendering: ${state.settings.ecoMode}`));
-          break;
-        case 19:
-          state.searchHistory = [];
-          safeLocalStorage.setItem('p_e621_search_history', '[]');
-          addDebugLog(localized("Локальная история поиска сброшена.", "Local search history reset."));
-          showToast(localized("История очищена!", "History cleared!"));
-          break;
-        case 20:
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            addDebugLog(localized("Полноэкранный режим активирован.", "Fullscreen mode enabled."));
-          } else {
-            document.exitFullscreen();
-            addDebugLog(localized("Полноэкранный режим выключен.", "Fullscreen mode disabled."));
-          }
-          break;
-        case 21:
           state.blacklist = [];
           safeLocalStorage.setItem('p_e621_blacklist', '[]');
-          renderBlacklistChips();
-          addDebugLog(localized("Черный список тегов полностью очищен.", "Tag blacklist cleared completely."));
-          showToast(localized("Черный список сброшен!", "Blacklist reset!"));
+          if (typeof renderBlacklistChips === 'function') renderBlacklistChips();
+          addDebugLog("Черный список тегов обнулен.");
+          showToast("Черный список пуст!");
           break;
-        case 22:
-          addDebugLog(localized("Проверка доступности CORS-прокси...", "Testing CORS proxy availability..."));
-          fetch("https://corsproxy.io/?https://e621.net/posts.json?limit=1")
-            .then(r => addDebugLog(localized(`CORS-тест: статус ${r.status}`, `CORS test: status ${r.status}`)))
-            .catch(e => addDebugLog(localized(`Сбой CORS: ${e.message}`, `CORS failure: ${e.message}`)));
+        case 6:
+          state.customization.accent = `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`;
+          state.bgOpacity = Math.floor(Math.random() * 80) + 10;
+          safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
+          safeLocalStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
+          applyCustomStyles();
+          applyBgOpacity(state.bgOpacity);
+          addDebugLog("Применена случайная тема и прозрачность фона.");
+          showToast("Тема изменена!");
           break;
-        case 23:
-          addDebugLog(localized("Принудительная сборка неиспользуемых дескрипторов DOM-элементов.", "Collecting unused DOM element handles."));
-          if (window.gc) { window.gc(); addDebugLog(localized("GC запущен нативно.", "Native GC started.")); } 
-          else { addDebugLog(localized("Нативный GC недоступен. Применена очистка кэшей.", "Native GC is unavailable. Cache cleanup applied.")); }
+        case 7:
+          showToast("Успех: База обновлена", false);
+          setTimeout(() => showToast("Внимание: Низкий заряд", false), 1000);
+          setTimeout(() => showToast("Ошибка: Нет сети", true), 2000);
+          addDebugLog("Тестовые уведомления отправлены.");
           break;
-        case 24:
-          const randomToken = "dev_" + Math.random().toString(36).substring(2, 15);
-          addDebugLog(localized(`Сгенерирован токен сессии: ${randomToken}`, `Session token generated: ${randomToken}`));
+        case 8:
+          state.trafficUsed = 0.0;
+          safeLocalStorage.setItem('p_e621_traffic', '0.0');
+          const tVal = document.getElementById('traffic-val');
+          if (tVal) tVal.textContent = '0.0';
+          addDebugLog("Счетчик скачанных мегабайт сброшен.");
+          showToast("Трафик 0.0 MB");
           break;
-        case 25:
+        case 9:
           state.totalTime = 0;
           safeLocalStorage.setItem('p_e621_total_time', '0');
-          addDebugLog(localized("Время сессии сброшено до 0с.", "Session time reset to 0s."));
-          updateStatsUI();
+          if (typeof updateStatsUI === 'function') updateStatsUI();
+          addDebugLog("Время сессии обнулено.");
+          showToast("Время сброшено!");
           break;
-        case 26:
-          addDebugLog(localized("Тестирование задержки сенсорного ввода...", "Testing touch input latency..."));
-          document.addEventListener('touchstart', function ts() {
-            addDebugLog(localized("Касание зафиксировано. Задержка минимальна.", "Touch detected. Latency is minimal."));
-            document.removeEventListener('touchstart', ts);
-          });
-          break;
-        case 27:
-          state.customization = {"accent":"#2563eb","radius":"8px"};
-          safeLocalStorage.setItem('p_e621_customization', JSON.stringify(state.customization));
-          applyCustomStyles();
-          addDebugLog(localized("Внешний вид сброшен к настройкам Chromium по умолчанию.", "Appearance reset to Chromium defaults."));
-          break;
-        case 28:
-          addDebugLog(localized("Имитация зависания интерфейса на 800мс...", "Simulating an 800ms UI thread stall..."));
-          const end = Date.now() + 800;
-          while (Date.now() < end) {}
-          addDebugLog(localized("Интерфейс разблокирован.", "UI unlocked."));
-          break;
-        case 29:
-          addDebugLog(localized(
-            `Системный лог: Chromium Mobile Client 3.5. Платформа: ${navigator.platform}, Язык: ${navigator.language}`,
-            `System report: Chromium Mobile Client 3.5. Platform: ${navigator.platform}, Language: ${navigator.language}`
-          ));
+        case 10:
+          if (confirm(localized("Вы уверены? Это удалит ВСЕ локальные данные.", "Are you sure? This deletes ALL local data."))) {
+            localStorage.clear();
+            addDebugLog("Очистка завершена. Перезагрузка...");
+            setTimeout(() => window.location.reload(), 500);
+          }
           break;
       }
     }
@@ -2628,14 +2917,14 @@
           }
         };
         const jsonStr = JSON.stringify(payload);
-        
-        const encoded = btoa(encodeURIComponent(jsonStr).replace(/%[0-9A-F]{2}/g, function(match) {
+
+        const encoded = btoa(encodeURIComponent(jsonStr).replace(/%[0-9A-F]{2}/g, function (match) {
           return String.fromCharCode(parseInt(match.slice(1), 16));
         }));
-        
+
         const codeArea = document.getElementById('backup-code-area');
         const outputWrap = document.getElementById('backup-output-wrap');
-        
+
         if (codeArea && outputWrap) {
           codeArea.value = encoded;
           outputWrap.classList.remove('hidden');
@@ -2652,12 +2941,12 @@
         return;
       }
       try {
-        const decoded = decodeURIComponent(atob(code.trim()).split('').map(function(c) {
+        const decoded = decodeURIComponent(atob(code.trim()).split('').map(function (c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
-        
+
         const payload = JSON.parse(decoded);
-        
+
         if (payload.bookmarks) state.bookmarks = payload.bookmarks;
         if (payload.blacklist) state.blacklist = payload.blacklist;
         if (payload.customization) state.customization = payload.customization;
@@ -2672,7 +2961,7 @@
           state.lastSearchTags = payload.lastSearchTags;
           currentSearchTags = payload.lastSearchTags;
         }
-        
+
         if (payload.settings) {
           state.settings.ratings = payload.settings.ratings || ["0+", "16+"];
           state.settings.feedFit = payload.settings.feedFit || "cover";
@@ -2701,7 +2990,7 @@
         safeLocalStorage.setItem('p_e621_bg_opacity', state.bgOpacity);
         safeLocalStorage.setItem('p_e621_traffic', state.trafficUsed);
         safeLocalStorage.setItem('p_e621_last_search', state.lastSearchTags);
-        
+
         safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
         safeLocalStorage.setItem('p_e621_feed_fit', state.settings.feedFit);
         safeLocalStorage.setItem('p_e621_layout', state.settings.layout);
@@ -2752,10 +3041,10 @@
           console.warn("Неверная дешифровка API-ключей.");
         }
       }
-      
+
       const legacyAuth = safeLocalStorage.getItem('p_e621_auth');
       if (legacyAuth) {
-        state.auth = safeJSONParse(legacyAuth, {"username":"","apiKey":""});
+        state.auth = safeJSONParse(legacyAuth, { "username": "", "apiKey": "" });
         reEncryptCredentials(pinAttempt);
         safeLocalStorage.removeItem('p_e621_auth');
         toggleAdminPanelVisibility();
@@ -2779,21 +3068,21 @@
     function toggleAccordion(id) {
       const group = document.getElementById(id);
       if (!group) return;
-      
+
       const wrapper = group.querySelector('.settings-content-wrapper');
       if (!wrapper) return;
 
       const isOpen = group.classList.contains('active');
-      
+
       if (isOpen) {
         wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-        wrapper.offsetHeight; 
+        wrapper.offsetHeight;
         wrapper.style.maxHeight = '0px';
         group.classList.remove('active');
       } else {
         wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
         group.classList.add('active');
-        
+
         const handler = () => {
           if (group.classList.contains('active')) {
             wrapper.style.maxHeight = 'none';
@@ -2804,7 +3093,33 @@
       }
     }
 
+    function updateGreeting() {
+      const el = document.getElementById('user-greeting');
+      if (!el) return;
+      const hour = new Date().getHours();
+      let timeKey = '';
+      if (hour >= 6 && hour < 12) timeKey = 'greetingMorning';
+      else if (hour >= 12 && hour < 18) timeKey = 'greetingDay';
+      else if (hour >= 18 && hour < 23) timeKey = 'greetingEvening';
+      else timeKey = 'greetingNight';
+
+      let greeting = 'Добрый день';
+      let anon = 'аноним';
+      if (typeof t === 'function') {
+        greeting = t(timeKey);
+        anon = t('greetingAnon');
+      } else if (typeof translations !== 'undefined') {
+        const lang = state.language || 'ru';
+        greeting = translations[lang][timeKey];
+        anon = translations[lang].greetingAnon;
+      }
+
+      const nick = (state.auth && state.auth.username) ? state.auth.username : anon;
+      el.textContent = greeting + ", " + nick;
+    }
+
     function translateUI() {
+      updateGreeting();
       document.documentElement.lang = state.language;
       safePlaceholder('search-input', t('searchPlaceholder'));
       safePlaceholder('blacklist-input', state.language === 'ru' ? 'Введите тег...' : 'Enter tag...');
@@ -2816,7 +3131,7 @@
       const searchHistoryBtn = document.getElementById('history-search-btn');
       if (favoriteTagsBtn) favoriteTagsBtn.title = t('favoriteTagsTitle');
       if (searchHistoryBtn) searchHistoryBtn.title = t('searchHistoryTitle');
-      
+
       safeText('p-feed', t('feed'));
       safeText('p-day', t('day'));
       safeText('p-week', t('week'));
@@ -2897,7 +3212,7 @@
       safeText('opt-fit-cover', t('fitCover'));
       safeText('opt-fit-contain', t('fitContain'));
       safeHTML('lbl-accent', t('accent') + "<span>" + t('accentDesc') + "</span>");
-      
+
       safeHTML('lbl-rate-safe', state.language === 'ru' ? '0+ (Safe / Безопасно)<span>Подходит для всех</span>' : '0+ (Safe)<span>For all audiences</span>');
       safeHTML('lbl-rate-quest', state.language === 'ru' ? '16+ (Questionable / Сомнительно)<span>Легкая эротика / намеки</span>' : '16+ (Questionable)<span>Suggestive themes</span>');
       safeHTML('lbl-rate-expl', state.language === 'ru' ? '18+ (Explicit / Откровенно)<span>Контент для взрослых</span>' : '18+ (Explicit)<span>Adult content only</span>');
@@ -2905,6 +3220,7 @@
       safeHTML('lbl-budget', t('budget') + "<span>" + (state.language === 'ru' ? "Снижать качество при > 50 МБ" : "Restrict scale over 50 MB") + "</span>");
       safeHTML('lbl-ram', t('ram') + "<span>" + (state.language === 'ru' ? "Выгружать невидимые картинки" : "Clear card memories when invisible") + "</span>");
       safeHTML('lbl-eco-mode', (state.language === 'ru' ? "Энергосберегающий режим<span>Отключает размытия и эффекты</span>" : "Eco Save Mode<span>Disables heavy blurs & transitions</span>"));
+      safeHTML('lbl-startup-anim', (state.language === 'ru' ? "Анимация запуска<span>Плавное появление интерфейса при старте</span>" : "Startup Animation<span>Smooth interface reveal on launch</span>"));
       safeHTML('lbl-pin-toggle', (state.language === 'ru' ? "Защита четырехзначным PIN<span>Запрашивать при запуске и выходе</span>" : "4-Digit PIN Protection<span>Request code on startup</span>"));
       safeHTML('lbl-nsfw-blur-toggle', (state.language === 'ru' ? "Размывать 18+ контент<span>Скрывать превью до клика</span>" : "NSFW Blur Protection<span>Blur explicit feeds until clicked</span>"));
       safeText('set-pin-btn', t('changePin'));
@@ -2920,9 +3236,9 @@
       safeText('lbl-legal-desc', t('legalDesc'));
       safeText('lbl-btn-view-legal', t('btnViewLegal'));
       safeText('lbl-legal-header-title', t('legalHeader'));
-      
+
       safeText('lbl-loading-indicator-text', t('loading'));
-      
+
       safeText('panic-warning-text', t('panicActiveText'));
       safeText('panic-description', t('panicDescription'));
       safeText('disable-panic-settings-btn', t('disablePanicBtn'));
@@ -2988,11 +3304,11 @@
       }
 
       const urlObj = new URL(targetUrl);
-      
+
       Object.keys(params).forEach(key => {
         urlObj.searchParams.append(key, params[key]);
       });
-      
+
       if (useAuth && state.auth.username && state.auth.apiKey) {
         urlObj.searchParams.append('login', state.auth.username);
         urlObj.searchParams.append('api_key', state.auth.apiKey);
@@ -3080,7 +3396,7 @@
       autocompleteRequestController = controller;
       const url = `https://e621.net/tags/autocomplete.json`;
       const params = { 'search[name_matches]': searchQuery };
-      
+
       try {
         const textData = await directFetch(url, params, true, controller.signal);
         const data = JSON.parse(textData);
@@ -3156,7 +3472,7 @@
           ${t('clear')}
         </button>
       </div>`;
-      
+
       const clearAllBtn = suggestionsBox.querySelector('#clear-all-history-btn');
       if (clearAllBtn) {
         clearAllBtn.addEventListener('click', (e) => {
@@ -3172,7 +3488,7 @@
         const item = document.createElement('div');
         item.className = 'suggestion-item';
         item.innerHTML = `<span>${query}</span><button class="clear-hist-btn" style="background:none; border:none; color:var(--danger); font-size: 0.75rem; cursor:pointer; padding: 4px;">✕</button>`;
-        
+
         item.addEventListener('click', (e) => {
           if (e.target.classList.contains('clear-hist-btn')) {
             e.stopPropagation();
@@ -3330,7 +3646,7 @@
 
         const data = JSON.parse(textData);
         const rawPosts = data.posts || [];
-        
+
         const mapped = rawPosts.map(item => {
           if (!item.file || !item.file.url) return null;
           return {
@@ -3367,13 +3683,21 @@
       updateStatsUI();
     }
 
+    function triggerImageLoadAnimation(card) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          card.classList.add('image-loaded');
+        });
+      });
+    }
+
     function createCardImage(card, src) {
       const img = document.createElement('img');
       img.src = src;
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
-      const markResolved = () => card.classList.add('image-loaded');
+      const markResolved = () => triggerImageLoadAnimation(card);
       img.addEventListener('load', markResolved, { once: true });
       img.addEventListener('error', markResolved, { once: true });
       return img;
@@ -3402,8 +3726,8 @@
         card.classList.add('is-nsfw');
       }
 
-      let imgUrl = state.settings.layout === 'stories' 
-        ? (post.sample_url || post.file_url) 
+      let imgUrl = state.settings.layout === 'stories'
+        ? (post.sample_url || post.file_url)
         : ((state.settings.dataBudget && state.trafficUsed > 50) ? post.preview_url : (post.sample_url || post.preview_url));
 
       if (post.isVideo) {
@@ -3428,14 +3752,14 @@
 
       card.addEventListener('click', (e) => {
         if (e.target.closest('.post-type-badge') || e.target.closest('.post-rating-badge')) return;
-        
+
         if (state.settings.nsfwBlur && card.classList.contains('is-nsfw') && !card.classList.contains('unblurred')) {
           card.classList.add('unblurred');
           if ('vibrate' in navigator) navigator.vibrate(25);
           return;
         }
 
-        state.randomModeActive = false; 
+        state.randomModeActive = false;
         openDetailView(post);
       });
 
@@ -3456,18 +3780,18 @@
           if (realSrc && img.src !== realSrc) {
             card.classList.remove('image-loaded');
             img.onload = () => {
-              card.classList.add('image-loaded');
+              triggerImageLoadAnimation(card);
               img.onload = null;
               img.onerror = null;
             };
             img.onerror = () => {
-              card.classList.add('image-loaded');
+              triggerImageLoadAnimation(card);
               img.onload = null;
               img.onerror = null;
             };
             img.src = realSrc;
           } else {
-            card.classList.add('image-loaded');
+            triggerImageLoadAnimation(card);
           }
         } else {
           card.classList.add('unloaded');
@@ -3606,7 +3930,7 @@
         loadGallery();
       }
     }, { rootMargin: '400px' });
-    
+
     const infiniteTrigger = document.getElementById('infinite-scroll-trigger');
     if (infiniteTrigger) scrollObserver.observe(infiniteTrigger);
 
@@ -3636,20 +3960,20 @@
 
     function openDetailView(post) {
       detailCurrentPost = post;
-      
+
       if (!state.history.some(h => h.id === post.id)) {
         state.history.push({ id: post.id, rating: post.rating || 's', score: post.score || 0 });
         safeLocalStorage.setItem('p_e621_history', JSON.stringify(state.history));
       }
-      
+
       if (post.isVideo) {
         state.videoPlays++;
         safeLocalStorage.setItem('p_e621_stat_videos', state.videoPlays);
       }
 
       const activePanel = document.querySelector('.view-panel.active');
-      let currentPool = state.currentPostPool; 
-      
+      let currentPool = state.currentPostPool;
+
       if (activePanel && activePanel.id === 'panel-bookmarks') {
         currentPool = state.bookmarks;
       }
@@ -3731,9 +4055,9 @@
 
       const prevBtn = document.getElementById('detail-prev-btn');
       const nextBtn = document.getElementById('detail-next-btn');
-      
+
       if (state.randomModeActive) {
-        if (prevBtn) prevBtn.style.display = 'none'; 
+        if (prevBtn) prevBtn.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'flex';
       } else {
         if (prevBtn) prevBtn.style.display = currentIndex > 0 ? 'flex' : 'none';
@@ -3743,7 +4067,7 @@
       if (prevBtn) {
         prevBtn.onclick = (e) => {
           e.stopPropagation();
-          if (state.randomModeActive) return; 
+          if (state.randomModeActive) return;
           if (currentIndex > 0) {
             openDetailView(currentPool[currentIndex - 1]);
           }
@@ -3763,12 +4087,12 @@
 
     function handleForwardNavigation(currentIndex, currentPool) {
       if (state.randomModeActive) {
-        rollLuckyPost(); 
+        rollLuckyPost();
       } else {
         if (currentIndex < currentPool.length - 1) {
           openDetailView(currentPool[currentIndex + 1]);
         } else if (state.slideshowActive) {
-          stopSlideshow(); 
+          stopSlideshow();
           showToast(t('slideshowFinished'));
         }
       }
@@ -3777,7 +4101,7 @@
     function toggleSlideshow() {
       const btn = document.getElementById('detail-slideshow-btn');
       if (!btn) return;
-      
+
       if (state.slideshowActive) {
         stopSlideshow();
         showToast(t('slideshowStopped'));
@@ -3786,7 +4110,7 @@
         btn.innerHTML = `<span id="detail-slideshow-label" class="text-amber-400">■ ${t('slideshowStop')}</span>`;
         btn.classList.add('border-amber-500');
         showToast(t('slideshowStarted'));
-        
+
         state.slideshowIntervalId = setInterval(() => {
           const activePanel = document.querySelector('.view-panel.active');
           let currentPool = state.currentPostPool;
@@ -3839,16 +4163,16 @@
       if (!legalBody) return;
 
       const isRu = state.language === 'ru';
-      
+
       legalBody.innerHTML = `
         <section class="space-y-4">
           <h2 class="text-sm font-bold text-[var(--accent)] flex items-center gap-1.5 border-b border-zinc-800 pb-1.5 uppercase">
             <span>1. ${isRu ? 'Ограничение ответственности и юридический статус' : 'Limitation of Liability & Legal Status'}</span>
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
-            ${isRu 
-              ? 'Настоящий клиент представляет собой функциональный программный интерфейс (программную оболочку) для визуализации данных. Разработчик программного продукта категорически отказывается от каких-либо притязаний на владение, модерирование, создание, хостинг, распространение или хранение медиафайлов, представленных в результатах поиска. Весь контент загружается сторонними пользователями на публичные сервера e621.net. Разработчик клиента не имеет обратной связи с загрузчиками, не модерирует базу данных и не несет за нее правовую, моральную или материальную ответственность.'
-              : 'This application acts strictly as an open-source visual rendering tool. The software architect fully disclaims all liability, custody, authorship or responsibility for any of the graphics, files, or information processed through API requests. All digital files are uploaded by third-party individuals directly onto e621.net public file hostings.'}
+            ${isRu
+          ? 'Настоящий клиент представляет собой функциональный программный интерфейс (программную оболочку) для визуализации данных. Разработчик программного продукта категорически отказывается от каких-либо притязаний на владение, модерирование, создание, хостинг, распространение или хранение медиафайлов, представленных в результатах поиска. Весь контент загружается сторонними пользователями на публичные сервера e621.net. Разработчик клиента не имеет обратной связи с загрузчиками, не модерирует базу данных и не несет за нее правовую, моральную или материальную ответственность.'
+          : 'This application acts strictly as an open-source visual rendering tool. The software architect fully disclaims all liability, custody, authorship or responsibility for any of the graphics, files, or information processed through API requests. All digital files are uploaded by third-party individuals directly onto e621.net public file hostings.'}
           </p>
         </section>
 
@@ -3858,8 +4182,8 @@
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
             ${isRu
-              ? 'Данный клиент полностью подчиняется стандартам добросовестного использования и транзита трафика. Программа не создает зеркала баз данных. Все товарные знаки, оригинальные персонажи, иллюстрации и прочие объекты интеллектуального права принадлежат их правообладателям и авторам. Если вы являетесь автором изображения и считаете, что ваши права нарушены, официальный юридический запрос на удаление (Takedown Notice) в соответствии с Законом об авторском праве в цифровую эпоху (DMCA) должен быть направлен напрямую хостинг-провайдеру e621.net. Приложение не кэширует медиафайлы на собственных серверах и мгновенно перестает отображать файлы, как только они удаляются на первоисточнике.'
-              : 'The client behaves inside strict standards of technical pipeline transit. All legal and copyright complaints under the Digital Millennium Copyright Act (DMCA) must be issued directly to e621.net administration. Once a file is processed or purged on the database side, it instantly becomes inaccessible on this layout client.'}
+          ? 'Данный клиент полностью подчиняется стандартам добросовестного использования и транзита трафика. Программа не создает зеркала баз данных. Все товарные знаки, оригинальные персонажи, иллюстрации и прочие объекты интеллектуального права принадлежат их правообладателям и авторам. Если вы являетесь автором изображения и считаете, что ваши права нарушены, официальный юридический запрос на удаление (Takedown Notice) в соответствии с Законом об авторском праве в цифровую эпоху (DMCA) должен быть направлен напрямую хостинг-провайдеру e621.net. Приложение не кэширует медиафайлы на собственных серверах и мгновенно перестает отображать файлы, как только они удаляются на первоисточнике.'
+          : 'The client behaves inside strict standards of technical pipeline transit. All legal and copyright complaints under the Digital Millennium Copyright Act (DMCA) must be issued directly to e621.net administration. Once a file is processed or purged on the database side, it instantly becomes inaccessible on this layout client.'}
           </p>
         </section>
 
@@ -3869,8 +4193,8 @@
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
             ${isRu
-              ? 'Приложение разработано на принципах "Privacy by Design". У разработчика полностью отсутствуют удаленные сервера для сбора логов, аналитики или метаданных пользователей. Вся ваша персональная статистика (время сессии, история поиска, локальные закладки и зашифрованные учетные данные API e621.net) хранится исключительно на вашем физическом устройстве в песочнице LocalStorage веб-браузера. Использование PIN-кода активирует криптографическое шифрование учетных записей локально. Передача этих данных третьим лицам исключена технической структурой приложения.'
-              : 'Our client uses client-side offline rendering architecture. We do not operate databases or backend servers. Your personal information, preferences, cookies, bookmarks and logs are stored inside your device browser local sandbox.'}
+          ? 'Приложение разработано на принципах "Privacy by Design". У разработчика полностью отсутствуют удаленные сервера для сбора логов, аналитики или метаданных пользователей. Вся ваша персональная статистика (время сессии, история поиска, локальные закладки и зашифрованные учетные данные API e621.net) хранится исключительно на вашем физическом устройстве в песочнице LocalStorage веб-браузера. Использование PIN-кода активирует криптографическое шифрование учетных записей локально. Передача этих данных третьим лицам исключена технической структурой приложения.'
+          : 'Our client uses client-side offline rendering architecture. We do not operate databases or backend servers. Your personal information, preferences, cookies, bookmarks and logs are stored inside your device browser local sandbox.'}
           </p>
         </section>
 
@@ -3880,8 +4204,8 @@
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
             ${isRu
-              ? 'Пользователь обязуется использовать свои собственные ключи доступа e621 API в соответствии с правилами оригинального сайта e621.net. Использование прокси-серверов или обходных шлюзов осуществляется пользователем на свой собственный страх и риск. Разработчик не гарантирует бесперебойную доступность стороннего API и стабильность CORS прокси.'
-              : 'Users must access e621 API parameters strictly abiding by the standard platform guidelines of e621.net. Third-party proxy paths are established at user discretion and risk.'}
+          ? 'Пользователь обязуется использовать свои собственные ключи доступа e621 API в соответствии с правилами оригинального сайта e621.net. Использование прокси-серверов или обходных шлюзов осуществляется пользователем на свой собственный страх и риск. Разработчик не гарантирует бесперебойную доступность стороннего API и стабильность CORS прокси.'
+          : 'Users must access e621 API parameters strictly abiding by the standard platform guidelines of e621.net. Third-party proxy paths are established at user discretion and risk.'}
           </p>
         </section>
 
@@ -3891,8 +4215,8 @@
           </h2>
           <p class="text-[11px] leading-relaxed text-zinc-400">
             ${isRu
-              ? 'По любым вопросам технического характера, предложениям по оптимизации разметки или сообщениям о багах вы можете обратиться напрямую по электронному адресу:'
-              : 'If you experience system crashes, require software optimization, or have layout improvement proposals, contact support directly at:'}
+          ? 'По любым вопросам технического характера, предложениям по оптимизации разметки или сообщениям о багах вы можете обратиться напрямую по электронному адресу:'
+          : 'If you experience system crashes, require software optimization, or have layout improvement proposals, contact support directly at:'}
           </p>
           <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg text-center mt-2">
             <a href="mailto:chromiumeo@gmail.com" class="text-sm font-extrabold text-[var(--accent)] hover:underline select-text">chromiumeo@gmail.com</a>
@@ -3948,7 +4272,7 @@
     function triggerTabAnimation(viewNameOrAction) {
       document.querySelectorAll('.tab-bar .tab-btn svg').forEach(svg => {
         svg.classList.remove('animate-gallery-tab', 'animate-bookmarks-tab', 'animate-random-tab', 'animate-recs-tab', 'animate-settings-tab');
-        void svg.offsetHeight; 
+        void svg.offsetHeight;
       });
 
       requestAnimationFrame(() => {
@@ -3995,12 +4319,12 @@
       });
 
       const topTags = Object.entries(tagWeights)
-        .sort((a,b) => b[1] - a[1])
+        .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(entry => entry[0]);
 
       const bestTag = topTags[0];
-      
+
       fetchFromE621(bestTag, 0).then(posts => {
         clearPostContainer(container);
         if (!posts || posts.length === 0) {
@@ -4033,6 +4357,7 @@
     }
 
     function updateAuthUI() {
+      updateGreeting();
       const usernameInput = document.getElementById('auth-username');
       const apiKeyInput = document.getElementById('auth-api-key');
       const authStatus = document.getElementById('auth-status');
@@ -4110,7 +4435,7 @@
         state.history.forEach(h => {
           if (h.rating) ratingsMap[h.rating] = (ratingsMap[h.rating] || 0) + 1;
         });
-        const topRating = Object.entries(ratingsMap).sort((a,b) => b[1] - a[1])[0][0];
+        const topRating = Object.entries(ratingsMap).sort((a, b) => b[1] - a[1])[0][0];
         const ratingLabels = { 's': 'S (Safe)', 'q': 'Q (Questionable)', 'e': 'E (Explicit)' };
         ratingVal.textContent = ratingLabels[topRating] || 'S (Safe)';
       }
@@ -4131,7 +4456,7 @@
           }
         });
 
-        const sortedTags = Object.entries(tagWeights).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        const sortedTags = Object.entries(tagWeights).sort((a, b) => b[1] - a[1]).slice(0, 5);
         tagsBox.innerHTML = '';
         if (sortedTags.length === 0) {
           tagsBox.textContent = '...';
@@ -4164,7 +4489,7 @@
 
       const radiusSelect = document.getElementById('setting-radius');
       if (radiusSelect) radiusSelect.value = state.customization.radius;
-      
+
       const bottomBar = document.getElementById('bottom-tab-bar');
       if (bottomBar) bottomBar.style.borderColor = state.customization.accent;
 
@@ -4194,7 +4519,7 @@
       safeCheck.checked = state.settings.ratings.includes('0+');
       questCheck.checked = state.settings.ratings.includes('16+');
       explCheck.checked = state.settings.ratings.includes('18+');
-      
+
       if (state.panicActive) {
         safeCheck.disabled = true;
         questCheck.disabled = true;
@@ -4218,7 +4543,7 @@
       });
     }
 
-    window.removeBlacklistTag = function(tag) {
+    window.removeBlacklistTag = function (tag) {
       state.blacklist = state.blacklist.filter(t => t !== tag);
       safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
       renderBlacklistChips();
@@ -4228,7 +4553,7 @@
     function changeLayout(type, reloadGallery = true) {
       state.settings.layout = type;
       safeLocalStorage.setItem('p_e621_layout', type);
-      
+
       const grids = [
         document.getElementById('gallery-grid'),
         document.getElementById('bookmarks-grid'),
@@ -4322,13 +4647,29 @@
       }
     }
 
+    function triggerStartupAnimation() {
+      if (state.settings.startupAnim && !state.settings.ecoMode) {
+        document.documentElement.classList.remove('startup-loading');
+        document.body.classList.add('do-startup-anim');
+        setTimeout(() => {
+          document.body.classList.remove('do-startup-anim');
+        }, 1500);
+      } else {
+        document.documentElement.classList.remove('startup-loading');
+      }
+    }
+
     function evaluateSecurityCheckpoints() {
       if (state.settings.pinEnabled) {
-        openSecurePinScreen(false, () => loadGallery());
+        openSecurePinScreen(false, () => {
+          loadGallery();
+          triggerStartupAnimation();
+        });
       } else {
         resolveEncryptedCredentials("");
         updateAuthUI();
         loadGallery();
+        triggerStartupAnimation();
       }
     }
 
@@ -4370,7 +4711,7 @@
 
     function processPinEntry() {
       const promptText = document.getElementById('pin-screen-prompt');
-      
+
       if (state.setupPinMode) {
         if (!state.newPinRegister) {
           state.newPinRegister = state.tempPinInput;
@@ -4386,10 +4727,11 @@
             reEncryptCredentials(state.tempPinInput);
             const screen = document.getElementById('pin-overlay-screen');
             if (screen) screen.classList.add('hidden');
+            document.documentElement.classList.remove('pin-loading');
             const wrap = document.getElementById('pin-actions-wrap');
             if (wrap) wrap.classList.remove('hidden');
             showToast(t('pinConfigured'));
-            
+
             if (pinVerificationCallback) pinVerificationCallback(state.tempPinInput);
           } else {
             state.tempPinInput = "";
@@ -4404,6 +4746,7 @@
         if (state.tempPinInput === activePin) {
           const screen = document.getElementById('pin-overlay-screen');
           if (screen) screen.classList.add('hidden');
+          document.documentElement.classList.remove('pin-loading');
           resolveEncryptedCredentials(state.tempPinInput);
           updateAuthUI();
           if (pinVerificationCallback) pinVerificationCallback(state.tempPinInput);
@@ -4419,16 +4762,31 @@
     async function downloadMediaLocal(url, filename) {
       const dlBtn = document.getElementById('detail-download-btn');
       const dlBtnSpan = dlBtn?.querySelector('span');
-      
+
       if (dlBtnSpan) {
         dlBtnSpan.textContent = t('holdToDownload');
       }
 
       showToast(t('openingMedia'));
 
-      setTimeout(() => {
-        window.open(url, '_blank');
-      }, 350);
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+      } catch (err) {
+        console.error('Download failed via blob:', err);
+        // Fallback to opening in external system browser instead of a new in-app tab
+        setTimeout(() => {
+          window.open(url, '_system');
+        }, 350);
+      }
     }
 
     function triggerInstantPanicAction() {
@@ -4479,7 +4837,7 @@
       safeLocalStorage.setItem('p_e621_panic_active', 'false');
       state.settings.ratings = [...state.prePanicRatings];
       safeLocalStorage.setItem('p_e621_ratings', JSON.stringify(state.settings.ratings));
-      
+
       syncPanicUIState();
       showToast(t('quickPanicDeactive'));
       loadGallery(true);
@@ -4488,7 +4846,7 @@
     let lastScrollY = window.scrollY;
     let accumulatedDelta = 0;
     let scrollFramePending = false;
-    
+
     window.addEventListener('scroll', () => {
       if (activeView !== 'gallery' || scrollFramePending) return;
 
@@ -4498,16 +4856,16 @@
         const currentScrollY = window.scrollY;
         const delta = currentScrollY - lastScrollY;
         lastScrollY = currentScrollY;
-        
+
         const header = DOM.appHeader;
         if (currentScrollY <= 60) {
           header?.classList.remove('header-hidden');
           accumulatedDelta = 0;
           return;
         }
-        
+
         accumulatedDelta += delta;
-        
+
         if (accumulatedDelta > 150) {
           header?.classList.add('header-hidden');
           accumulatedDelta = 0;
@@ -4571,8 +4929,8 @@
           triggerTabAnimation(targetTrigger);
 
           if (action === 'random') {
-            state.randomModeActive = true; 
-            rollLuckyPost(); 
+            state.randomModeActive = true;
+            rollLuckyPost();
           } else {
             state.randomModeActive = false;
             switchView(view);
@@ -4705,11 +5063,11 @@
           state.settings.apiBaseUrl = apiBaseInput.value.trim() || 'https://e621.net';
           state.settings.proxyMode = proxyModeSelect.value;
           state.settings.customProxyPrefix = customProxyInput.value.trim();
-          
+
           safeLocalStorage.setItem('p_e621_api_base', state.settings.apiBaseUrl);
           safeLocalStorage.setItem('p_e621_proxy_mode', state.settings.proxyMode);
           safeLocalStorage.setItem('p_e621_custom_proxy', state.settings.customProxyPrefix);
-          
+
           showToast(t('proxySaved'));
           loadGallery(true);
         });
@@ -4780,6 +5138,56 @@
       }
 
       const blacklistBtn = document.getElementById('add-blacklist-btn');
+      const blacklistInput = document.getElementById('blacklist-input');
+      const blacklistSuggestionsBox = document.getElementById('blacklist-suggestions');
+      let blacklistDebounceTimer;
+
+      if (blacklistInput && blacklistSuggestionsBox) {
+        blacklistInput.addEventListener('input', () => {
+          clearTimeout(blacklistDebounceTimer);
+          const value = blacklistInput.value;
+
+          if (!value.trim() || value.trim().length < 2) {
+            blacklistSuggestionsBox.style.display = 'none';
+            return;
+          }
+
+          blacklistDebounceTimer = setTimeout(async () => {
+            const suggestions = await fetchTagSuggestions(value.trim());
+            if (blacklistInput.value !== value) return;
+
+            if (!suggestions || suggestions.length === 0) {
+              blacklistSuggestionsBox.style.display = 'none';
+              return;
+            }
+
+            blacklistSuggestionsBox.innerHTML = '';
+            suggestions.slice(0, 10).forEach(item => {
+              const suggestionItem = document.createElement('div');
+              suggestionItem.className = 'suggestion-item';
+              const count = item.post_count;
+              let formattedCount = count >= 1000 ? (count / 1000).toFixed(0) + 'K' : count;
+              const aliasText = state.language === 'ru' && TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
+              suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${aliasText}</span>`;
+
+              suggestionItem.addEventListener('click', () => {
+                blacklistInput.value = item.name;
+                blacklistSuggestionsBox.style.display = 'none';
+                blacklistInput.focus();
+              });
+              blacklistSuggestionsBox.appendChild(suggestionItem);
+            });
+            blacklistSuggestionsBox.style.display = 'block';
+          }, 300);
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!blacklistInput.contains(e.target) && !blacklistSuggestionsBox.contains(e.target)) {
+            blacklistSuggestionsBox.style.display = 'none';
+          }
+        });
+      }
+
       if (blacklistBtn) {
         blacklistBtn.addEventListener('click', () => {
           const input = document.getElementById('blacklist-input');
@@ -4789,10 +5197,12 @@
             safeLocalStorage.setItem('p_e621_blacklist', JSON.stringify(state.blacklist));
             renderBlacklistChips();
             input.value = '';
+            if (blacklistSuggestionsBox) blacklistSuggestionsBox.style.display = 'none';
             loadGallery(true);
           }
         });
       }
+
 
       const radiusSelect = document.getElementById('setting-radius');
       if (radiusSelect) {
@@ -4830,6 +5240,14 @@
           state.settings.ecoMode = e.target.checked;
           safeLocalStorage.setItem('p_e621_set_eco', e.target.checked);
           applyEcoMode(e.target.checked);
+        });
+      }
+
+      const startupAnimBox = document.getElementById('setting-startup-anim');
+      if (startupAnimBox) {
+        startupAnimBox.addEventListener('change', (e) => {
+          state.settings.startupAnim = e.target.checked;
+          safeLocalStorage.setItem('p_e621_startup_anim', e.target.checked);
         });
       }
 
@@ -4878,7 +5296,7 @@
           });
         }
       };
-      
+
       bindRatingToggle('rating-safe', '0+');
       bindRatingToggle('rating-questionable', '16+');
       bindRatingToggle('rating-explicit', '18+');
@@ -4914,11 +5332,11 @@
 
       const bgInput = document.getElementById('custom-bg-input');
       if (bgInput) {
-        bgInput.addEventListener('change', function(e) {
+        bgInput.addEventListener('change', function (e) {
           const file = e.target.files[0];
           if (!file) return;
           const reader = new FileReader();
-          reader.onload = function(event) {
+          reader.onload = function (event) {
             const dataUrl = event.target.result;
             state.customBg = dataUrl;
             safeLocalStorage.setItem('p_e621_custom_bg', dataUrl);
@@ -4931,7 +5349,7 @@
 
       const opacityRange = document.getElementById('bg-opacity-range');
       if (opacityRange) {
-        opacityRange.addEventListener('input', function(e) {
+        opacityRange.addEventListener('input', function (e) {
           state.bgOpacity = e.target.value;
           safeLocalStorage.setItem('p_e621_bg_opacity', e.target.value);
           applyBgOpacity(e.target.value);
@@ -4984,6 +5402,7 @@
           const overlay = document.getElementById('eula-overlay');
           if (overlay) overlay.classList.add('hidden');
           document.body.classList.remove('modal-open');
+          document.documentElement.classList.remove('eula-loading');
           evaluateSecurityCheckpoints();
         });
       }
@@ -5090,7 +5509,52 @@
     });
     window.addEventListener('pagehide', persistElapsedTime);
 
-    window.onload = function() {
+    function togglePromoMode() {
+      const modal = document.getElementById('promo-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function applyPromoMode() {
+      const hideUi = document.getElementById('promo-hide-ui').checked;
+      const noAnim = document.getElementById('promo-no-anim').checked;
+      const blurImg = document.getElementById('promo-blur-img').checked;
+      const greenBg = document.getElementById('promo-green-bg').checked;
+      const customCss = document.getElementById('promo-custom-css').value;
+
+      let styleEl = document.getElementById('promo-mode-styles');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'promo-mode-styles';
+        document.head.appendChild(styleEl);
+      }
+
+      let css = '';
+      if (hideUi) {
+        css += 'header, .tab-bar, .tag-operator-bar, #traffic-badge { display: none !important; } ';
+        css += 'main { padding-top: 10px !important; padding-bottom: 10px !important; } ';
+      }
+      if (noAnim) {
+        css += '* { transition: none !important; animation: none !important; } ';
+      }
+      if (blurImg) {
+        css += 'img, video { filter: blur(20px) !important; transform: scale(1.1); } ';
+      }
+      if (greenBg) {
+        css += 'body { background: #00FF00 !important; } .post-card { background: #00FF00 !important; } ';
+      }
+
+      if (customCss.trim()) {
+        css += customCss;
+      }
+
+      styleEl.innerHTML = css;
+      document.getElementById('promo-modal').style.display = 'none';
+
+      addDebugLog("Режим Промо применен.");
+      showToast("Промо-режим активен!");
+    }
+
+    window.onload = function () {
       applyCustomStyles();
       applyFeedFitStyle();
       applyEcoMode(state.settings.ecoMode);
@@ -5101,7 +5565,7 @@
       updateAuthUI();
       initRatingsCheckboxes();
       syncPanicUIState();
-      
+
       const radSelect = document.getElementById('setting-radius');
       if (radSelect) radSelect.value = state.customization.radius;
       const opRange = document.getElementById('bg-opacity-range');
@@ -5110,12 +5574,77 @@
       if (ecoBox) ecoBox.checked = state.settings.ecoMode;
       const nsfwBox = document.getElementById('setting-nsfw-blur');
       if (nsfwBox) nsfwBox.checked = state.settings.nsfwBlur;
+      applyNsfwBlurState(state.settings.nsfwBlur);
       const pinBox = document.getElementById('setting-pin-enabled');
       if (pinBox) pinBox.checked = state.settings.pinEnabled;
+      const saBox = document.getElementById('setting-startup-anim');
+      if (saBox) saBox.checked = state.settings.startupAnim;
 
       translateUI();
+
+      // Trigger startup animation immediately ONLY if EULA accepted and PIN screen not showing.
+      // Otherwise, the animation is triggered when the overlays are resolved.
+      const accepted = safeLocalStorage.getItem('p_e621_eula_accepted');
+      if (accepted === 'true' && !state.settings.pinEnabled) {
+        triggerStartupAnimation();
+      }
+
       checkFirstLaunchEULA();
     };
   </script>
+
+  <!-- Promo Mode Modal -->
+  <div id="promo-modal" class="peek-overlay" style="display: none; z-index: 10000;">
+    <div
+      class="peek-content bg-zinc-950 border border-amber-500 p-5 rounded-lg w-full max-w-sm flex flex-col gap-4 text-zinc-200">
+      <h3 class="text-lg font-bold text-amber-500 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+          </path>
+        </svg>
+        Режим "Промо"
+      </h3>
+      <p class="text-xs text-zinc-400">Отладочный режим для настройки визуала, скриншотов или презентаций.</p>
+
+      <div class="flex flex-col gap-3">
+        <div class="setting-item">
+          <span class="flex flex-col"><span class="text-sm font-bold text-zinc-200">Скрыть шапку и панели</span></span>
+          <label class="switch"><input type="checkbox" id="promo-hide-ui"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-item">
+          <span class="flex flex-col"><span class="text-sm font-bold text-zinc-200">Отключить все анимации</span></span>
+          <label class="switch"><input type="checkbox" id="promo-no-anim"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-item">
+          <span class="flex flex-col"><span class="text-sm font-bold text-zinc-200">Размыть все превью</span></span>
+          <label class="switch"><input type="checkbox" id="promo-blur-img"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-item">
+          <span class="flex flex-col"><span class="text-sm font-bold text-zinc-200">Хромакей (Зеленый фон)</span></span>
+          <label class="switch"><input type="checkbox" id="promo-green-bg"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1 mt-2">
+        <label class="text-xs font-bold text-zinc-400">Кастомный CSS-инжект (редактор стилей):</label>
+        <textarea id="promo-custom-css"
+          class="w-full bg-black/80 border border-zinc-700 rounded p-2 text-xs font-mono h-24 text-zinc-300 focus:border-amber-500 outline-none"
+          placeholder="/* Например, скрыть лайки: */&#10;.post-likes { display: none !important; }"></textarea>
+      </div>
+
+      <div class="flex justify-between gap-3 mt-4">
+        <button class="action-btn flex-1 py-2"
+          onclick="document.getElementById('promo-modal').style.display='none'">Закрыть</button>
+        <button class="action-btn flex-1 py-2" style="background: #f59e0b; color: #fff; border-color: #d97706;"
+          onclick="applyPromoMode()">Применить</button>
+      </div>
+    </div>
+  </div>
+
 </body>
+
 </html>
