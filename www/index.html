@@ -3622,10 +3622,6 @@
       throw new Error(`${t('connectionError')}: ${response.status}`);
     }
 
-    const TAG_ALIASES = {
-      'anthro': 'антропоморф', 'solo': 'один', 'female': 'самка', 'male': 'самец', 'canine': 'псовые', 'feline': 'кошачьи'
-    };
-
     let activeView = 'gallery';
     let activePage = 0;
     let currentSearchTags = state.lastSearchTags;
@@ -3672,6 +3668,30 @@
       suggestionsBox.style.display = 'none';
       searchInput.focus();
     });
+
+    function formatCompactCount(value) {
+      const count = Number(value);
+      if (!Number.isFinite(count)) return '0';
+
+      const units = ['', 'K', 'M', 'B', 'T'];
+      let unitIndex = 0;
+      let compactValue = Math.abs(count);
+
+      while (compactValue >= 1000 && unitIndex < units.length - 1) {
+        compactValue /= 1000;
+        unitIndex += 1;
+      }
+
+      if (unitIndex === 0) return String(Math.trunc(count));
+
+      if (Number(compactValue.toFixed(1)) >= 1000 && unitIndex < units.length - 1) {
+        compactValue /= 1000;
+        unitIndex += 1;
+      }
+
+      const sign = count < 0 ? '-' : '';
+      return `${sign}${compactValue.toFixed(1)}${units[unitIndex]}`;
+    }
 
     function parseRule34TagSuggestions(textData) {
       const payload = String(textData || '').trim();
@@ -3982,10 +4002,9 @@
         const suggestionItem = document.createElement('div');
         suggestionItem.className = 'suggestion-item';
         const count = item.post_count;
-        let formattedCount = count >= 1000 ? (count / 1000).toFixed(0) + 'K' : count;
+        const formattedCount = formatCompactCount(count);
 
-        const aliasText = state.language === 'ru' && TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
-        suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${aliasText}</span>`;
+        suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount}</span>`;
 
         suggestionItem.addEventListener('click', () => {
           const operatorPrefix = String(words[words.length - 1] || '').match(/^[-~]+/)?.[0] || '';
@@ -5973,9 +5992,8 @@
               const suggestionItem = document.createElement('div');
               suggestionItem.className = 'suggestion-item';
               const count = item.post_count;
-              let formattedCount = count >= 1000 ? (count / 1000).toFixed(0) + 'K' : count;
-              const aliasText = state.language === 'ru' && TAG_ALIASES[item.name] ? ` (${TAG_ALIASES[item.name]})` : '';
-              suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount} ${aliasText}</span>`;
+              const formattedCount = formatCompactCount(count);
+              suggestionItem.innerHTML = `<span>${item.name}</span><span class="text-zinc-500 text-xs">${formattedCount}</span>`;
 
               suggestionItem.addEventListener('click', () => {
                 blacklistInput.value = item.name;
