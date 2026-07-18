@@ -1,30 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="tail" x1="151" y1="348" x2="369" y2="153" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1D4ED8"/>
-      <stop offset=".5" stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#60A5FA"/>
+    <linearGradient id="card" x1="156" y1="140" x2="356" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
     </linearGradient>
-    <linearGradient id="tip" x1="286" y1="166" x2="365" y2="137" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#DBEAFE"/>
-      <stop offset="1" stop-color="#67E8F9"/>
+    <linearGradient id="tail" x1="192" y1="338" x2="321" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BFDBFE"/>
+      <stop offset=".34" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#EFF6FF"/>
     </linearGradient>
-    <filter id="shadow" x="100" y="100" width="312" height="312" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#000" flood-opacity=".45"/>
+    <filter id="shadow" x="110" y="105" width="295" height="315" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#000" flood-opacity=".48"/>
     </filter>
   </defs>
 
-  <circle cx="256" cy="256" r="150" fill="none" stroke="#3F3F46" stroke-width="15"/>
-  <path d="M138 347a150 150 0 0 1-7-176" fill="none" stroke="#2563EB" stroke-width="13" stroke-linecap="round"/>
-  <path d="M374 164a150 150 0 0 1 9 167" fill="none" stroke="#60A5FA" stroke-width="13" stroke-linecap="round"/>
-
   <g filter="url(#shadow)">
-    <path d="M157 329c20 31 54 49 92 49 65 0 117-46 117-103 0-37-22-69-56-87 13 25 11 55-6 76-18 23-50 32-78 23-25-8-43-30-45-56-2-31 22-59 60-75-65 1-116 47-116 105 0 25 10 48 32 68Z" fill="url(#tail)"/>
-    <path d="M241 156c40-23 82-24 122-6-7 23-25 42-53 48-18-17-41-31-69-42Z" fill="url(#tip)"/>
+    <rect x="137" y="132" width="238" height="244" rx="53" fill="#0F172A" stroke="#52525B" stroke-width="10"/>
+    <rect x="152" y="147" width="208" height="214" rx="40" fill="url(#card)"/>
+    <circle cx="316" cy="193" r="17" fill="#67E8F9"/>
+
+    <path d="M196 323c-15-37-4-80 29-105 24-18 57-22 85-10-22 7-37 25-40 47-3 27 14 51 40 59 17 5 35 2 50-6-13 33-45 55-82 55-36 0-67-15-82-40Z" fill="url(#tail)"/>
+    <path d="M310 184c17 11 29 29 34 50-14-8-29-10-45-7 0-17 4-32 11-43Z" fill="#DBEAFE"/>
+    <path d="M170 338 218 290l31 31 42-51 55 55v36H170v-23Z" fill="#1E40AF" fill-opacity=".38"/>
   </g>
 
-  <g transform="translate(296 319)">
-    <rect width="98" height="57" rx="20" fill="#18181B" stroke="#52525B" stroke-width="5"/>
-    <text x="49" y="39" text-anchor="middle" fill="#F4F4F5" font-family="Arial, sans-serif" font-size="28" font-weight="800" letter-spacing="0">18+</text>
+  <g transform="translate(297 322)">
+    <rect width="94" height="55" rx="19" fill="#18181B" stroke="#71717A" stroke-width="5"/>
+    <text x="47" y="38" text-anchor="middle" fill="#F4F4F5" font-family="Arial, sans-serif" font-size="27" font-weight="800">18+</text>
   </g>
 </svg>
