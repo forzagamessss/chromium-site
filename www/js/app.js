@@ -2932,7 +2932,9 @@
       const header = DOM.appHeader;
       if (header) {
         header.style.display = viewName === 'gallery' ? 'flex' : 'none';
+        header.classList.remove('header-hidden');
       }
+      resetHeaderScrollState();
 
       if (viewName === 'bookmarks') {
         renderBookmarks();
@@ -3210,38 +3212,66 @@
       loadGallery(true);
     }
 
-    let lastScrollY = window.scrollY;
+    let lastScrollY = 0;
     let accumulatedDelta = 0;
+    let lastScrollDirection = 0;
     let scrollFramePending = false;
 
-    window.addEventListener('scroll', () => {
+    function getPageScrollY() {
+      return Math.max(
+        window.scrollY || 0,
+        document.scrollingElement?.scrollTop || 0,
+        document.documentElement?.scrollTop || 0,
+        document.body?.scrollTop || 0
+      );
+    }
+
+    function resetHeaderScrollState() {
+      lastScrollY = getPageScrollY();
+      accumulatedDelta = 0;
+      lastScrollDirection = 0;
+    }
+
+    function handleHeaderScroll() {
       if (activeView !== 'gallery' || scrollFramePending) return;
 
       scrollFramePending = true;
       requestAnimationFrame(() => {
         scrollFramePending = false;
-        const currentScrollY = window.scrollY;
+        const currentScrollY = getPageScrollY();
         const delta = currentScrollY - lastScrollY;
         lastScrollY = currentScrollY;
 
         const header = DOM.appHeader;
-        if (currentScrollY <= 60) {
+        if (!header || currentScrollY <= 24) {
           header?.classList.remove('header-hidden');
           accumulatedDelta = 0;
+          lastScrollDirection = 0;
           return;
         }
 
+        if (Math.abs(delta) < 1) return;
+
+        const direction = Math.sign(delta);
+        if (direction !== lastScrollDirection) {
+          accumulatedDelta = 0;
+          lastScrollDirection = direction;
+        }
         accumulatedDelta += delta;
 
-        if (accumulatedDelta > 150) {
-          header?.classList.add('header-hidden');
+        if (accumulatedDelta >= 32) {
+          header.classList.add('header-hidden');
           accumulatedDelta = 0;
-        } else if (accumulatedDelta < -80) {
-          header?.classList.remove('header-hidden');
+        } else if (accumulatedDelta <= -24) {
+          header.classList.remove('header-hidden');
           accumulatedDelta = 0;
         }
       });
-    }, { passive: true });
+    }
+
+    resetHeaderScrollState();
+    window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    document.addEventListener('scroll', handleHeaderScroll, { passive: true, capture: true });
 
     document.addEventListener("DOMContentLoaded", () => {
       const mediaSwitchContainer = document.getElementById('media-type-container');

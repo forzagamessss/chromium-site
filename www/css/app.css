@@ -149,7 +149,7 @@
     }
 
     header.header-hidden {
-      transform: translate3d(0, -100%, 0);
+      transform: translate3d(0, calc(-100% - 1px), 0);
     }
 
     .header-top {

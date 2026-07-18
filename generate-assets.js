@@ -3,8 +3,10 @@ const path = require('path');
 const sharp = require('sharp');
 
 const root = __dirname;
-const sourceIcon = path.join(root, 'assets', 'icon-512.png');
+const masterIcon = path.join(root, 'assets', 'icon-512.png');
+const webIcon = path.join(root, 'www', 'icon-512.png');
 const resDir = path.join(root, 'android', 'app', 'src', 'main', 'res');
+const backgroundHex = '#8CA8E4';
 
 const densities = {
   mdpi: { legacy: 48, adaptive: 108 },
@@ -19,31 +21,32 @@ function ensureDir(dir) {
 }
 
 async function writePng(size, destination, background) {
-  await sharp(sourceIcon)
+  await sharp(masterIcon)
     .resize(size, size, { fit: 'contain', background })
     .png()
     .toFile(destination);
 }
 
 async function main() {
-  if (!fs.existsSync(sourceIcon)) {
-    throw new Error(`Source icon not found: ${sourceIcon}`);
-  }
-  if (!fs.existsSync(resDir)) {
-    throw new Error('Android project not found. Run "npx cap add android" first.');
+  if (!fs.existsSync(masterIcon)) {
+    throw new Error(`Source icon not found: ${masterIcon}`);
   }
 
-  const image = sharp(sourceIcon);
+  const image = sharp(masterIcon);
   const metadata = await image.metadata();
-  const pixel = await image.clone()
-    .extract({ left: 0, top: 0, width: 1, height: 1 })
-    .removeAlpha()
-    .raw()
-    .toBuffer();
-  const background = { r: pixel[0], g: pixel[1], b: pixel[2], alpha: 1 };
-  const backgroundHex = `#${[pixel[0], pixel[1], pixel[2]]
-    .map(value => value.toString(16).padStart(2, '0'))
-    .join('')}`;
+  const background = { r: 140, g: 168, b: 228, alpha: 1 };
+
+  await image
+    .clone()
+    .resize(512, 512)
+    .png()
+    .toFile(webIcon);
+
+  if (!fs.existsSync(resDir)) {
+    console.log(`Web icon generated from ${metadata.width}x${metadata.height} PNG source.`);
+    console.log('Android project not found; run "npm run sync" before generating launcher resources.');
+    return;
+  }
 
   for (const [density, sizes] of Object.entries(densities)) {
     const mipmapDir = path.join(resDir, `mipmap-${density}`);
@@ -79,7 +82,7 @@ async function main() {
   fs.writeFileSync(path.join(adaptiveDir, 'ic_launcher.xml'), adaptiveIcon);
   fs.writeFileSync(path.join(adaptiveDir, 'ic_launcher_round.xml'), adaptiveIcon);
 
-  console.log(`Android launcher icons generated from ${metadata.width}x${metadata.height} source.`);
+  console.log(`Master and Android launcher icons generated from ${metadata.width}x${metadata.height} source.`);
 }
 
 main().catch(error => {

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npm run build:css",
     "build:css": "tailwindcss -i ./www/css/tailwind.input.css -o ./www/css/tailwind.css --minify",
-    "sync": "npx cap sync android && node configure-android.js",
+    "generate:assets": "node generate-assets.js",
+    "sync": "node generate-assets.js && npx cap sync android && node generate-assets.js && node configure-android.js",
     "open": "npx cap open android"
   },
   "dependencies": {
