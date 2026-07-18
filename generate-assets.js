@@ -3,10 +3,12 @@ const path = require('path');
 const sharp = require('sharp');
 
 const root = __dirname;
+const sourceIcon = path.join(root, 'assets', 'icon-source.svg');
+const foregroundIcon = path.join(root, 'assets', 'icon-foreground.svg');
 const masterIcon = path.join(root, 'assets', 'icon-512.png');
 const webIcon = path.join(root, 'www', 'icon-512.png');
 const resDir = path.join(root, 'android', 'app', 'src', 'main', 'res');
-const backgroundHex = '#8CA8E4';
+const backgroundHex = '#09090B';
 
 const densities = {
   mdpi: { legacy: 48, adaptive: 108 },
@@ -20,21 +22,21 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-async function writePng(size, destination, background) {
-  await sharp(masterIcon)
+async function writePng(source, size, destination, background) {
+  await sharp(source)
     .resize(size, size, { fit: 'contain', background })
     .png()
     .toFile(destination);
 }
 
 async function main() {
-  if (!fs.existsSync(masterIcon)) {
-    throw new Error(`Source icon not found: ${masterIcon}`);
+  if (!fs.existsSync(sourceIcon) || !fs.existsSync(foregroundIcon)) {
+    throw new Error('Vector icon sources are missing.');
   }
 
-  const image = sharp(masterIcon);
-  const metadata = await image.metadata();
-  const background = { r: 140, g: 168, b: 228, alpha: 1 };
+  await writePng(sourceIcon, 512, masterIcon, { r: 9, g: 9, b: 11, alpha: 1 });
+  const metadata = await sharp(masterIcon).metadata();
+  const background = { r: 9, g: 9, b: 11, alpha: 1 };
 
   fs.copyFileSync(masterIcon, webIcon);
 
@@ -48,9 +50,9 @@ async function main() {
     const mipmapDir = path.join(resDir, `mipmap-${density}`);
     ensureDir(mipmapDir);
 
-    await writePng(sizes.legacy, path.join(mipmapDir, 'ic_launcher.png'), background);
-    await writePng(sizes.legacy, path.join(mipmapDir, 'ic_launcher_round.png'), background);
-    await writePng(sizes.adaptive, path.join(mipmapDir, 'ic_launcher_foreground.png'), {
+    await writePng(masterIcon, sizes.legacy, path.join(mipmapDir, 'ic_launcher.png'), background);
+    await writePng(masterIcon, sizes.legacy, path.join(mipmapDir, 'ic_launcher_round.png'), background);
+    await writePng(foregroundIcon, sizes.adaptive, path.join(mipmapDir, 'ic_launcher_foreground.png'), {
       r: 0,
       g: 0,
       b: 0,
