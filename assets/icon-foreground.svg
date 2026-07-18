@@ -5,10 +5,6 @@
       <stop offset=".53" stop-color="#2563EB"/>
       <stop offset="1" stop-color="#60A5FA"/>
     </linearGradient>
-    <linearGradient id="tip" x1="280" y1="185" x2="354" y2="141" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#DBEAFE"/>
-      <stop offset="1" stop-color="#F4F4F5"/>
-    </linearGradient>
     <filter id="shadow" x="105" y="102" width="305" height="322" filterUnits="userSpaceOnUse">
       <feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#000" flood-opacity=".48"/>
     </filter>
@@ -16,7 +12,6 @@
 
   <g filter="url(#shadow)">
     <path d="M151 327c19 37 57 61 101 61 68 0 122-48 122-108 0-42-27-78-67-96 16 26 17 57 2 82-16 25-47 38-77 32-27-6-49-27-55-54-8-36 16-72 60-92-71 2-126 51-126 114 0 22 7 43 20 59 6 8 14 9 20 2Z" fill="url(#tail)"/>
-    <path d="M237 152c44-25 88-27 130-6-7 25-26 45-60 55-18-20-42-36-70-49Z" fill="url(#tip)"/>
   </g>
 
   <g transform="translate(296 327)">
