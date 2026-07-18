@@ -54,8 +54,8 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          const activityPath = 'android/app/src/main/java/com/chromium/e621/client/MainActivity.java';
-          const pluginPath = 'android/app/src/main/java/com/chromium/e621/client/MediaDownloaderPlugin.java';
+          const activityPath = 'android/app/src/main/java/com/chromium/client/MainActivity.java';
+          const pluginPath = 'android/app/src/main/java/com/chromium/client/MediaDownloaderPlugin.java';
           const activity = fs.readFileSync(activityPath, 'utf8');
           const registerIndex = activity.indexOf('registerPlugin(MediaDownloaderPlugin.class)');
           const superIndex = activity.indexOf('super.onCreate(savedInstanceState)');
@@ -85,14 +85,14 @@ jobs:
             --ks-pass pass:"$KEYSTORE_PASSWORD" \
             --key-pass pass:"$KEYSTORE_PASSWORD" \
             --ks-key-alias "$KEY_ALIAS" \
-            --out chromium-e621-app.apk \
+            --out chromium-app.apk \
             aligned.apk
           /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner verify \
-            chromium-e621-app.apk
+            chromium-app.apk
 
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: chromium-e621-release-apk
-          path: chromium-e621-app.apk
+          name: chromium-release-apk
+          path: chromium-app.apk
           retention-days: 30

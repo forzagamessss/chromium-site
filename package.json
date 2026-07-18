@@ -1,7 +1,7 @@
 {
-  "name": "chromium-e621-client",
+  "name": "chromium-client",
   "version": "1.0.1",
-  "description": "Chromium E621 Mobile Client",
+  "description": "Chromium Mobile Client",
   "main": "index.js",
   "scripts": {
     "build": "npm run build:css",

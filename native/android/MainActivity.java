@@ -1,4 +1,4 @@
-package com.chromium.e621.client;
+package com.chromium.client;
 
 import android.os.Bundle;
 

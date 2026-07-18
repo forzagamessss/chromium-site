@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = __dirname;
-const packagePath = path.join('com', 'chromium', 'e621', 'client');
+const packagePath = path.join('com', 'chromium', 'client');
 const javaDir = path.join(root, 'android', 'app', 'src', 'main', 'java', packagePath);
 const templateDir = path.join(root, 'native', 'android');
 const manifestPath = path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');

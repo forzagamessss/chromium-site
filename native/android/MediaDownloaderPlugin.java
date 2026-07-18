@@ -1,4 +1,4 @@
-package com.chromium.e621.client;
+package com.chromium.client;
 
 import android.Manifest;
 import android.app.DownloadManager;
@@ -66,13 +66,13 @@ public class MediaDownloaderPlugin extends Plugin {
             Uri uri = Uri.parse(url);
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setTitle(filename);
-            request.setDescription("Chromium E621");
+            request.setDescription("Chromium");
             request.setNotificationVisibility(
                 DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
             );
             request.setAllowedOverMetered(true);
             request.setAllowedOverRoaming(true);
-            request.addRequestHeader("User-Agent", "ChromiumE621/1.0");
+            request.addRequestHeader("User-Agent", "Chromium/1.0");
 
             String extension = MimeTypeMap.getFileExtensionFromUrl(url);
             String mimeType = MimeTypeMap.getSingleton()
@@ -83,7 +83,7 @@ public class MediaDownloaderPlugin extends Plugin {
 
             request.setDestinationInExternalPublicDir(
                 Environment.DIRECTORY_DOWNLOADS,
-                "Chromium E621/" + filename
+                "Chromium/" + filename
             );
 
             DownloadManager manager = (DownloadManager) getContext()
