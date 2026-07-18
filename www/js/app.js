@@ -544,7 +544,8 @@
       detailNextBtn: document.getElementById('detail-next-btn'),
       detailDownloadBtn: document.getElementById('detail-download-btn'),
       loadingIndicator: document.getElementById('loading-indicator'),
-      appHeader: document.getElementById('app-header')
+      appHeader: document.getElementById('app-header'),
+      scrollToTopBtn: document.getElementById('scroll-to-top-btn')
     };
 
     function isAdmin() {
@@ -3230,6 +3231,15 @@
       lastScrollY = getPageScrollY();
       accumulatedDelta = 0;
       lastScrollDirection = 0;
+      syncHeaderScrollUI(lastScrollY);
+    }
+
+    function syncHeaderScrollUI(scrollY) {
+      const headerHidden = DOM.appHeader?.classList.contains('header-hidden') === true;
+      DOM.scrollToTopBtn?.classList.toggle(
+        'is-visible',
+        activeView === 'gallery' && headerHidden && scrollY > 120
+      );
     }
 
     function handleHeaderScroll() {
@@ -3247,6 +3257,7 @@
           header?.classList.remove('header-hidden');
           accumulatedDelta = 0;
           lastScrollDirection = 0;
+          syncHeaderScrollUI(currentScrollY);
           return;
         }
 
@@ -3259,19 +3270,25 @@
         }
         accumulatedDelta += delta;
 
-        if (accumulatedDelta >= 32) {
-          header.classList.add('header-hidden');
-          accumulatedDelta = 0;
-        } else if (accumulatedDelta <= -24) {
+        if (delta < -2) {
           header.classList.remove('header-hidden');
           accumulatedDelta = 0;
+        } else if (accumulatedDelta >= 32) {
+          header.classList.add('header-hidden');
+          accumulatedDelta = 0;
         }
+        syncHeaderScrollUI(currentScrollY);
       });
     }
 
     resetHeaderScrollState();
     window.addEventListener('scroll', handleHeaderScroll, { passive: true });
-    document.addEventListener('scroll', handleHeaderScroll, { passive: true, capture: true });
+    document.scrollingElement?.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    DOM.scrollToTopBtn?.addEventListener('click', () => {
+      DOM.appHeader?.classList.remove('header-hidden');
+      syncHeaderScrollUI(0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     document.addEventListener("DOMContentLoaded", () => {
       const mediaSwitchContainer = document.getElementById('media-type-container');

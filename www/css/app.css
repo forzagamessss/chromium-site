@@ -166,14 +166,55 @@
     }
 
     #api-provider-switch {
-      width: clamp(112px, 24vw, 156px);
+      width: clamp(142px, 32vw, 188px);
       height: 40px;
       flex: 0 1 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(24, 24, 27, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    #api-provider-switch > div {
-      flex: 1;
-      padding-inline: 12px;
+    .provider-option {
+      min-width: 0;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 7px;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: color 0.2s, background-color 0.2s, transform 0.12s;
+    }
+
+    .provider-option:active {
+      transform: scale(0.96);
+    }
+
+    .provider-icon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      fill: currentColor;
+    }
+
+    #prov-r34 .provider-icon {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     #quick-panic-btn {
@@ -263,7 +304,7 @@
       }
 
       #api-provider-switch {
-        width: clamp(104px, 30vw, 132px);
+        width: clamp(134px, 38vw, 164px);
       }
 
       .search-container {
@@ -508,6 +549,48 @@
       flex-grow: 1;
       padding: 10px;
       padding-bottom: 80px;
+    }
+
+    #scroll-to-top-btn {
+      position: fixed;
+      right: max(14px, env(safe-area-inset-right));
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      z-index: 46;
+      width: 44px;
+      height: 44px;
+      border: 1px solid color-mix(in srgb, var(--accent) 60%, var(--border));
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 84%, #09090b);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate3d(0, 14px, 0) scale(0.9);
+      transition: opacity 0.2s, visibility 0.2s, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    #scroll-to-top-btn.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    #scroll-to-top-btn:active {
+      transform: scale(0.92);
+    }
+
+    #scroll-to-top-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .grid-container {
