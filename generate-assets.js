@@ -36,11 +36,7 @@ async function main() {
   const metadata = await image.metadata();
   const background = { r: 140, g: 168, b: 228, alpha: 1 };
 
-  await image
-    .clone()
-    .resize(512, 512)
-    .png()
-    .toFile(webIcon);
+  fs.copyFileSync(masterIcon, webIcon);
 
   if (!fs.existsSync(resDir)) {
     console.log(`Web icon generated from ${metadata.width}x${metadata.height} PNG source.`);
